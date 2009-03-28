@@ -1,0 +1,22 @@
+package com.browseengine.bobo.facets.filter;
+
+import java.io.IOException;
+
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.DocIdSet;
+import org.apache.lucene.search.Filter;
+
+import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
+
+public abstract class RandomAccessFilter extends Filter
+{
+  private static final long serialVersionUID = 1L;
+
+  @Override 
+  public DocIdSet getDocIdSet(IndexReader reader) throws IOException
+  {
+    return getRandomAccessDocIdSet(reader);
+  }
+  
+  public abstract RandomAccessDocIdSet getRandomAccessDocIdSet(IndexReader reader) throws IOException;
+}
