@@ -209,20 +209,21 @@
 	
 	<target name="test" description="Runs JUnit Tests" depends="test-build">
 		<echo>=== Running JUnit Tests ===</echo>
-		
-		<junit printsummary="yes" fork="yes" haltonfailure="yes" showoutput="yes">
+		<mkdir dir="${test.report.dir}" />
+		<mkdir dir="${test.html.dir}" />
+		<junit printsummary="yes" showoutput="yes">
 
 		    <!-- classpath must include all jar dependencies and classes -->
 			<classpath refid="test.compile.class.path" />
 			
 	      	<!-- formatter to use for output -->
-        	<formatter type="plain"/>
-	        
-			<!-- fully qualified classname of testsuite -->
-			<test name="com.browseengine.bobo.test.UnitTestSuite"/>
+        	<formatter type="xml"/>
+	        <batchtest fork="yes" todir="${test.report.dir}">
+	          <fileset dir="${test}/src">
+	             <include name="**/BoboTestCase.java" />
+	          </fileset>
+	        </batchtest>
 		</junit>
-		<mkdir dir="${test.report.dir}" />
-		<mkdir dir="${test.html.dir}" />
 		<junitreport todir="${test.html.dir}">
 		  <fileset dir="${test.report.dir}">
 		    <include name="TEST-*.xml" />
