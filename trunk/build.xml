@@ -23,6 +23,10 @@
 	
 	<property name="jetty.home" location="jetty" />
 	
+	<property name="test.report.dir" location="${dist}/junit-reports" />
+	
+	<property name="test.html.dir" location="${test.report.dir}/html" />
+	
 	<property name="cardata" value="cardata" />
 	<property name="carindex" value="${cardata}/cartag"/>
 		
@@ -217,5 +221,13 @@
 			<!-- fully qualified classname of testsuite -->
 			<test name="com.browseengine.bobo.test.UnitTestSuite"/>
 		</junit>
+		<mkdir dir="${test.report.dir}" />
+		<mkdir dir="${test.html.dir}" />
+		<junitreport todir="${test.html.dir}">
+		  <fileset dir="${test.report.dir}">
+		    <include name="TEST-*.xml" />
+		  </fileset>
+		  <report todir="${test.html.dir}" format="frames" />
+		</junitreport>
 	</target>
 </project>
