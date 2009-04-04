@@ -43,10 +43,9 @@
 			 dir="${bobo-browse}" target="clean"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-service}" target="clean"/>
-		<!--
 		<ant antfile="build.xml"
 			 dir="${bobo-bench}" target="clean" />
-			 
+			 <!--
 		<ant antfile="build.xml"
 			dir="${geo-local}" target="clean" />
 		<ant antfile="build.xml"
@@ -230,5 +229,10 @@
 		  </fileset>
 		  <report todir="${test.html.dir}" format="frames" />
 		</junitreport>
+	</target>
+	
+
+	<target name="run-perf" depends="dist">
+		<ant antfile="build.xml" dir="${bobo-bench}" target="run-perf"/>
 	</target>
 </project>
