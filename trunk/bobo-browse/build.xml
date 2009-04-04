@@ -46,8 +46,6 @@
         </target>
 	
 		<target name="javadoc">
-			<delete dir="${doc}/api"/>
-			<mkdir dir="${doc}/api"/>
 			<javadoc packagenames="com.browseengine.bobo.api.*,
 									com.browseengine.bobo.facets.*,
 									com.browseengine.bobo.facets.data.*,
@@ -57,7 +55,7 @@
 									com.browseengine.bobo.search.*,
 									com.browseengine.bobo.docidset.*"
 			           sourcepath="${src}"
-			           destdir="${doc}/api"
+			           destdir="${doc}"
 			           author="true"
 			           version="true"
 			           use="true"
