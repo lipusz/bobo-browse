@@ -8,6 +8,7 @@
 	<property name="bobo-browse" value="bobo-browse"/>
 	<property name="bobo-service" value="bobo-service"/>
 	<property name="bobo-solr" value="bobo-solr"/>
+	<property name="bobo-app" value="bobo-app"/>
 
 	<property name="geo-local" value="geo-local"/>
 	<property name="bobo-bench" value="bobo-bench"/>
@@ -145,6 +146,10 @@
 		<!-- <delete dir="${ui.out}/${ui.name}"/>-->
 	</target>
 	
+	<target name="bobo-app" depends="dist">
+		<ant antfile="build.xml" dir="${bobo-app}" target="dist" />
+	</target>
+	
 	<target name="build-ui">
 		<!-- build tools -->
 		
@@ -163,7 +168,7 @@
 		<mkdir dir="cardemo/cars" />
 		<antcall target="create-ui">
 			<param name="ui.name" value="cars"/>
-			<param name="ui.out" value="cardemo"/>
+			<param name="ui.out" value="dist"/>
 			<param name="ui.idx.dir" value="cardata/cartag"/>
 		</antcall>
 		<delete dir="cardemo/cars" />
