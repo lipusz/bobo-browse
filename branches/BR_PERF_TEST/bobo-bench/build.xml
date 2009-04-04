@@ -1,7 +1,8 @@
 <project name="bobo-bench" default="dist">
 		<property name="src" value="src"/>
         <property name="lib" value="${bobo.root}/lib"/>
-        <property name="build" value="build"/>
+        <property name="perf.build" location="perf-build"/>
+	  	<property name="index.perf.dir" location="index-perf" />
       
 	<!--  <property name="resource" value="${bobo.root}/resource"/>
 		-->
@@ -22,26 +23,41 @@
         </path>
 
         <target name="clean">
-                <delete dir="${build}"/>
-                <delete dir="${dist}"/>
+                <delete dir="${perf.build}"/>
+        	    <delete dir="${index.perf.dir}"/>
         </target>
 
         <target name="init">
-                <mkdir dir="${build}"/>
+                <mkdir dir="${perf.build}"/>
                 <!-- <mkdir dir="${dist}"/>-->
         </target>
 
         <target name="compile" depends="init">                
-                <javac debug="true" optimize="false" destdir="${build}">
+                <javac debug="true" optimize="false" destdir="${perf.build}">
                         <src path="${src}"/>
                       <classpath refid="project.class.path"/>
                 </javac>
         </target>
 	
+		<target name="run-perf" depends="compile">
+	    	<java classname="com.browseengine.bobo.perf.tools.IndexReplicator">
+	    		<classpath>
+	    		<pathelement location="${perf.build}"/>
+	    		<fileset dir="${dist}">
+	    		    <include name="*.jar"/>
+	    	 	</fileset>
+	    	 	<fileset dir="${lib}">
+	    	 	    <include name="*.jar"/>
+	    	 	</fileset>
+	    		</classpath>
+	    		<arg value="${carindex}"/>
+	    		<arg value="${index.perf.dir}"/>
+	        	<arg value="10"/>
+	    	</java>
+	  		<delete dir="${index.perf.dir}"/>
+	  	</target>
+	
         <target name="dist" depends="compile">
-<!--                <copy file="${resource}/log4j.properties" todir="${build}"/>
--->
-                <jar destfile="${dist}/${bobo-bench}.jar"  basedir="${build}" />
-				<delete dir="${build}" />
+                <jar destfile="${dist}/${bobo-bench}.jar"  basedir="${perf.build}" />
         </target>
 </project>
