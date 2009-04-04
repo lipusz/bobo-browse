@@ -59,6 +59,8 @@
 			 dir="${bobo-browse}" target="dist"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-service}" target="dist"/>
+		<ant antfile="build.xml"
+			 dir="${bobo-browse}" target="javadoc" />
 		<!--
 		<ant antfile="build.xml"
 			 dir="${bobo-bench}" target="dist" />
