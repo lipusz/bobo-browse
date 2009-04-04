@@ -1,0 +1,17 @@
+color:blue
+color:gold
+color:green
+color:red
+color:silver
+color:white
+color:yellow
+category:exotic
+category:luxury
+category:mini-van
+category:sedan
+category:sports car
+category:station wagon
+category:sub-compact
+category:suv
+category:truck
+category:van
