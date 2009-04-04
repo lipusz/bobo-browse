@@ -1,0 +1,15 @@
+<!DOCTYPE dwr PUBLIC
+    "-//GetAhead Limited//DTD Direct Web Remoting 2.0//EN"
+    "http://directwebremoting.org/schema/dwr20.dtd">
+
+<dwr>
+
+  <allow>
+    <create creator="spring" javascript="BoboService">
+      <param name="beanName" value="boboService"/>
+    </create>
+    
+    
+    <convert converter="bean" match="com.browseengine.bobo.api.*" />
+  </allow>
+</dwr>
