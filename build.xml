@@ -133,14 +133,11 @@
 			  <fileset dir="${ui.out}/${ui.name}/"/>
 			  <lib dir="${dist}">
 			    <include name="${bobo-browse}.jar"/>
-			  	<include name="${bobo-server}.jar"/>
 			  </lib>
 			  <lib dir="${lib}" excludes="servlet-api.jar">
 			    <include name="*.jar"/>
 			  </lib>
 			  <classes dir="${resource}" excludes="web.xml" />
-			  <webinf dir="dwr" />
-			<fileset dir="cardemo/webapp/" />
 		</war>
 		
 		<!-- <delete dir="${ui.out}/${ui.name}"/>-->
