@@ -1,0 +1,48 @@
+<html>
+     <head>
+		<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+        <script type="text/javascript" src="bobo-vis.js"></script>
+		<title>Bobo Application</title>
+     
+     	<script type="text/javascript">
+     	    google.load("visualization", "1");
+     	    // Set callback to run when API is loaded
+            google.setOnLoadCallback(drawVisualization); 
+     	    
+     	    // Called when the Visualization API is loaded.
+            function drawVisualization() {
+		        // Create and populate a data table.
+		        var data = new google.visualization.DataTable();
+		        data.addColumn('string', 'value');
+		        data.addColumn('number', 'count');
+		        data.addRows(2);
+		        data.setCell(0, 0, 'red');
+		        data.setCell(0, 1, 2);
+		        data.setCell(1, 0, 'green');
+		        data.setCell(1, 1, 5);
+		                
+		        // Instantiate our table object.
+		        var checklist = new bobovis.CheckList(document.getElementById('color'));
+		        
+		        
+		        // Every time the table fires the "select" event, it should call your
+				// selectHandler() function.
+				google.visualization.events.addListener(checklist, 'select', selectHandler);
+
+				function selectHandler(e) {
+					var selection = checklist.getSelection();
+					alert("selected: "+selection.val+":"+selection.selected);
+				}
+				
+				// Draw our table with the data we created locally.
+		        checklist.draw(data, {});
+		    }
+		    
+		</script>
+    </head>
+     
+    <body>
+		<div id="color"></div>
+    	
+     </body>
+</html>
