@@ -25,9 +25,6 @@
 
 package com.browseengine.bobo.api;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntRBTreeSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -81,7 +78,8 @@ public class BoboIndexReader extends FilterIndexReader
 
   private final Collection<FacetHandler>          _facetHandlers;
   private final WorkArea                          _workArea;
-  private IntSet                             _deletedDocs;
+  private final IntSet                            _deletedDocs;
+  private volatile int[]                          _deletedDocsArray;
 
   /**
    * Constructor
@@ -301,11 +299,14 @@ public class BoboIndexReader extends FilterIndexReader
     super(reader);
     _facetHandlers = facetHandlers;
     _workArea = workArea;
-    int maxDoc = maxDoc();
     _deletedDocs = new IntRBTreeSet();
-    for(int i=0; i < maxDoc; i++)
+    if(reader.hasDeletions())
     {
-      if(reader.isDeleted(i)) _deletedDocs.add(i); 
+      int maxDoc = maxDoc();
+      for(int i=0; i < maxDoc; i++)
+      {
+        if(reader.isDeleted(i)) _deletedDocs.add(i); 
+      }
     }
   }
 
@@ -316,10 +317,14 @@ public class BoboIndexReader extends FilterIndexReader
   
   public Query getFastMatchAllDocsQuery()
   {
-    int[] deldocs;
-    synchronized(_deletedDocs)
+    int[] deldocs = _deletedDocsArray;
+    if(deldocs == null)
     {
-      deldocs = _deletedDocs.toIntArray();
+      synchronized(_deletedDocs)
+      {
+        deldocs = _deletedDocs.toIntArray();
+        _deletedDocsArray = deldocs;
+      }
     }
     return new FastMatchAllDocsQuery(deldocs, maxDoc());
   }
@@ -425,6 +430,9 @@ public class BoboIndexReader extends FilterIndexReader
     synchronized (_deletedDocs)
     {
       _deletedDocs.add(docid);
+      // remove the array but do not recreate the array at this point
+      // there may be more deleteDocument calls
+      _deletedDocsArray = null;
     } 
   }
 
