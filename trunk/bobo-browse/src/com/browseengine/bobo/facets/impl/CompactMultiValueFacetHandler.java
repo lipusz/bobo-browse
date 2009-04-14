@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -13,6 +14,7 @@ import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.search.ScoreDocComparator;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -137,13 +139,13 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 			int count=1;
 			ArrayList<String> valList=new ArrayList<String>(MAX_VAL_COUNT);
 			
-			while(encoded>0)
+			while(encoded != 0)
 			{
 				if ((encoded & 0x00000001) != 0x0){
 					valList.add(_dataCache.valArray.get(count));
 				}
 				count++;
-				encoded>>=1;
+				encoded >>>= 1;
 			}
 			return valList.toArray(new String[valList.size()]);
 		}
@@ -228,6 +230,11 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 	private static final class CompactMultiValueFacetCountCollector extends DefaultFacetCountCollector
 	{
 	  private final BigIntArray _array;
+	  private final int[] _combinationCount = new int[16 * 8];
+	  private int _noValCount = 0;
+	  private boolean _aggregated = false;
+	  
+	  
 	  CompactMultiValueFacetCountCollector(BrowseSelection sel,
 	                                       FacetDataCache dataCache,
 	                                       String name,
@@ -242,25 +249,74 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 	  public final void collectAll()
 	  {
 	    _count = _dataCache.freqs;
+	    _aggregated = true;
 	  }
 	  
 	  @Override
-      public final void collect(int docid) {
-          int encoded=_array.get(docid);
-          if (encoded == 0){
-            _count[0]++;
-          }
-          else{
-            int count=1;
-            while(encoded>0)
-            {
-                if ((encoded & 0x00000001) != 0x0){
-                    _count[count]++;
-                }
-                count++;
-                encoded>>=1;
-            }
-        }
+      public final void collect(int docid)
+	  {
+	    int encoded = _array.get(docid);
+	    if(encoded == 0)
+	    {
+	      _noValCount++;
+	    }
+	    else
+	    {
+	      int offset = 0;
+	      while(encoded != 0)
+	      {
+	        _combinationCount[(encoded & 0x0F) + offset]++;
+	        encoded = (encoded >>> 4);
+	        offset += 16;
+	      }
+	    }
       }
-	}
+	
+	  @Override
+	  public BrowseFacet getFacet(String value)
+	  {
+	    if(!_aggregated) aggregateCounts();
+	    return super.getFacet(value);  
+	  }
+	  
+      @Override
+      public int[] getCountDistribution()
+      {
+        if(!_aggregated) aggregateCounts();
+        return _count;
+      }
+      
+      @Override
+      public List<BrowseFacet> getFacets()
+      {
+        if(!_aggregated) aggregateCounts();
+        return super.getFacets();
+      }
+      
+      private void aggregateCounts()
+      {
+        _count[0] = _noValCount;
+        
+        for(int i = 1; i < _combinationCount.length; i++)
+        {
+          int count = _combinationCount[i];
+          if(count > 0)
+          {
+            int offset = (i >> 4) * 4;
+            int encoded = (i & 0x0F);
+            int index = 1;
+            while(encoded != 0)
+            {
+              if ((encoded & 0x00000001) != 0x0)
+              {
+                _count[index + offset] += count;
+              }
+              index++;
+              encoded >>>= 1;
+            }
+          }
+        }
+        _aggregated = true;
+      }
+    }
 }
