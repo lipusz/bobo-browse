@@ -107,12 +107,19 @@ public class FacetDataCache implements Serializable {
             int minID=-1;
             int maxID=-1;
             int df = 0;
-            while (termDocs.next()) {
-              int docid=termDocs.doc();
+            if(termDocs.next())
+            {
               df++;
-              if (docid>maxID) maxID=docid;
-              if (docid<minID || minID==-1) minID=docid;
+              int docid = termDocs.doc();
               order.add(docid, t);
+              minID = docid;
+              while (termDocs.next())
+              {
+                df++;
+                docid = termDocs.doc();
+                order.add(docid, t);
+              }
+              maxID = docid;
             }
             freqList.add(df);
             minIDList.add(minID);
