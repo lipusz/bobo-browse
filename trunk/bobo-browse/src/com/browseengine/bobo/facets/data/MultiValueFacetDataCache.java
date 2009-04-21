@@ -31,6 +31,7 @@ public class MultiValueFacetDataCache extends FacetDataCache
  
   public final BigNestedIntArray _nestedArray;
   private int _maxItems = BigNestedIntArray.MAX_ITEMS;
+  private boolean _overflow = false;
   
   public MultiValueFacetDataCache()
   {
@@ -77,7 +78,7 @@ public class MultiValueFacetDataCache extends FacetDataCache
     freqList.add(0);
     t++;
     
-    boolean errLogged = false;
+    _overflow = false;
     try
     {
       tdoc = reader.termDocs();
@@ -102,23 +103,19 @@ public class MultiValueFacetDataCache extends FacetDataCache
             int df = 0;
             int minID = -1;
             int maxID = -1;
-            while (tdoc.next())
+            if(tdoc.next())
             {
-              int docid = tdoc.doc();
               df++;
-              if (docid > maxID)
-                maxID = docid;
-              if (docid < minID || minID == -1)
-                minID = docid;
-
-              if (!loader.add(docid, t))
+              int docid = tdoc.doc();
+              if(!loader.add(docid, t)) logOverflow(fieldName);
+              minID = docid;
+              while(tdoc.next())
               {
-                if (!errLogged)
-                {
-                  logger.error("Maximum value per document: " + _maxItems + " exceeded, fieldName=" + fieldName);
-                  errLogged = true;
-                }
-              }        
+                df++;
+                docid = tdoc.doc();
+                if(!loader.add(docid, t)) logOverflow(fieldName);
+              }
+              maxID = docid;
             }
             freqList.add(df);
             minIDList.add(minID);
@@ -209,7 +206,7 @@ public class MultiValueFacetDataCache extends FacetDataCache
     freqList.add(0);
     t++;
 
-    boolean errLogged = false;
+    _overflow = false;
     try
     {
       tdoc = reader.termDocs();
@@ -229,26 +226,25 @@ public class MultiValueFacetDataCache extends FacetDataCache
             list.add(val);
             
             tdoc.seek(tenum);
-            freqList.add(tenum.docFreq());
+            //freqList.add(tenum.docFreq()); // removed because the df doesn't take into account the num of deletedDocs
+            int df = 0;
             int minID = -1;
             int maxID = -1;
-            while (tdoc.next())
+            if(tdoc.next())
             {
+              df++;
               int docid = tdoc.doc();
-              if (docid > maxID)
-                maxID = docid;
-              if (docid < minID || minID == -1)
-                minID = docid;
-              
-              if (!_nestedArray.addData(docid, t))
+              if (!_nestedArray.addData(docid, t)) logOverflow(fieldName);
+              minID = docid;
+              while(tdoc.next())
               {
-                if (!errLogged)
-                {
-                  logger.error("Maximum value per document: " + _maxItems + " exceeded, fieldName=" + fieldName);
-                  errLogged = true;
-                }
+                df++;
+                docid = tdoc.doc();
+                if(!_nestedArray.addData(docid, t)) logOverflow(fieldName);
               }
+              maxID = docid;
             }
+            freqList.add(df);
             minIDList.add(minID);
             maxIDList.add(maxID);
           }
@@ -284,6 +280,15 @@ public class MultiValueFacetDataCache extends FacetDataCache
     this.maxIDs = maxIDList.toIntArray();
   }
   
+  private void logOverflow(String fieldName)
+  {
+    if (!_overflow)
+    {
+      logger.error("Maximum value per document: " + _maxItems + " exceeded, fieldName=" + fieldName);
+      _overflow = true;
+    }
+  }
+
   private BufferedLoader getBufferedLoader(int maxdoc, WorkArea workArea)
   {
     if(workArea == null)

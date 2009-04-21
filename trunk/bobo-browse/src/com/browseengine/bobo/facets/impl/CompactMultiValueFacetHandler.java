@@ -195,17 +195,27 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 				}
 				String val = term.text();
 				mterms.add(val);
-				
+				int bit = (0x00000001 << (t-1));
 				termDocs.seek(termEnum);
-				freqList.add(termEnum.docFreq());
+				//freqList.add(termEnum.docFreq());  // removed because the df doesn't take into account the num of deletedDocs
+				int df = 0;
 				int minID=-1;
 		        int maxID=-1;
-				while (termDocs.next()) {
-					int docid = termDocs.doc();
-					if (docid>maxID) maxID=docid;
-		        	if (docid<minID || minID==-1) minID=docid;
-					order.add(docid, order.get(docid) | (0x00000001 << (t-1)));
-				}
+		        if(termDocs.next())
+		        {
+		          df++;
+                  int docid = termDocs.doc();
+                  order.add(docid, order.get(docid) | bit);
+                  minID = docid;
+                  while (termDocs.next())
+		          {
+                    df++;
+                    docid = termDocs.doc();
+                    order.add(docid, order.get(docid) | bit);
+		          }
+				  maxID = docid;
+		        }
+	            freqList.add(df);
 				minIDList.add(minID);
 		        maxIDList.add(maxID);
 				t++;
