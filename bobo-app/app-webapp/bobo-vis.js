@@ -70,15 +70,13 @@ bobovis.stringCompare = function(s1,s2){
 
 
 bobovis.CheckList.prototype.draw = function(data,options){
-	var html = [];
-    bobovis.removeChildren(this.containerElement);
+	bobovis.removeChildren(this.containerElement);
     var src = this;
 	for (var row = 0; row < data.getNumberOfRows(); row++) {
 	  var val = bobovis.escapeHtml(data.getFormattedValue(row, 0));
 	  var hits = bobovis.escapeHtml(data.getFormattedValue(row, 1));
 	  var isSelected = data.getFormattedValue(row,2) === 'true';
 	  var elem=document.createElement("input");
-	  var html=[];
 	  elem.type='checkbox';
 	  elem.name=val;
 	  elem.checked = isSelected;
@@ -95,4 +93,48 @@ bobovis.escapeHtml = function(text)
 	return text.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"');
 }
 
+
+bobovis.SelectList = function(container){
+	this.containerElement = container;
+	this.name = container.id;
+	this.Selection = new bobovis.Selection("",false);
+}
+
+
+bobovis.SelectList.prototype.getSelection = function(){
+	return this.Selection;
+}
+
+bobovis.SelectList.prototype.handleClick = function(elem){
+	this.Selection.val=elem.value;
+	this.Selection.selected=elem.selected;
+	google.visualization.events.trigger(this,'select', {});
+}
+
+bobovis.SelectList.prototype.draw = function(data,options){
+    bobovis.removeChildren(this.containerElement);
+    var selectList=document.createElement("select");
+    var src = this;
+    var multi = false;
+    if (options!=null){
+      multi = options.multi;
+    }
+    if (multi){
+      selectList.multiple=true;
+    }
+    this.containerElement.appendChild(selectList);
+    for (var row = 0; row < data.getNumberOfRows(); row++) {
+      var val = bobovis.escapeHtml(data.getFormattedValue(row, 0));
+	  var hits = bobovis.escapeHtml(data.getFormattedValue(row, 1));
+	  var isSelected = data.getFormattedValue(row,2) === 'true';
+	  var optionNode = document.createElement("option");
+	  optionNode.value=val;
+	  if (isSelected){
+	    optionNode.selected=true;
+	  }
+	  optionNode.onclick=function(){src.handleClick(this)};
+	  selectList.appendChild(optionNode);
+	  optionNode.appendChild(document.createTextNode(val+" ("+hits+" )"));
+    }
+}
 

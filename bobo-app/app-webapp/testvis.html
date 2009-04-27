@@ -55,6 +55,16 @@
 					alert(tagCloud.unselected+" unselected");
 				}
 		        tagCloud.draw(data,{});
+		        
+		        var selectList = new bobovis.SelectList(document.getElementById('colorList'));
+		        function selListSelectHandler(e){
+		            var selection = selectList.getSelection();
+		            alert("selected: "+selection.val+":"+selection.selected);
+		        }
+		        google.visualization.events.addListener(selectList, 'select', selListSelectHandler);
+		        var selOption = {};
+		        selOption.multi = true;
+		        selectList.draw(data,selOption);
 		    }
 		    
 		</script>
@@ -63,6 +73,7 @@
     <body>
 		<div id="color"></div>
     	<div id="tag"></div>
+    	<div id="colorList"></div>
     	
      </body>
 </html>
