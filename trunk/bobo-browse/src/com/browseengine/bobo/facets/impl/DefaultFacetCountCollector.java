@@ -2,7 +2,6 @@ package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -104,13 +103,17 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
                 int hits=_count[i];
                 if (hits>=minCount)
                 {
-                  pq.add(i);
+                  if(!pq.offer(i))
+                  {
+                    // pq is full. we can safely ignore any facet with <=hits.
+                    minCount = hits + 1;
+                  }
                 }
               }
               
-              while(pq.size()>0)
+              Integer val;
+              while((val = pq.poll()) != null)
               {
-                  Integer val=pq.poll();
                   BrowseFacet facet=new BrowseFacet(valList.get(val),_count[val]);
                   ((LinkedList<BrowseFacet>)facetColl).addFirst(facet);
               }
