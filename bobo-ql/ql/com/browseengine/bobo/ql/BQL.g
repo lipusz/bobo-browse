@@ -16,13 +16,13 @@ tokens{
 }
 
 @header{
-package com.browseengine.bobo.ql;
+package com.browseengine.bobo.ql.output;
 import java.util.ArrayList;
 import com.browseengine.bobo.api.BrowseRequest;
 }
 
 @lexer::header{ 
-package com.browseengine.bobo.ql;
+package com.browseengine.bobo.ql.output;
 } 
 
 @members{
@@ -31,7 +31,9 @@ ArrayList<String> _selectedOutputFields=new ArrayList<String>();
 
 ID	:	('a'..'z'|'A'..'Z')+;
 
-NAMELIST :	ID (',' ID)* | '*';
+namelist :	ID (',' ID)* | '*';
+
+indexname :	ID;
 
 WS	:	(' ')+;
 
@@ -42,8 +44,8 @@ sortExpr: KW_SORT_DIR_ASC | KW_SORT_DIR_DESC;
 
 expr 	:	;
 
-select_stmt:	KW_SELECT WS NAMELIST WS KW_FROM WS ID {
-			System.out.println("index name: "+$ID.text);
+select_stmt:	KW_SELECT WS namelist WS KW_FROM WS indexname {
+			System.out.println("index name: "+$indexname.text);
 		}(KW_WHERE)* ';'  ;                                                                                                        
 
 stmt	:	select_stmt;
