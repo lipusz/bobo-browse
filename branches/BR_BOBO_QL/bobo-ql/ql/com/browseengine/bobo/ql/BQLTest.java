@@ -3,6 +3,7 @@ package com.browseengine.bobo.ql;
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
 
+import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.ql.output.BQLLexer;
 import com.browseengine.bobo.ql.output.BQLParser;
 
@@ -17,7 +18,8 @@ public class BQLTest {
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		BQLParser parser = new BQLParser(tokens);
 	
-		parser.select_stmt();
+		BrowseRequest br = parser.select_stmt();
+		System.out.println("browse request: "+br);
 	}
 
 }
