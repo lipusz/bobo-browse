@@ -29,7 +29,7 @@ public final class FastMatchAllDocsQuery extends Query
   private static final long serialVersionUID = 1L;
   private final int[] _deletedDocs;
   
-  public FastMatchAllDocsQuery(int[] deletedDocs, int maxDoc)
+  public FastMatchAllDocsQuery(int[] deletedDocs)
   {
     _deletedDocs = deletedDocs;
   }

@@ -315,7 +315,7 @@ public class BoboIndexReader extends FilterIndexReader implements FacetHandlerCo
     initialize(_facetHandlers, _workArea);
   }
   
-  public Query getFastMatchAllDocsQuery()
+  public FastMatchAllDocsQuery getFastMatchAllDocsQuery()
   {
     int[] deldocs = _deletedDocsArray;
     if(deldocs == null)
@@ -326,7 +326,7 @@ public class BoboIndexReader extends FilterIndexReader implements FacetHandlerCo
         _deletedDocsArray = deldocs;
       }
     }
-    return new FastMatchAllDocsQuery(deldocs, maxDoc());
+    return new FastMatchAllDocsQuery(deldocs);
   }
 
   /**
