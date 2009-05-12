@@ -12,11 +12,9 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-
 public class BoboSearcher extends IndexSearcher{
 	protected List<FacetHitCollector> _facetCollectors;
-	public BoboSearcher(BoboIndexReader reader)
+	public BoboSearcher(IndexReader reader)
 	{
 		super(reader);
 		_facetCollectors = new LinkedList<FacetHitCollector>();

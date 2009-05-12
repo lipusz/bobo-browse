@@ -66,7 +66,7 @@ import com.browseengine.bobo.search.SortFieldEntry;
  * bobo browse index reader
  * 
  */
-public class BoboIndexReader extends FilterIndexReader
+public class BoboIndexReader extends FilterIndexReader implements FacetHandlerContext,FacetHandlerHome
 {
   private static final String                     FIELD_CONFIG  = "field.xml";
   private static final String                     SPRING_CONFIG = "bobo.spring";
@@ -459,5 +459,13 @@ public class BoboIndexReader extends FilterIndexReader
     {
       map.clear();
     }
+  }
+
+  public FacetHandlerHome getFacetHandlerHome() {
+	return this;
+  }
+
+  public IndexReader getIndexReader() {
+	return this;
   }
 }

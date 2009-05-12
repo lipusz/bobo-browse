@@ -8,12 +8,12 @@ import java.util.Map;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.FieldDoc;
 import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboBrowser;
-import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.TopDocsSortedHitCollector;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -26,7 +26,7 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
   public SortField[] sortFields;
   private int                         _totalHits;
   private FieldDoc            reusableFD;
-  private final BoboIndexReader _reader;
+  private final IndexReader _reader;
   private final int _offset;
   private final int _count;
   private final BoboBrowser _boboBrowser;
@@ -39,7 +39,7 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
     super();
     _boboBrowser = boboBrowser;
     _reader = boboBrowser.getIndexReader();
-    sortFields = QueryProducer.convertSort(sort, _reader);
+    sortFields = QueryProducer.convertSort(sort, boboBrowser.getFacetHandlerContext().getFacetHandlerHome());
     _offset = offset;
     _count = count;
     hitQueue = new SortedHitQueue(_boboBrowser, sortFields, offset+count);

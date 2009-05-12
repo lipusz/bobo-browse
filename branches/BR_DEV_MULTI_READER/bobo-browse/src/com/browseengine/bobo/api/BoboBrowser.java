@@ -15,11 +15,12 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.document.FieldSelectorResult;
 import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.search.DocIdSet;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.HitCollector;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
@@ -37,27 +38,29 @@ import com.browseengine.bobo.search.InternalBrowseHitCollector;
  */
 public class BoboBrowser extends BoboSearcher2 implements Browsable
 {
-  private final BoboIndexReader           _reader;
+  private final FacetHandlerContext _facetHandlerContext;
   private final Map<String, FacetHandler> _runtimeFacetHandlerMap;
+  private final IndexReader _reader;
+  private final FacetHandlerHome _facetHandlerHome;
 
   private static Logger                   logger = Logger.getLogger(BoboBrowser.class);
-
-  public BoboIndexReader getIndexReader()
-  {
-    return _reader;
-  }
 
   /**
    * Constructor.
    * 
-   * @param reader
-   *          A bobo reader instance
+   * @param facetHandlerContext FacetHandler context
    */
-  public BoboBrowser(BoboIndexReader reader)
+  public BoboBrowser(FacetHandlerContext facetHandlerContext)
   {
-    super(reader);
-    _reader = reader;
+    super(facetHandlerContext.getIndexReader());
+    _facetHandlerContext = facetHandlerContext;
+    _reader = _facetHandlerContext.getIndexReader();
+    _facetHandlerHome = _facetHandlerContext.getFacetHandlerHome();
     _runtimeFacetHandlerMap = new HashMap<String, FacetHandler>();
+  }
+  
+  public FacetHandlerContext getFacetHandlerContext(){
+	  return _facetHandlerContext;
   }
   
   private static boolean isNoQueryNoFilter(BrowseRequest req)
@@ -112,7 +115,7 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
     FacetHandler handler = _runtimeFacetHandlerMap.get(name);
     if (handler == null)
     {
-      return _reader.getFacetHandler(name);
+      return _facetHandlerHome.getFacetHandler(name);
     }
     else
     {
@@ -128,11 +131,11 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
   public Set<String> getFacetNames()
   {
     Set<String> runtimeFacetNames = _runtimeFacetHandlerMap.keySet();
-    Set<String> installedFacetNames = _reader.getFacetNames();
+    Set<String> installedFacetNames = _facetHandlerHome.getFacetNames();
     if (runtimeFacetNames.size() > 0)
     {
       Set<String> names = new HashSet<String>();
-      names.addAll(_reader.getFacetNames());
+      names.addAll(_facetHandlerHome.getFacetNames());
       names.addAll(_runtimeFacetHandlerMap.keySet());
       return names;
     }
@@ -263,7 +266,7 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
       Query q = req.getQuery();
       if (q == null || q instanceof MatchAllDocsQuery)
       {
-        q = _reader.getFastMatchAllDocsQuery();
+        q = _facetHandlerContext.getFastMatchAllDocsQuery();
       }
       
       try

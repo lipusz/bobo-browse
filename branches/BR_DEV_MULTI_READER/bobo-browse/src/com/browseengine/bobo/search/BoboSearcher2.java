@@ -9,12 +9,11 @@ import org.apache.lucene.search.HitCollector;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
 
-import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.FacetCountCollector;
 
 public class BoboSearcher2 extends BoboSearcher{
-    public BoboSearcher2(BoboIndexReader reader)
+    public BoboSearcher2(IndexReader reader)
     {
         super(reader);
     }

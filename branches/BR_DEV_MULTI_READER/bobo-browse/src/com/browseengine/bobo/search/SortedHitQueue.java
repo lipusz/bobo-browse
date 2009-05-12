@@ -200,7 +200,7 @@ public class SortedHitQueue extends PriorityQueue {
       {
         try
         {
-          comparator = _boboBrowser.getIndexReader().getDefaultScoreDocComparator(field);
+          comparator = _boboBrowser.getFacetHandlerContext().getDefaultScoreDocComparator(field);
         }
         catch(IOException ioe)
         {

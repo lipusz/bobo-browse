@@ -39,7 +39,7 @@ import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortComparatorSource;
 import org.apache.lucene.search.SortField;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.FacetHandlerHome;
 import com.browseengine.bobo.facets.FacetHandler;
 
 public class QueryProducer{
@@ -59,7 +59,7 @@ public class QueryProducer{
 
 	final static SortField[] DEFAULT_SORT=new SortField[]{SortField.FIELD_SCORE};
 	
-	public static SortField[] convertSort(SortField[] sortSpec,BoboIndexReader idxReader){
+	public static SortField[] convertSort(SortField[] sortSpec,FacetHandlerHome facetHandlerHome){
 		 SortField[] retVal=DEFAULT_SORT;
 		if (sortSpec!=null && sortSpec.length>0){
 			ArrayList<SortField> sortList=new ArrayList<SortField>(sortSpec.length+1);
@@ -76,7 +76,7 @@ public class QueryProducer{
     			    String fieldname=sortSpec[i].getField();
     			    if (fieldname!=null){
     			      SortField sf=null;
-    			      final FacetHandler facetHandler=idxReader.getFacetHandler(fieldname);
+    			      final FacetHandler facetHandler=facetHandlerHome.getFacetHandler(fieldname);
     			      if (facetHandler!=null){
     			    	  sf=new SortField(fieldname.toLowerCase(),new SortComparatorSource(){
 
