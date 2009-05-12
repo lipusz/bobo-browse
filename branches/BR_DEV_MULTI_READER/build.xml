@@ -1,0 +1,236 @@
+<project name="browse-engine" default="dist" basedir=".">
+	<property name="bobo.root" location="." />
+	<property name="dist" location="${bobo.root}/dist" />
+	
+	<property name="doc" location="${bobo.root}/doc"/>
+	
+	<property name="lib" location="lib" />
+	<property name="bobo-browse" value="bobo-browse"/>
+	<property name="bobo-service" value="bobo-service"/>
+	<property name="bobo-solr" value="bobo-solr"/>
+
+	<property name="geo-local" value="geo-local"/>
+	<property name="bobo-bench" value="bobo-bench"/>
+	<property name="logs" value="logs"/>	
+	
+	<property name="tools-build" value="tools-build" />
+	<property name="bobo-tools" value="bobo-tools"/>
+	
+	<property name="resource" location="resource" />
+
+	<property name="test" value="test"/>
+	<property name="build.test" value="build-test"/>
+	
+	<property name="jetty.home" location="jetty" />
+	
+	<property name="test.report.dir" location="${dist}/junit-reports" />
+	
+	<property name="test.html.dir" location="${test.report.dir}/html" />
+	
+	<property name="cardata" value="cardata" />
+	<property name="carindex" value="${cardata}/cartag"/>
+		
+	<target name="init">
+		<mkdir dir="${dist}" />
+		<mkdir dir="${build.test}" />
+	</target>
+	
+	<target name="clean">
+		<delete dir="${tools-build}" />
+		<delete dir="${build.test}"/>
+       <delete dir="${dist}"/>
+		<ant antfile="build.xml"
+			 dir="${bobo-browse}" target="clean"/>
+		<ant antfile="build.xml"
+			 dir="${bobo-service}" target="clean"/>
+		<!--
+		<ant antfile="build.xml"
+			 dir="${bobo-bench}" target="clean" />
+			 
+		<ant antfile="build.xml"
+			dir="${geo-local}" target="clean" />
+		<ant antfile="build.xml"
+			dir="${bobo-solr}" target="clean" />
+		-->
+    </target>
+
+	<target name="dist" depends="init">
+		<ant antfile="build.xml"
+			 dir="${bobo-browse}" target="dist"/>
+		<ant antfile="build.xml"
+			 dir="${bobo-service}" target="dist"/>
+		<ant antfile="build.xml"
+			 dir="${bobo-browse}" target="javadoc" />
+		<!--
+		<ant antfile="build.xml"
+			 dir="${bobo-bench}" target="dist" />
+			 
+		<ant antfile="build.xml"
+			dir="${geo-local}" target="dist" />
+		
+		<ant antfile="build.xml"
+			 dir="${bobo-solr}" target="dist"/>		
+			 -->
+	</target>
+	
+	<target name="javadoc">
+		<ant antfile="build.xml"
+			 dir="${bobo-browse}" target="javadoc" />
+	</target>		
+	
+	<path id="grinder.class.path">
+		<pathelement path="${bobo.root}/lib/servlet-api.jar" />		
+		<pathelement path="${bobo.root}/lib/lucene-core-2.4.0.jar" />
+		<pathelement path="${bobo.root}/lib/commons-logging.jar" />
+		<pathelement path="${bobo.root}/lib/jsonrpc.jar" />
+		<pathelement path="${bobo.root}/lib/org.mortbay.jetty.jar" />		
+		<pathelement path="${bobo.root}/lib/commons-collections-3.1.jar" />			
+		<pathelement path="${bobo.root}/lib/commons-httpclient-3.0.jar" />		
+		<pathelement path="${bobo.root}/lib/log4j-1.2.9.jar" />		
+		<pathelement path="${dist}/bobo-browse.jar" />		
+		
+		<pathelement path="${dist}/bobo-bench.jar" />	
+		
+		<pathelement path="${bobo.root}/lib/grinder.jar" />		
+	</path>
+	
+	<target name="grinder-console">
+		<java fork="true" classname="net.grinder.Console" classpathref="grinder.class.path" failonerror="true" maxmemory="150m"/>
+		
+	</target>
+	
+	<target name="grinder">
+		<java fork="true" classname="net.grinder.Grinder" classpathref="grinder.class.path" failonerror="true" maxmemory="150m">
+			<arg value="${bobo.root}/benchmark/bobo_bench.properties"/>
+		</java>
+	</target>
+
+	<target name="tigerlineindexrun" depends="init">
+		<ant antfile="build.xml"
+			dir="${bobo-browse}" target="tigerlineindexrun"/>
+	</target>
+	
+	<path id="tools.class.path">
+	            <fileset dir="${lib}">
+	                <include name="*.jar"/>
+				</fileset>
+				<fileset dir="${dist}">
+	                <include name="${bobo-browse}.jar"/>
+		        </fileset>
+		</path>
+	
+	<target name="create-ui">
+		<mkdir dir="${tools-build}"/>
+		<javac srcdir="${bobo-tools}/src" destdir="${tools-build}">
+			<classpath refid="tools.class.path"/>
+		</javac>
+		
+		<typedef name="makeui" classname="com.browseengine.bobo.tools.ui.MakeUITask">
+		         <classpath>
+		         	<pathelement path="${tools-build}"/>
+		         	<path  refid="tools.class.path" />
+				 </classpath>
+		</typedef>
+		
+		<makeui name="${ui.name}" output="${ui.out}" indexDir="${ui.idx.dir}"/>
+		
+		<war destfile="${ui.out}/${ui.name}.war" webxml="${resource}/web.xml">
+			  <fileset dir="${ui.out}/${ui.name}/"/>
+			  <lib dir="${dist}">
+			    <include name="${bobo-browse}.jar"/>
+			  	<include name="${bobo-server}.jar"/>
+			  </lib>
+			  <lib dir="${lib}" excludes="servlet-api.jar">
+			    <include name="*.jar"/>
+			  </lib>
+			  <classes dir="${resource}" excludes="web.xml" />
+			  <webinf dir="dwr" />
+			<fileset dir="cardemo/webapp/" />
+		</war>
+		
+		<!-- <delete dir="${ui.out}/${ui.name}"/>-->
+	</target>
+	
+	<target name="build-ui">
+		<!-- build tools -->
+		
+		<input message="Name: " addproperty="demo.name"/>
+		<input message="Index location: " addproperty="demo.idx.dir" />
+		<input message="Output Directory: " defaultvalue="${demo.name}" addproperty="demo.out" />
+		
+		<antcall target="create-ui">
+			<param name="ui.name" value="${demo.name}"/>
+			<param name="ui.out" value="${demo.out}"/>
+			<param name="ui.idx.dir" value="${demo.idx.dir}"/>
+		</antcall>
+	</target>
+	
+	<target name="make-car-war" unless="${car.war.exists}">
+		<mkdir dir="cardemo/cars" />
+		<antcall target="create-ui">
+			<param name="ui.name" value="cars"/>
+			<param name="ui.out" value="cardemo"/>
+			<param name="ui.idx.dir" value="cardata/cartag"/>
+		</antcall>
+		<delete dir="cardemo/cars" />
+	</target>
+	
+	<target name="run-cardemo"  depends="dist,make-car-war" > 
+		<mkdir dir="${logs}" />
+		<java fork="true" jar="${bobo.root}/zoie-server.jar" failonerror="true" maxmemory="100m">
+								<sysproperty key="log.home" value="${logs}" />
+								<sysproperty key="conf.dir" value="${jetty.home}" />
+								<jvmarg value="-server" />
+								<jvmarg value="-Dcom.sun.management.jmxremote" />
+								<jvmarg value="-Dcom.sun.management.jmxremote.port=9999" />
+								<jvmarg value="-Dcom.sun.management.jmxremote.authenticate=false" />
+								<jvmarg value="-Dcom.sun.management.jmxremote.ssl=false" />
+								<!-- uncomment to turn on yourkit profiling
+								<jvmarg value="-agentlib:yjpagent" />
+								-->
+		</java>
+	</target>
+	
+	<path id="test.compile.class.path">
+			<fileset dir="${lib}">
+				<include name="*.jar" />
+			</fileset>
+			<fileset dir="${dist}">
+				<include name="*.jar" />
+			</fileset>
+		    <pathelement path="${resource}"/>
+	</path>
+				
+	<target name="test-build" depends="dist">
+		<javac destdir="${build.test}">
+            <src path="${test}"/>
+            <classpath refid="test.compile.class.path"/>
+        </javac>
+		<jar destfile="${dist}/bobo-test.jar"  basedir="${build.test}" />
+	</target>
+	
+	<target name="test" description="Runs JUnit Tests" depends="test-build">
+		<echo>=== Running JUnit Tests ===</echo>
+		<mkdir dir="${test.report.dir}" />
+		<mkdir dir="${test.html.dir}" />
+		<junit printsummary="yes" showoutput="yes">
+
+		    <!-- classpath must include all jar dependencies and classes -->
+			<classpath refid="test.compile.class.path" />
+			
+	      	<!-- formatter to use for output -->
+        	<formatter type="xml"/>
+	        <batchtest fork="yes" todir="${test.report.dir}">
+	          <fileset dir="${test}/src">
+	             <include name="**/BoboTestCase.java" />
+	          </fileset>
+	        </batchtest>
+		</junit>
+		<junitreport todir="${test.html.dir}">
+		  <fileset dir="${test.report.dir}">
+		    <include name="TEST-*.xml" />
+		  </fileset>
+		  <report todir="${test.html.dir}" format="frames" />
+		</junitreport>
+	</target>
+</project>
