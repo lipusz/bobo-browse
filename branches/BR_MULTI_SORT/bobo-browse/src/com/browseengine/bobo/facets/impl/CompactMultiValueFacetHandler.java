@@ -249,20 +249,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 			int encoded1=_dataCache.orderArray.get(doc1.doc);
 			int encoded2=_dataCache.orderArray.get(doc2.doc);
 			
-			if (encoded1==encoded2) return 0;
-			if (encoded1 == 0) return -1;
-			if (encoded2 == 0) return 1;
-				
-			int mask=0x0000001;
-			int v1,v2;
-			for (int i=0;i<MAX_VAL_COUNT;++i){
-				mask<<=i;
-				v1=encoded1 & mask;
-				v2=encoded2 & mask;
-				int compVal = v1-v2;
-				if (compVal != 0) return compVal;
-			}
-			return 0;	
+			return encoded1-encoded2;
 		}
 
 		public int sortType() {
@@ -270,30 +257,10 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 		}
 
 		public Comparable sortValue(ScoreDoc sdoc) {
-			final String[] vals = CompactMultiValueFacetHandler.this.getFieldValues(sdoc.doc);
-	          return new Comparable<String[]>(){
-
-				public int compareTo(String[] o) {
-					if (vals==o){
-						return 0;
-					}
-					if (vals == null){
-						return -1;
-					}
-					if (o == null){
-						return 1;
-					}
-					for (int i = 0;i < vals.length; ++i){
-						if (i>=o.length){
-							return 1;
-						}
-						int compVal = vals[i].compareTo(o[i]);
-						if (compVal!=0) return compVal;
-					}
-					if (vals.length == o.length) return 0;
-					return -1;
-				}
-	          };
+			int encoded = _dataCache.orderArray.get(sdoc.doc);
+			String val = String.valueOf(encoded);
+			if (encoded < 10) val="0"+val;
+			return val;
 		}
 		
 	}

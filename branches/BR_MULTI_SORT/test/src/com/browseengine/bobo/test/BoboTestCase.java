@@ -1088,11 +1088,13 @@ public class BoboTestCase extends TestCase {
 	    FacetSpec ospec=new FacetSpec();
 	    br.setFacetSpec("compactnum", ospec);
 	    
+	    br.setSort(new SortField[]{new SortField("compactnum",true)});
+	    
 	    HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
 	     
 	    answer.put("compactnum", Arrays.asList(new BrowseFacet[]{new BrowseFacet("001",3),new BrowseFacet("002",1),new BrowseFacet("003",3),new BrowseFacet("007",2),new BrowseFacet("008",1),new BrowseFacet("012",1)}));
 	      
-	    doTest(br,6,answer,new String[]{"1","3","4","5","6","7"});
+	    doTest(br,6,answer,new String[]{"3","7","4","6","1","5"});
 	    
 	    
 	    br=new BrowseRequest();
@@ -1147,12 +1149,12 @@ public class BoboTestCase extends TestCase {
 
 	    FacetSpec ospec=new FacetSpec();
 	    br.setFacetSpec("multinum", ospec);
-	    
+	    br.setSort(new SortField[]{new SortField("multinum",true)});
 	    HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
 
 		answer.put("multinum", Arrays.asList(new BrowseFacet[]{new BrowseFacet("001",3),new BrowseFacet("002",1),new BrowseFacet("003",3),new BrowseFacet("007",2),new BrowseFacet("008",1),new BrowseFacet("012",1)}));
       
-	    doTest(br,6,answer,new String[]{"1","3","4","5","6","7"});
+	    doTest(br,6,answer,new String[]{"3","4","7","1","6","5"});
 	    
 	    
 		
@@ -1445,6 +1447,8 @@ public class BoboTestCase extends TestCase {
       
       BoboBrowser boboBrowser = newBrowser();
       
+      browseRequest.setSort(new SortField[]{new SortField("compactnum",true)});
+      
       MultiBoboBrowser multiBoboBrowser = new MultiBoboBrowser(new Browsable[] {boboBrowser, boboBrowser});
       BrowseResult mergedResult = multiBoboBrowser.browse(browseRequest);
       
@@ -1454,7 +1458,11 @@ public class BoboTestCase extends TestCase {
       answer.put("shape", Arrays.asList(new BrowseFacet[]{new BrowseFacet("square",4)}));
       answer.put("date",  Arrays.asList(new BrowseFacet[]{new BrowseFacet("[2000/01/01 TO 2003/05/05]", 2)}));
       
-      doTest(mergedResult, browseRequest, 4, answer, null);
+      doTest(mergedResult, browseRequest, 4, answer, new String[]{"7","7","1","1"});
+      
+      browseRequest.setSort(new SortField[]{new SortField("multinum",true)});
+      mergedResult = multiBoboBrowser.browse(browseRequest);
+      doTest(mergedResult, browseRequest, 4, answer, new String[]{"7","7","1","1"});
 	}
 	
 	public static void main(String[] args)throws Exception {

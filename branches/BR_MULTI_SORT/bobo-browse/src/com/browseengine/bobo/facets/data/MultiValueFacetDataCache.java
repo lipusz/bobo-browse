@@ -6,6 +6,7 @@ package com.browseengine.bobo.facets.data;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
@@ -18,8 +19,6 @@ import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
-import com.browseengine.bobo.facets.data.FacetDataCache.FacetScoreDocComparator;
-import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigIntBuffer;
 import com.browseengine.bobo.util.BigNestedIntArray;
 import com.browseengine.bobo.util.BigNestedIntArray.BufferedLoader;
@@ -379,49 +378,56 @@ public class MultiValueFacetDataCache extends FacetDataCache
     }
   }
   
-  public ScoreDocComparator getScoreDocComparator()
+    public ScoreDocComparator getScoreDocComparator()
 	{
 		return new MultiFacetScoreDocComparator(this);
 	}
 	
-	public static class MultiFacetScoreDocComparator implements ScoreDocComparator{
+    private static class ComparableNode implements Comparable<ComparableNode>,Serializable{
+    	String[] vals;
+    	ComparableNode(String[] vals){
+    		this.vals=vals;
+    	}
+		public final int compareTo(ComparableNode node) {
+			String[] o = node.vals;
+			if (vals==o){
+				return 0;
+			}
+			if (vals == null){
+				return -1;
+			}
+			if (o == null){
+				return 1;
+			}
+			for (int i = 0;i < vals.length; ++i){
+				if (i>=o.length){
+					return 1;
+				}
+				int compVal = vals[i].compareTo(o[i]);
+				if (compVal!=0) return compVal;
+			}
+			if (vals.length == o.length) return 0;
+			return -1;
+		}
+    	
+    }
+    
+	public final static class MultiFacetScoreDocComparator implements ScoreDocComparator{
 		private MultiValueFacetDataCache _dataCache;
 		public MultiFacetScoreDocComparator(MultiValueFacetDataCache dataCache){
 			_dataCache=dataCache;
 		}
-		public int compare(ScoreDoc i, ScoreDoc j) {
+		public final int compare(ScoreDoc i, ScoreDoc j) {
 			return _dataCache._nestedArray.compare(i.doc, j.doc);
 		}
 
-		public int sortType() {
-			return SortField.STRING;
+		public final int sortType() {
+			return SortField.CUSTOM;
 		}
 
-		public Comparable sortValue(ScoreDoc i) {
-          final String[] vals = _dataCache._nestedArray.getTranslatedData(i.doc, _dataCache.valArray);
-          return new Comparable<String[]>(){
-
-			public int compareTo(String[] o) {
-				if (vals==o){
-					return 0;
-				}
-				if (vals == null){
-					return -1;
-				}
-				if (o == null){
-					return 1;
-				}
-				for (int i = 0;i < vals.length; ++i){
-					if (i>=o.length){
-						return 1;
-					}
-					int compVal = vals[i].compareTo(o[i]);
-					if (compVal!=0) return compVal;
-				}
-				if (vals.length == o.length) return 0;
-				return -1;
-			}
-          };
+		public final Comparable sortValue(ScoreDoc i) {
+          String[] vals = _dataCache._nestedArray.getTranslatedData(i.doc, _dataCache.valArray);
+          return new ComparableNode(vals);
 		}
 	}
 }
