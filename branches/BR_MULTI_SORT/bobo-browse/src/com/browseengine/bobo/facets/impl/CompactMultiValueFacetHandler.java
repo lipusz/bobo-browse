@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -32,6 +33,7 @@ import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 import com.browseengine.bobo.util.BigIntArray;
+import com.browseengine.bobo.util.StringArrayComparator;
 
 public class CompactMultiValueFacetHandler extends FacetHandler implements FacetHandlerFactory 
 {
@@ -253,14 +255,11 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 		}
 
 		public int sortType() {
-			return SortField.STRING;
+			return SortField.CUSTOM;
 		}
 
 		public Comparable sortValue(ScoreDoc sdoc) {
-			int encoded = _dataCache.orderArray.get(sdoc.doc);
-			String val = String.valueOf(encoded);
-			if (encoded < 10) val="0"+val;
-			return val;
+			return new StringArrayComparator(getFieldValues(sdoc.doc));
 		}
 		
 	}
