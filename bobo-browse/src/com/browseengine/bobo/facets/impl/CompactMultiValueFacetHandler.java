@@ -11,7 +11,9 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.ScoreDocComparator;
+import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
@@ -65,7 +67,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 	
 	@Override
 	public ScoreDocComparator getScoreDocComparator() {
-		throw new IllegalArgumentException("Cannot sort on multi valued fields");
+		return new CompactMultiFacetScoreDocComparator(_dataCache);
 	}
 	
 	public final FacetDataCache getDataCache()
@@ -235,6 +237,65 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 		mterms.seal();
 
 		_dataCache=new FacetDataCache(order,mterms,freqList.toIntArray(),minIDList.toIntArray(),maxIDList.toIntArray());
+	}
+	
+	private class CompactMultiFacetScoreDocComparator implements ScoreDocComparator{
+        private final FacetDataCache _dataCache;
+        private CompactMultiFacetScoreDocComparator(FacetDataCache dataCache){
+          _dataCache = dataCache; 	
+        }
+        
+		public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+			int encoded1=_dataCache.orderArray.get(doc1.doc);
+			int encoded2=_dataCache.orderArray.get(doc2.doc);
+			
+			if (encoded1==encoded2) return 0;
+			if (encoded1 == 0) return -1;
+			if (encoded2 == 0) return 1;
+				
+			int mask=0x0000001;
+			int v1,v2;
+			for (int i=0;i<MAX_VAL_COUNT;++i){
+				mask<<=i;
+				v1=encoded1 & mask;
+				v2=encoded2 & mask;
+				int compVal = v1-v2;
+				if (compVal != 0) return compVal;
+			}
+			return 0;	
+		}
+
+		public int sortType() {
+			return SortField.STRING;
+		}
+
+		public Comparable sortValue(ScoreDoc sdoc) {
+			final String[] vals = CompactMultiValueFacetHandler.this.getFieldValues(sdoc.doc);
+	          return new Comparable<String[]>(){
+
+				public int compareTo(String[] o) {
+					if (vals==o){
+						return 0;
+					}
+					if (vals == null){
+						return -1;
+					}
+					if (o == null){
+						return 1;
+					}
+					for (int i = 0;i < vals.length; ++i){
+						if (i>=o.length){
+							return 1;
+						}
+						int compVal = vals[i].compareTo(o[i]);
+						if (compVal!=0) return compVal;
+					}
+					if (vals.length == o.length) return 0;
+					return -1;
+				}
+	          };
+		}
+		
 	}
 
 	private static final class CompactMultiValueFacetCountCollector extends DefaultFacetCountCollector
