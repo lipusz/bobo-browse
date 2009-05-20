@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -11,7 +12,9 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.ScoreDocComparator;
+import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
@@ -30,6 +33,7 @@ import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 import com.browseengine.bobo.util.BigIntArray;
+import com.browseengine.bobo.util.StringArrayComparator;
 
 public class CompactMultiValueFacetHandler extends FacetHandler implements FacetHandlerFactory 
 {
@@ -65,7 +69,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 	
 	@Override
 	public ScoreDocComparator getScoreDocComparator() {
-		throw new IllegalArgumentException("Cannot sort on multi valued fields");
+		return new CompactMultiFacetScoreDocComparator(_dataCache);
 	}
 	
 	public final FacetDataCache getDataCache()
@@ -235,6 +239,29 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 		mterms.seal();
 
 		_dataCache=new FacetDataCache(order,mterms,freqList.toIntArray(),minIDList.toIntArray(),maxIDList.toIntArray());
+	}
+	
+	private class CompactMultiFacetScoreDocComparator implements ScoreDocComparator{
+        private final FacetDataCache _dataCache;
+        private CompactMultiFacetScoreDocComparator(FacetDataCache dataCache){
+          _dataCache = dataCache; 	
+        }
+        
+		public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+			int encoded1=_dataCache.orderArray.get(doc1.doc);
+			int encoded2=_dataCache.orderArray.get(doc2.doc);
+			
+			return encoded1-encoded2;
+		}
+
+		public int sortType() {
+			return SortField.CUSTOM;
+		}
+
+		public Comparable sortValue(ScoreDoc sdoc) {
+			return new StringArrayComparator(getFieldValues(sdoc.doc));
+		}
+		
 	}
 
 	private static final class CompactMultiValueFacetCountCollector extends DefaultFacetCountCollector

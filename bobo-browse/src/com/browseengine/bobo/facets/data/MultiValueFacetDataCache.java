@@ -13,10 +13,14 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositions;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.ScoreDocComparator;
+import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
 import com.browseengine.bobo.util.BigIntBuffer;
 import com.browseengine.bobo.util.BigNestedIntArray;
+import com.browseengine.bobo.util.StringArrayComparator;
 import com.browseengine.bobo.util.BigNestedIntArray.BufferedLoader;
 import com.browseengine.bobo.util.BigNestedIntArray.Loader;
 
@@ -373,4 +377,28 @@ public class MultiValueFacetDataCache extends FacetDataCache
               ((bytes[1] & 0xFF) <<  8) |  (bytes[0] & 0xFF);
     }
   }
+  
+    public ScoreDocComparator getScoreDocComparator()
+	{
+		return new MultiFacetScoreDocComparator(this);
+	}
+    
+	public final static class MultiFacetScoreDocComparator implements ScoreDocComparator{
+		private MultiValueFacetDataCache _dataCache;
+		public MultiFacetScoreDocComparator(MultiValueFacetDataCache dataCache){
+			_dataCache=dataCache;
+		}
+		public final int compare(ScoreDoc i, ScoreDoc j) {
+			return _dataCache._nestedArray.compare(i.doc, j.doc);
+		}
+
+		public final int sortType() {
+			return SortField.CUSTOM;
+		}
+
+		public final Comparable sortValue(ScoreDoc i) {
+          String[] vals = _dataCache._nestedArray.getTranslatedData(i.doc, _dataCache.valArray);
+          return new StringArrayComparator(vals);
+		}
+	}
 }
