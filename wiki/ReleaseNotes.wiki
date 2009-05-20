@@ -1,6 +1,13 @@
 #labels Featured,Phase-Support
 =Release Notes=
 
+==2.0.3==
+Bug fix release
+
+  * Added sorting support for MultiValueFacetHandler and CompactMultiValueFacetHandler, now you can sort multi valued fields thru bobo. (John)
+  * Counting performance enhancement for CompactMultiValueFacetHandler (Yasuhiro)
+  * ListMerger fixes and cleanup for result merging. (Yasuhiro)
+
 ==2.0.2==
 Bug fix release
 
