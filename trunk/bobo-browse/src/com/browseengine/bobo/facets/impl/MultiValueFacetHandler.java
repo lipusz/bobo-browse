@@ -34,7 +34,7 @@ public class MultiValueFacetHandler extends FacetHandler implements FacetHandler
   @Override
   public ScoreDocComparator getScoreDocComparator() 
   {
-    throw new IllegalArgumentException("Cannot sort on multi valued fields");
+    return new MultiValueFacetDataCache.MultiFacetScoreDocComparator(_dataCache);
   }
 
   private final TermListFactory _termListFactory;

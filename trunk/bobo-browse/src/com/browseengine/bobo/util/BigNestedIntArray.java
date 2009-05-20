@@ -424,6 +424,54 @@ public final class BigNestedIntArray
       }
     }
   }
+  
+  public final int compare(int i,int j){
+	  final int[] page1 = (int[])_list[i >> PAGEID_SHIFT];
+	  final int[] page2 = (int[])_list[j >> PAGEID_SHIFT];
+	  
+	  if (page1 == null && page1==page2) return 0;
+	  
+	  final int val1 = page1[i & SLOTID_MASK];
+	  final int val2 = page2[j & SLOTID_MASK];
+	  
+	  if (val1>=0 && val2>=0) return val1 - val2;
+	  if (val1>=0){
+		  int idx = - (val2 >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+	      int val = val1 - page2[idx];
+	      if (val == 0){
+	    	return -1;   
+	      }
+	      else{
+	    	return val;
+	      }
+	  }
+	  if (val2>=0){
+		  int idx = - (val1 >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+	      int val = page1[idx] - val2;
+	      if (val==0){
+	    	  return 1;
+	      }
+	      else{
+	    	  return val;
+	      }
+	  }
+	  int idx1 = - (val1 >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+	  int len1 = (val1 & COUNT_MASK);
+	  
+	  int idx2 = - (val2 >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+	  int len2 = (val2 & COUNT_MASK);
+	  
+	  for (int k=0;k<len1;++k){
+		if (k>=len2){
+          return 1;
+		}
+		  
+		int compVal = page1[idx1+k] - page2[idx2+k];
+		if (compVal!=0) return compVal;
+	  }
+	  if (len1 == len2) return 0;
+	  return -1;
+  }
 
   public final boolean contains(int id, int value)
   {
