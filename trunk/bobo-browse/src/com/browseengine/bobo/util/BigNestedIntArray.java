@@ -429,13 +429,21 @@ public final class BigNestedIntArray
 	  final int[] page1 = (int[])_list[i >> PAGEID_SHIFT];
 	  final int[] page2 = (int[])_list[j >> PAGEID_SHIFT];
 	  
-	  if (page1 == null && page1==page2) return 0;
+	  if (page1 == null){
+		  if (page2 == null) return 0;
+		  else return -1;
+	  }
+	  else{
+		  if (page2 == null) return 1;
+	  }
 	  
 	  final int val1 = page1[i & SLOTID_MASK];
 	  final int val2 = page2[j & SLOTID_MASK];
 	  
 	  if (val1>=0 && val2>=0) return val1 - val2;
+	  
 	  if (val1>=0){
+		  if (val2 == MISSING) return 1;
 		  int idx = - (val2 >> VALIDX_SHIFT);// signed shift, remember this is a negative number
 	      int val = val1 - page2[idx];
 	      if (val == 0){
@@ -446,6 +454,7 @@ public final class BigNestedIntArray
 	      }
 	  }
 	  if (val2>=0){
+		  if (val1 == MISSING) return -1;
 		  int idx = - (val1 >> VALIDX_SHIFT);// signed shift, remember this is a negative number
 	      int val = page1[idx] - val2;
 	      if (val==0){
@@ -455,6 +464,19 @@ public final class BigNestedIntArray
 	    	  return val;
 	      }
 	  }
+	  
+	  if (val1 == MISSING){
+		  if (val2 == MISSING){
+			  return 0;
+		  }
+		  else return -1;
+	  }
+	  else{
+		  if (val2 == MISSING){
+			  return 1;
+		  }
+	  }
+	  
 	  int idx1 = - (val1 >> VALIDX_SHIFT);// signed shift, remember this is a negative number
 	  int len1 = (val1 & COUNT_MASK);
 	  
