@@ -19,11 +19,11 @@ Number of terms: t
 
 ===Data structure:===
 
-  *order array, {{{int[]}}} of size m, each element indexes into the term array (actually !BigIntArray is used instead of int[] to avoid requiring large chunks of consecutive heap allocation)
-  *term array, !TermListValue of size t
-  *freq array, {{{int[]}}} of size t, stores !docFreq for a given term
-  *!minID array, {{{int[]}}} of size t, stores minimum ID for a given term
-  *!maxID array, {{{int[]}}} of size t, stores maximum ID for a given term
+  * order array, {{{int[]}}} of size m, each element indexes into the term array (actually !BigIntArray is used instead of int[] to avoid requiring large chunks of consecutive heap allocation)
+  * term array, !TermListValue of size t
+  * freq array, {{{int[]}}} of size t, stores !docFreq for a given term
+  * !minID array, {{{int[]}}} of size t, stores minimum ID for a given term
+  * !maxID array, {{{int[]}}} of size t, stores maximum ID for a given term
 
 
 ===Filter:===
@@ -39,11 +39,11 @@ A count array, {{{int[]}}} of size t, is created to store the hit count for each
 
 ===Data structure:===
 
-  *order array, {{{int[]}}} of size m, each element indexes into the term array (actually !BigIntArray is used instead of {{{int[]}}} to avoid requiring large chunks of consecutive heap allocation)
-  *term array, !TermListValue of size t
-  *freq array, {{{int[]}}} of size t, stores !docFreq for a given term
-  *!minID array, {{{int[]}}} of size t, stores minimum ID for a given term
-  *!maxID array, {{{int[]}}} of size t, stores maximum ID for a given term
+  * order array, {{{int[]}}} of size m, each element indexes into the term array (actually !BigIntArray is used instead of {{{int[]}}} to avoid requiring large chunks of consecutive heap allocation)
+  * term array, !TermListValue of size t
+  * freq array, {{{int[]}}} of size t, stores !docFreq for a given term
+  * !minID array, {{{int[]}}} of size t, stores minimum ID for a given term
+  * !maxID array, {{{int[]}}} of size t, stores maximum ID for a given term
 
 
 ===Filter:===
@@ -59,11 +59,11 @@ A count array, {{{int[]}}} of size t, is created to store the hit count for each
 
 ===Data structure:===
 
-  *order array, {{{int[]}}} of size m, each element indexes into the term array (actually !BigIntArray is used instead of {{{int[]}}} to avoid requiring large chunks of consecutive heap allocation)
-  *term array, !TermListValue of size t
-  *freq array, {{{int[]}}} of size t, stores !docFreq for a given term
-  *!minID array, {{{int[]}}} of size t, stores minimum ID for a given term
-  *!maxID array, {{{int[]}}} of size t, stores maximum ID for a given term
+  * order array, {{{int[]}}} of size m, each element indexes into the term array (actually !BigIntArray is used instead of {{{int[]}}} to avoid requiring large chunks of consecutive heap allocation)
+  * term array, !TermListValue of size t
+  * freq array, {{{int[]}}} of size t, stores !docFreq for a given term
+  * !minID array, {{{int[]}}} of size t, stores minimum ID for a given term
+  * !maxID array, {{{int[]}}} of size t, stores maximum ID for a given term
 
 
 ===Filter:===
@@ -79,11 +79,11 @@ A count array, {{{int[]}}} of size t, is created to store the hit count for each
 
 ===Data structure:===
 
-  *order array, {{{int[]}}} of size m, each element is a bit encoding of the indexes of the matching terms the term array (actually !BigIntArray is used instead of {{{int[]}}} to avoid requiring large chunks of consecutive heap allocation)
-  *term array, !TermListValue of size t, t must be <=32
-  *freq array, {{{int[]}}} of size t, stores docFreq for a given term
-  *!minID array, {{{int[]}}} of size t, stores minimum ID for a given term
-  *!maxID array, {{{int[]}}} of size t, stores maximum ID for a given term
+  * order array, {{{int[]}}} of size m, each element is a bit encoding of the indexes of the matching terms the term array (actually !BigIntArray is used instead of {{{int[]}}} to avoid requiring large chunks of consecutive heap allocation)
+  * term array, !TermListValue of size t, t must be <=32
+  * freq array, {{{int[]}}} of size t, stores docFreq for a given term
+  * !minID array, {{{int[]}}} of size t, stores minimum ID for a given term
+  * !maxID array, {{{int[]}}} of size t, stores maximum ID for a given term
 
 
 ===Filter:===
@@ -99,12 +99,12 @@ A count array, {{{int[]}}} of size t, is created to store the hit count for each
 
 ===Data structure:===
 
-  *order array, {{{int[]}}} of size m, each element is a bit encoding of a 2 part value, start and end that index into the aux array (actually !BigIntArray is used instead of {{{int[]}}} to avoid requiring large chunks of consecutive heap allocation)
-  *aux array, {{{int[]}}} of size >=m, is an aggregate of multiple values indexed in term array for a given docid. (actually !BigIntArray is used instead of {{{int[]}}} to avoid requiring large chunks of consecutive heap allocation)
-  *term array, !TermListValue of size t, t must be <=32
-  *freq array, {{{int[]}}} of size t, stores docFreq for a given term
-  *!minID array, {{{int[]}}} of size t, stores minimum ID for a given term
-  *!maxID array, {{{int[]}}} of size t, stores maximum ID for a given term
+  * order array, {{{int[]}}} of size m, each element is a bit encoding of a 2 part value, start and end that index into the aux array (actually !BigIntArray is used instead of {{{int[]}}} to avoid requiring large chunks of consecutive heap allocation)
+  * aux array, {{{int[]}}} of size >=m, is an aggregate of multiple values indexed in term array for a given docid. (actually !BigIntArray is used instead of {{{int[]}}} to avoid requiring large chunks of consecutive heap allocation)
+  * term array, !TermListValue of size t, t must be <=32
+  * freq array, {{{int[]}}} of size t, stores docFreq for a given term
+  * !minID array, {{{int[]}}} of size t, stores minimum ID for a given term
+  * !maxID array, {{{int[]}}} of size t, stores maximum ID for a given term
 
 
 ===Filter:===
