@@ -277,9 +277,9 @@ public abstract class FacetHandler implements Cloneable
 	    }
 	    else
 	    {
-	      filterList.add(EmptyFilter.getInstance());
-	      break;
-	     }
+	      // there is no hit in this AND filter because this value has no hit
+	      return null;
+	    }
 	  }
 	  if (filterList.size() == 0) return null;
 	  return new RandomAccessAndFilter(filterList);
@@ -294,12 +294,7 @@ public abstract class FacetHandler implements Cloneable
         RandomAccessFilter f = buildRandomAccessFilter(val, prop);
         if(f != null) 
         {
-            filterList.add(f);
-        }
-        else
-        {
-          filterList.add(EmptyFilter.getInstance());
-          break;
+          filterList.add(f);
         }
       }
       
