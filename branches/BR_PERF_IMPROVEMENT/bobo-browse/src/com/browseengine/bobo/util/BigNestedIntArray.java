@@ -550,7 +550,10 @@ public final class BigNestedIntArray
   public final int count(final int id, final int[] count)
   {
     final int[] page = _list[id >> PAGEID_SHIFT];
-    if(page == null) return 0;
+    if(page == null) {
+      count[0]++;
+      return 0;
+    }
     
     int val = page[id & SLOTID_MASK];
     if(val >= 0)
@@ -569,6 +572,7 @@ public final class BigNestedIntArray
       }
       return cnt;
     }
+    count[0]++;
     return 0;
   }
   

@@ -47,19 +47,14 @@ public class MultiValueFacetFilter extends RandomAccessFilter
 
         @Override
         final public boolean skipTo(int id) throws IOException {
-          if (_doc < id)
+          
+          if(id > _doc)
           {
-            _doc=id-1;
+            _doc = id - 1;
+            return next();
           }
           
-          while(_doc < _maxID) // not yet reached end
-          {
-            _doc++;
-            if (_nestedArray.contains(_doc, _index)){
-              return true;
-            }
-          }
-          return false;
+          return (id == _doc) ? next() : false;
         }
     }
 
