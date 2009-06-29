@@ -234,6 +234,10 @@ public abstract class FacetHandler implements Cloneable
         if (sel.getSelectionOperation() == ValueOperation.ValueOperationAnd)
         {
           filter = buildRandomAccessAndFilter(selections,prop);
+          if (filter == null)
+          {
+            filter = EmptyFilter.getInstance();
+          }
         }
         else
         {
@@ -298,9 +302,16 @@ public abstract class FacetHandler implements Cloneable
         }
       }
       
-      if (filterList.size() == 0) return null;
+      RandomAccessFilter finalFilter;
+      if (filterList.size() == 0)
+      {
+        finalFilter = EmptyFilter.getInstance();
+      }
+      else
+      {
+        finalFilter = new RandomAccessOrFilter(filterList);
+      }
       
-      RandomAccessFilter finalFilter = new RandomAccessOrFilter(filterList);
       if (isNot)
       {
         finalFilter = new RandomAccessNotFilter(finalFilter);
