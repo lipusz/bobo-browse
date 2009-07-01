@@ -103,7 +103,6 @@ public class BoboIndexReader extends FilterIndexReader
     File springFile = new File(file, SPRING_CONFIG);
     FileSystemXmlApplicationContext appCtx =
         new FileSystemXmlApplicationContext("file:" + springFile.getAbsolutePath());
-    appCtx.setClassLoader(Thread.currentThread().getContextClassLoader());
     return (Collection<FacetHandler>) appCtx.getBean("handlers");
   }
 
