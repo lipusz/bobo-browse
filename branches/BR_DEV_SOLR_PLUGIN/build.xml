@@ -43,6 +43,8 @@
 			 dir="${bobo-browse}" target="clean"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-service}" target="clean"/>
+		<ant antfile="build.xml"
+					 dir="${bobo-solr}" target="clean"/>
 		<!--
 		<ant antfile="build.xml"
 			 dir="${bobo-bench}" target="clean" />
@@ -59,6 +61,8 @@
 			 dir="${bobo-browse}" target="dist"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-service}" target="dist"/>
+		<ant antfile="build.xml"
+		     dir="${bobo-solr}" target="dist" />
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="javadoc" />
 		<!--
