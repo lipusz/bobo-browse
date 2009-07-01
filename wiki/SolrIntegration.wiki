@@ -1,0 +1,39 @@
+#labels Phase-Implementation
+=Solr Integration=
+
+*_This is currently in experimental stage, and only available on the BR_DEV_SOLR_PLUGIN branch_*
+
+==Introduction==
+
+With the custom !IndexReaderFactory support ([https://issues.apache.org/jira/browse/SOLR-243 SOLR-243], target release 1.4) We have built a plugin to run bobo inside the Solr container.
+
+==Configuration==
+
+_solrconfig.xml_ neends to be modified to hook up the plugin:
+
+===!IndexReaderFactory===
+
+Install !BoboIndexReaderFactory as a custom !IndexReaderFactory
+
+{{{
+<indexReaderFactory name="IndexReaderFactory" class="com.browseengine.solr.BoboIndexReaderFactory">
+  </indexReaderFactory >
+}}}
+
+===!RequestHandler===
+
+Install !BoboRequestHandler as a custom !SolrRequestHandler with the name: bobo
+
+{{{
+<requestHandler name="bobo" class="com.browseengine.solr.BoboRequestHandler" >
+  </requestHandler>
+}}}
+
+===!ResponseWriter===
+
+Install !BoboXMLResponseWriter as a custom !QueryResponseWriter with the name: bobo
+
+{{{
+<queryResponseWriter name="bobo" class="com.browseengine.solr.BoboXMLResponseWriter">
+  </queryResponseWriter>
+}}}
