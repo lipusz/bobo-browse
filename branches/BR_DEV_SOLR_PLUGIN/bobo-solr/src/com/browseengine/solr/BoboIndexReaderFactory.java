@@ -10,9 +10,7 @@ import org.apache.solr.core.IndexReaderFactory;
 import com.browseengine.bobo.api.BoboIndexReader;
 
 public class BoboIndexReaderFactory extends IndexReaderFactory {
-
-	public void init(NamedList args) {
-		
+	public void init(NamedList conf) {
 	}
 
 	@Override

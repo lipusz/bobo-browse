@@ -23,10 +23,10 @@ public class BrowseResultConverter implements Converter {
 		writer.addAttribute("totaldocs", String.valueOf(result.getTotalDocs()));
 		writer.addAttribute("time", String.valueOf(result.getTime()));
 		
-		writer.startNode("choices");
+		writer.startNode("facets");
 		Set<Entry<String,FacetAccessible>> facetAccessors=result.getFacetMap().entrySet();
 		
-		writer.addAttribute("choicecount", String.valueOf(facetAccessors.size()));
+		writer.addAttribute("count", String.valueOf(facetAccessors.size()));
 		
 		for (Entry<String,FacetAccessible> entry : facetAccessors){
 			String choiceName=entry.getKey();
@@ -48,8 +48,10 @@ public class BrowseResultConverter implements Converter {
 			writer.endNode();
 		}
 		writer.endNode();
+		writer.startNode("hits");
 		BrowseHit[] hits=result.getHits();
 		ctx.convertAnother(hits);
+		writer.endNode();
 	}
 
 	public Object unmarshal(HierarchicalStreamReader reader,

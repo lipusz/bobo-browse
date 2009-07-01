@@ -4,7 +4,6 @@ import java.net.URL;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.solr.common.SolrException;
@@ -17,11 +16,11 @@ import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SolrIndexReader;
 import org.apache.solr.search.SolrIndexSearcher;
 
+import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.impl.DefaultBrowseServiceImpl;
 import com.browseengine.bobo.server.protocol.BoboParams;
 import com.browseengine.bobo.server.protocol.BoboQueryBuilder;
 import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
@@ -86,16 +85,16 @@ public class BoboRequestHandler implements SolrRequestHandler {
 		SolrIndexSearcher searcher=req.getSearcher();
 		
 		SolrIndexReader solrReader = searcher.getReader();
-		IndexReader reader = solrReader.getWrappedReader();
+		BoboIndexReader reader = (BoboIndexReader)solrReader.getWrappedReader();
 		
 		if (reader instanceof BoboIndexReader){
 			BrowseRequest br=BoboRequestBuilder.buildRequest(new BoboSolrParams(req.getParams()),new BoboSolrQueryBuilder(req));
+			logger.info("browse request: "+br);
 			
-		    DefaultBrowseServiceImpl svc=new DefaultBrowseServiceImpl((BoboIndexReader)reader);
-		    svc.setCloseReaderOnCleanup(false);
+			BoboBrowser browser = new BoboBrowser(reader);
 		    
 		    try {
-				BrowseResult res=svc.browse(br);
+				BrowseResult res=browser.browse(br);
 				rsp.add(BOBORESULT, res);
 				 /*
 				if(HighlightingUtils.isHighlightingEnabled(req) && query != null) {

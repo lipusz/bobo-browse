@@ -15,12 +15,12 @@ import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 
 public class BoboRequestBuilder {
 	
-	private static final String OSPEC_PREFIX="bobo.ospec.";
+	private static final String OSPEC_PREFIX="bobo.groupby.";
 	private static final String SEL_PREFIX="bobo.sel.";
 	private static final String BOBO_PREFIX="bobo.";
 	
-	private static final String QUERY="q";
-	private static final String DEFAULT_FIELD="df";
+	private static final String QUERY="bobo.q";
+	private static final String DEFAULT_FIELD="bobo.df";
 	
 	private static final String START="start";
 	private static final String COUNT="rows";
@@ -130,7 +130,7 @@ public class BoboRequestBuilder {
 						}
 					}
 					catch(Exception e){
-						e.printStackTrace();
+						logger.error(e.getMessage(),e);
 					}
 				}
 			}
@@ -152,7 +152,12 @@ public class BoboRequestBuilder {
 		Sort sort = qb.parseSort(params.getString(SORT));
 
 	    // parse the query from the 'q' parameter (sort has been striped)
-	    Query query =qb.parseQuery(params.getString(QUERY), params.getString(DEFAULT_FIELD));
+	    Query query = null;
+	    
+	    String qString = params.get(QUERY);
+	    if (qString != null && qString.length() > 0){
+	    	query = qb.parseQuery(qString, params.getString(DEFAULT_FIELD));
+	    }
 	    
 	    BrowseRequest br=new BrowseRequest();
 	    br.setOffset(offset);
