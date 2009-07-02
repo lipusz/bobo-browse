@@ -19,8 +19,8 @@ public class BoboRequestBuilder {
 	private static final String SEL_PREFIX="bobo.sel.";
 	private static final String BOBO_PREFIX="bobo.";
 	
-	private static final String QUERY="bobo.q";
-	private static final String DEFAULT_FIELD="bobo.df";
+	private static final String QUERY="q";
+	private static final String DEFAULT_FIELD="df";
 	
 	private static final String START="start";
 	private static final String COUNT="rows";
