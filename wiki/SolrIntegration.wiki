@@ -5,6 +5,14 @@
 
 ==Introduction==
 
+Some main differences between Bobo-Browse and Solr Facet Search:
+* Bobo is a library, just like Lucene, where Solr Facet is built into the Solr container.
+* Bobo is designed to be extensive through a plugin framework to allow for different types of facet support. Out of the box, Bobo supports simple,multi,range and hierarchical facet support.
+* Bobo does not depend on request caching for performance. e.g. "color=red" does not need to be warmed up, in a way, all values and combinations are cached.
+* ...
+
+Solr container gives a out-of-box experience for Lucene through a clean and simple application. So it makes a lot of sense to be extend Solr with Bobo.
+
 With the custom !IndexReaderFactory support ([https://issues.apache.org/jira/browse/SOLR-243 SOLR-243], target release 1.4) We have built a plugin to run bobo inside the Solr container.
 
 ==Configuration==
