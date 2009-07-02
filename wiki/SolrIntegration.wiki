@@ -37,7 +37,7 @@ Install !BoboRequestHandler as a custom !SolrRequestHandler with the name: bobo
 </requestHandler>
 }}}
 
-See also: [http://wiki.apache.org/solr/SolrRequestHandler | SolrRequestHandler on Solr Wiki]
+See also: [http://wiki.apache.org/solr/SolrRequestHandler SolrRequestHandler on Solr Wiki]
 
 ===!ResponseWriter===
 
@@ -48,7 +48,7 @@ Install !BoboXMLResponseWriter as a custom !QueryResponseWriter with the name: b
 </queryResponseWriter>
 }}}
 
-See also: [http://wiki.apache.org/solr/QueryResponseWriter | QueryResponseWriter on Solr Wiki]
+See also: [http://wiki.apache.org/solr/QueryResponseWriter QueryResponseWriter on Solr Wiki]
 
 ==Jars==
 
