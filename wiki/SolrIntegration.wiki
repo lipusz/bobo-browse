@@ -41,3 +41,16 @@ Install !BoboXMLResponseWriter as a custom !QueryResponseWriter with the name: b
 }}}
 
 See also: [http://wiki.apache.org/solr/QueryResponseWriter | QueryResponseWriter on Solr Wiki]
+
+==Jars==
+
+Currently there is a problem with conflicting !ClassLoader between Solr container and Spring. To work around it, we need to bundle the following jars with *solr.war*, e.g. in the WEB-INF/lib directory:
+
+||*jar name*||*location*||*comments*||*url*||
+||kamikaze-1.0.7.jar||lib||lucene enhancements||[http://code.google.com/p/lucene-ext]||
+||fastutil-5.1.5.jar||lib||fast primitive collections api||[http://fastutil.dsi.unimi.it/]||
+||spring-2.5.5.jar||lib||spring dependency injection framework||[http://www.springsource.org/]||
+||xstream-1.2.jar||lib||xml serialization library||[http://xstream.codehaus.org/]||
+||bobo-browse.jar||dist||bobo library, build via ant||||
+||bobo-solr.jar||dist||bobo solr plugin, build via ant||||
+
