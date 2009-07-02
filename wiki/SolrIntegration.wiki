@@ -71,13 +71,13 @@ The following is a reference on the bobo request syntax:
 || *param name* || *comments*|| *example* ||
 || qt || specifies bobo request handler, value would be the name we gave in the solrconfig.xml || qt=bobo ||
 || wt || specifies bobo xml response writer, value would be the name we gave in the solrconfig.xml || wt=bobo ||
-|| start** || specifies paging parameter: offset || start=1 ||
-|| rows** || specifies paging parameter: count || rows=10 ||
+|| start `**` || specifies paging parameter: offset || start=1 ||
+|| rows `**` || specifies paging parameter: count || rows=10 ||
 || sort || specifies hits sorting parameter || sort=price asc,year desc ||
-|| q** || specifies query string, if not specified, all non-deleted docs will be considered a hit || q=cool ||
-|| df** || specifies default field || df=contents||
-|| bobo.sel.${name}.val || specifies a selection value, where ${name} is the name of a defined facet handler* || bobo.sel.color.val=red ||
-|| bobo.sel.${name}.notval* || specifies a selection not value, where ${name} is the name of a defined facet handler || bobo.sel.color.notval=green ||
+|| q `**` || specifies query string, if not specified, all non-deleted docs will be considered a hit || q=cool ||
+|| df `**` || specifies default field || df=contents||
+|| bobo.sel.${name}.val || specifies a selection value, where ${name} is the name of a defined facet handler`*` || bobo.sel.color.val=red ||
+|| bobo.sel.${name}.notval || specifies a selection not value, where ${name} is the name of a defined facet handler`*` || bobo.sel.color.notval=green ||
 || bobo.sel.${name}.operation || specifies multiple settings of values are to be AND or OR, where ${name} is the name of a defined facet handler || bobo.sel.color.operation=and ||
 || bobo.sel.${name}.depth || specifies depth for !PathFacetHandler types, where ${name} is the name of a defined facet handler || bobo.sel.city.depth=1 ||
 || bobo.sel.${name}.strict || specifies strict value for !PathFacetHandler types, where ${name} is the name of a defined facet handler || bobo.sel.city.strict=false ||
@@ -87,9 +87,9 @@ The following is a reference on the bobo request syntax:
 || bobo.groupby.${name}.mincount || specifies !minHitCount property of the facet spec, where ${name} is the name of a defined facet handler || bobo.groupby.color.mincount=1 ||
 || bobo.groupby.${name}.orderby || specifies sorting property of the facet spec, e.g. by hits or by value, where ${name} is the name of a defined facet handler || bobo.groupby.color.orderby=hits ||
 
-*multiple values maybe added by specifying the same parameter multiple times with different values.
+`*` multiple values maybe added by specifying the same parameter multiple times with different values.
 
-**These values are defined by Solr and should follow Solr semantics.
+`**` These values are defined by Solr and should follow Solr semantics.
 
 The following is the request string for:
 
