@@ -53,3 +53,29 @@ Currently there is a problem with conflicting !ClassLoader between Solr containe
 ||xstream-1.2.jar||lib||xml serialization library||[http://xstream.codehaus.org/]||
 ||bobo-browse.jar||dist||bobo library, build via ant||||
 ||bobo-solr.jar||dist||bobo solr plugin, build via ant||||
+
+==Syntax==
+
+After solrconfig.xml is edited, and jars installed, starting Solr should be ready support bobo queries.
+
+The following is a reference on the bobo request syntax:
+
+|| *param name* || *comments*|| *example* ||
+|| qt || specifies bobo request handler, value would be the name we gave in the solrconfig.xml || qt=bobo ||
+|| wt || specifies bobo xml response writer, value would be the name we gave in the solrconfig.xml || wt=bobo ||
+|| start || specifies paging parameter: offset || start=1 ||
+|| rows || specifies paging parameter: count || rows=10 ||
+|| sort || specifies hits sorting parameter || sort=price asc,year desc ||
+|| bobo.q || specifies query string || bobo.q=cool ||
+|| bobo.df || specifies default field || bobo.df=contents||
+|| bobo.sel.${name}.val || specifies a selection value, where ${name} is the name of a defined facet handler* || bobo.sel.color.val=red ||
+|| bobo.sel.${name}.notval* || specifies a selection not value, where ${name} is the name of a defined facet handler || bobo.sel.color.notval=green ||
+|| bobo.sel.${name}.operation || specifies multiple settings of values are to be AND or OR, where ${name} is the name of a defined facet handler || bobo.sel.color.operation=and ||
+|| bobo.sel.${name}.depth || specifies depth for !PathFacetHandler types, where ${name} is the name of a defined facet handler || bobo.sel.city.depth=1 ||
+|| bobo.sel.${name}.strict || specifies strict value for !PathFacetHandler types, where ${name} is the name of a defined facet handler || bobo.sel.city.strict=false ||
+|| bobo.groupby.${name} || specifies facet spec, where ${name} is the name of a defined facet handler || bobo.groupby.color ||
+|| bobo.groupby.${name}.expand || specifies expand property of the facet spec, where ${name} is the name of a defined facet handler || bobo.groupby.color.expand=true ||
+|| bobo.groupby.${name}.max || specifies max property of the facet spec, where ${name} is the name of a defined facet handler || bobo.groupby.color.max=10 ||
+|| bobo.groupby.${name}.mincount || specifies !minHitCount property of the facet spec, where ${name} is the name of a defined facet handler || bobo.groupby.color.mincount=1 ||
+|| bobo.groupby.${name}.orderby || specifies sorting property of the facet spec, e.g. by hits or by value, where ${name} is the name of a defined facet handler || bobo.groupby.color.orderby=hits ||
+
