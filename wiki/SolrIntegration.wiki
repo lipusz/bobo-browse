@@ -102,5 +102,5 @@ category,color,price
 http://localhost:8983/solr/select?wt=bobo&qt=bobo&bobo.sel.category.val=suv&bobo.sel.color.val=green&bobo.groupby.color&bobo.groupby.category&bobo.groupby.price
 }}}
 
-Screenshot for the results:
+Screenshot of the results:
 [http://john.wang.googlepages.com/bobo-solr-results.png]
