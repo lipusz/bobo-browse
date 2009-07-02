@@ -93,3 +93,4 @@ http://localhost:8983/solr/select?wt=bobo&qt=bobo&bobo.sel.category.val=suv&bobo
 }}}
 
 Screenshot for the results:
+[http://john.wang.googlepages.com/bobo-solr-results.png]
