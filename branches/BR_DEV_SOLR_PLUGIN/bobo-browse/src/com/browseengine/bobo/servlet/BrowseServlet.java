@@ -55,6 +55,7 @@ import com.browseengine.bobo.server.protocol.BrowseJSONSerializer;
 import com.browseengine.bobo.service.BrowseService;
 import com.browseengine.bobo.service.BrowseServiceFactory;
 import com.browseengine.bobo.util.XStreamDispenser;
+import com.google.protobuf.TextFormat;
 import com.thoughtworks.xstream.XStream;
 
 public class BrowseServlet
@@ -168,6 +169,7 @@ public class BrowseServlet
 		BrowseRequest br=BoboRequestBuilder.buildRequest(new BoboHttpRequestParam(req),new BoboDefaultQueryBuilder());
 		try {
 			BrowseRequestBPO.Request protoReq = BrowseProtobufConverter.convert(br);
+			logger.info("[<| "+TextFormat.printToString(protoReq)+" |>]");
 			BrowseResult result=_svc.browse(br);
 			res.setCharacterEncoding("UTF-8");
 			Writer writer=res.getWriter();

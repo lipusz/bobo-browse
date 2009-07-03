@@ -143,7 +143,7 @@ public class BrowseProtobufConverter {
 			List<String> vals = sel.getValuesList();
 			if (vals!=null)
 			{
-				if (bsel!=null)
+				if (bsel==null)
 				{
 					bsel = new BrowseSelection(sel.getName());
 				}
@@ -153,7 +153,7 @@ public class BrowseProtobufConverter {
 			vals = sel.getNotValuesList();
 			if (vals!=null)
 			{
-				if (bsel!=null)
+				if (bsel==null)
 				{
 					bsel = new BrowseSelection(sel.getName());
 				}
