@@ -168,8 +168,7 @@ public class BrowseServlet
 		
 		BrowseRequest br=BoboRequestBuilder.buildRequest(new BoboHttpRequestParam(req),new BoboDefaultQueryBuilder());
 		try {
-			BrowseRequestBPO.Request protoReq = BrowseProtobufConverter.convert(br);
-			logger.info("[<| "+TextFormat.printToString(protoReq)+" |>]");
+			logger.info("REQ: "+BrowseProtobufConverter.toProtoBufString(br));
 			BrowseResult result=_svc.browse(br);
 			res.setCharacterEncoding("UTF-8");
 			Writer writer=res.getWriter();

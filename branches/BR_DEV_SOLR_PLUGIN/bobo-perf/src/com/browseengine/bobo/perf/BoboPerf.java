@@ -1,51 +1,143 @@
 package com.browseengine.bobo.perf;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.queryParser.QueryParser;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.lucene.index.IndexReader;
 
-import com.browseengine.bobo.api.BrowseRequest;
-import com.browseengine.bobo.protobuf.BrowseProtobufConverter;
-import com.browseengine.bobo.protobuf.BrowseRequestBPO;
-import com.google.protobuf.TextFormat;
+import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.perf.BrowseThread.Stats;
+import com.browseengine.bobo.perf.BrowseThread.StatsCollector;
+import com.browseengine.bobo.perf.RequestFactory.ReqIterator;
 
-public class BoboPerf {
-  public static void main(String[] args) throws Exception{
-	File f = new File("/Users/john/opensource/bobo-solr/logs/zoie-server.log");
-	InputStreamReader ireader = new InputStreamReader(new FileInputStream(f),"UTF-8");
-	
-	BufferedReader br = new BufferedReader(ireader);
-
-	StringBuffer buf = null;
-	while(true){
-		String line = br.readLine();
-		if (line == null) break;
-		if (buf!=null){
-			if (line.contains(" |>]")){
-				buf.append(" ").append(line.substring(0, line.indexOf(" |>]")));
-				String reqString = buf.toString();
-				System.out.println(reqString);
-				BrowseRequestBPO.Request.Builder builder = BrowseRequestBPO.Request.newBuilder();
-				TextFormat.merge(reqString, builder);
-				BrowseRequestBPO.Request bpo = builder.build();
-				BrowseRequest req = BrowseProtobufConverter.convert(bpo,new QueryParser("contents",new StandardAnalyzer()));
-				System.out.println(req);
-				buf = null;
-			}
-			else{
-				buf.append(" ").append(line);
-			}
-		}
-		else if (line.contains("[<| ")){
-			buf = new StringBuffer();
-			buf.append(" ").append(line.substring(line.indexOf("[<| ")+4));
-		}
-		
+public class BoboPerf implements StatsCollector{
+  
+  private PropertiesConfiguration _propConf;
+  
+  public static final String QUERY_LOG_FILE="query.log.file";
+  public static final String INDEX_DIR="index.dir";
+  public static final String NUM_REQ = "num.req";
+  public static final String NUM_THREADS = "num.threads";
+  public static final String THROTTLE_WAIT = "throttle.wait";
+  
+  private File qlogFile;
+  private File idxDir;
+  private int numReq;
+  private int numThreads;
+  private long throttleWait;
+  
+  private RequestFactory _reqFactory;
+  
+  public BoboPerf(PropertiesConfiguration propConf) throws IOException{
+	  _propConf = propConf;
+	  init();
+  }
+  
+  private void init() throws IOException{ 
+	  qlogFile = new File(_propConf.getString(QUERY_LOG_FILE));
+	  idxDir = new File(_propConf.getString(INDEX_DIR));
+	  numReq = _propConf.getInt(NUM_REQ);
+	  numThreads = _propConf.getInt(NUM_THREADS,10);
+	  throttleWait = _propConf.getLong(THROTTLE_WAIT, 500L);
+	  
+	  System.out.println("query log file: "+qlogFile.getAbsolutePath());
+	  System.out.println("index dir: "+idxDir.getAbsolutePath());
+	  System.out.println("number of reqs: "+numReq);
+	  System.out.println("number of threads: "+numThreads);
+	  System.out.println("throttle wait: "+throttleWait);
+	  
+	  _reqFactory = RequestFactory.load(qlogFile, numReq);
+	  
+	  
+  }
+  
+  LinkedList<Stats> statsList = new LinkedList<Stats>();
+  public void collect(Stats stats) {
+	synchronized(statsList){
+	  statsList.add(stats);
 	}
-	ireader.close();
+  }
+  
+  public void start()  throws IOException{
+
+	  BoboIndexReader boboReader = null;
+	  System.out.println("loading index...");
+	  IndexReader r = IndexReader.open(idxDir);
+	  try{
+		  boboReader = BoboIndexReader.getInstance(r);
+	  }
+	  catch(IOException ioe){
+		  r.close();
+		  throw ioe;
+	  }
+	  
+	  System.out.println("initializing threads...");
+
+	  ReqIterator iter = _reqFactory.iterator();
+	  Thread[] threadPool = new Thread[numThreads];
+	  for (int i =0;i < threadPool.length;++i){
+		  threadPool[i]=new BrowseThread(boboReader,iter,throttleWait,this);
+	  }
+	  
+	  System.out.println("starting ... ");
+	  long start = System.currentTimeMillis();
+	  for (int i =0;i<threadPool.length;++i){
+		  threadPool[i].start();
+	  }
+	  try {
+		  for (int i =0;i<threadPool.length;++i){
+			  threadPool[i].join();
+		  }
+	  } catch (InterruptedException e) {
+		e.printStackTrace();	
+	  }
+
+	  long end = System.currentTimeMillis();
+	  System.out.println("finished ... ");
+	  
+	  printSummary(statsList, (end-start));
+  }
+  
+  void printSummary(List<Stats> stats,long totalTime){
+	  System.out.println("======= Performance Report=========");
+	  System.out.println("total time: "+totalTime);
+	  System.out.println("total reqs processed: "+stats.size());
+	  System.out.println("QPS: "+stats.size()*1000/(totalTime));
+	  Stats[] statsArray = stats.toArray(new Stats[stats.size()]);
+	  long sum = 0L;
+	  int errCount = 0;
+	  for (Stats stat : statsArray){
+		  sum += stat.getTime();
+		  if (stat.getException() != null){
+			  errCount++;
+		  }
+	  }
+	  
+	  Arrays.sort(statsArray, new Comparator<Stats>(){
+		public int compare(Stats s1, Stats s2) {
+			long val = s1.getTime() - s2.getTime();
+			if (val == 0L){
+				val = s1.getCreateTime() - s2.getCreateTime();
+			}
+			if (val>0L) return 1;
+			if (val == 0L) return 0;
+			return -1;
+		}
+	  });
+	  
+	  System.out.println("median time: "+statsArray[statsArray.length/2].getTime());
+	  System.out.println("average time: "+(sum/statsArray.length));
+	  System.out.println("error count: "+errCount);
+  }
+  
+  public static void main(String[] args) throws Exception{
+	  File propFile = new File(args[0]);
+	  BoboPerf perf = new BoboPerf(new PropertiesConfiguration(propFile));
+	  perf.start();
   }
 }

@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
 
-import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
@@ -24,6 +23,8 @@ import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.google.protobuf.TextFormat;
+import com.google.protobuf.TextFormat.ParseException;
 
 public class BrowseProtobufConverter {
 	
@@ -99,9 +100,14 @@ public class BrowseProtobufConverter {
 		BrowseRequest breq = new BrowseRequest();
 		String query = req.getQuery();
 		
-		if (query!=null && query.length() > 0){
-			Query q = qparser.parse(query);
-			breq.setQuery(q);
+		if (qparser!=null && query!=null && query.length() > 0){
+			try{
+			  Query q = qparser.parse(query);
+			  breq.setQuery(q);
+			}
+			catch(Exception e){
+				throw new ParseException(e.getMessage());
+			}
 		}
 		breq.setOffset(req.getOffset());
 		breq.setCount(req.getCount());
@@ -305,5 +311,24 @@ public class BrowseProtobufConverter {
 			resBuilder.addFacetContainers(converted);
 		}
 		return resBuilder.build();
+	}
+	
+	public static String toProtoBufString(BrowseRequest req){
+		BrowseRequestBPO.Request protoReq = convert(req);
+		String outString = TextFormat.printToString(protoReq);
+		outString = outString.replace('\r', ' ').replace('\n', ' ');
+		return outString;
+	}
+	
+	public static BrowseRequest fromProtoBufString(String str,QueryParser qparser) throws ParseException{
+		BrowseRequestBPO.Request.Builder protoReqBuilder = BrowseRequestBPO.Request.newBuilder();
+		TextFormat.merge(str, protoReqBuilder);
+		BrowseRequestBPO.Request protoReq = protoReqBuilder.build();
+		try{
+		return convert(protoReq,qparser);
+		}
+		catch(Exception e){
+			throw new ParseException(e.getMessage());
+		}
 	}
 }
