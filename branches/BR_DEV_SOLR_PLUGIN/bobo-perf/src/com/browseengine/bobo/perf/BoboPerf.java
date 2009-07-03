@@ -107,7 +107,7 @@ public class BoboPerf implements StatsCollector{
 	  System.out.println("======= Performance Report=========");
 	  System.out.println("total time: "+totalTime);
 	  System.out.println("total reqs processed: "+stats.size());
-	  System.out.println("QPS: "+stats.size()*1000/(totalTime));
+	  System.out.println("QPS: "+stats.size()*1000/(totalTime) + "  (max: "+numThreads*(1000/throttleWait)+")");
 	  Stats[] statsArray = stats.toArray(new Stats[stats.size()]);
 	  long sum = 0L;
 	  int errCount = 0;
