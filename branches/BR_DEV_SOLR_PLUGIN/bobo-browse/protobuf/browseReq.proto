@@ -18,7 +18,8 @@ message Selection {
     OR = 0;
     AND = 1;
   }
-  repeated Property props = 4; 
+  optional Operation op = 4 [default = OR];
+  repeated Property props = 5; 
 }
 
 message Sort
@@ -33,11 +34,12 @@ message FacetSpec
   optional uint32 max = 1;
   optional bool expand = 2;
   optional uint32 minCount = 3;
-  enum OrderBy
+  enum SortSpec
   {
     ValueAsc = 0;
     HitsDesc = 1;
   }
+  optional SortSpec orderBy = 4 [default = HitsDesc];
 }
 	
 message Request{

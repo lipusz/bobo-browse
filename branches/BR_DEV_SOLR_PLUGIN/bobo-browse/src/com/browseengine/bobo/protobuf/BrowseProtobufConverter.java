@@ -1,5 +1,7 @@
 package com.browseengine.bobo.protobuf;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,28 +9,46 @@ import java.util.Map;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
+import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
+import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 
 public class BrowseProtobufConverter {
 	
 	private static class FacetContainerAccessible implements FacetAccessible{
-		private BrowseResultBPO.FacetContainer _facetContainer;
+		private Map<String,BrowseFacet> _data;
 		FacetContainerAccessible(BrowseResultBPO.FacetContainer facetContainer){
-			_facetContainer = facetContainer;
+			_data = new HashMap<String,BrowseFacet>();
+			if (facetContainer!=null){
+				List<BrowseResultBPO.Facet> facetList = facetContainer.getFacetsList();
+				if (facetList!=null){
+					for (BrowseResultBPO.Facet facet : facetList){
+						BrowseFacet bfacet = new BrowseFacet();
+						String val = facet.getVal();
+						bfacet.setValue(val);
+						bfacet.setHitCount(facet.getCount());
+						_data.put(val,bfacet);
+					}
+				}
+			}
 		}
 		public BrowseFacet getFacet(String value) {
-			// TODO Auto-generated method stub
-			return null;
+			return _data.get(value);
 		}
 
 		public List<BrowseFacet> getFacets() {
-			// TODO Auto-generated method stub
-			return null;
+			Collection<BrowseFacet> set = _data.values();
+			ArrayList<BrowseFacet> list = new ArrayList<BrowseFacet>(set.size());
+			list.addAll(set);
+			return list;
 		}
 	}
 	
@@ -74,9 +94,87 @@ public class BrowseProtobufConverter {
 	public static BrowseRequest convert(BrowseRequestBPO.Request req,QueryParser qparser) throws ParseException{
 		BrowseRequest breq = new BrowseRequest();
 		String query = req.getQuery();
+		
 		if (query!=null && query.length() > 0){
 			Query q = qparser.parse(query);
 			breq.setQuery(q);
+		}
+		breq.setOffset(req.getOffset());
+		breq.setCount(req.getCount());
+		
+		int i = 0;
+		
+		List<BrowseRequestBPO.Sort> sortList = req.getSortList();
+		SortField[] sortFields = new SortField[sortList == null ? 0 : sortList.size()];
+		for (BrowseRequestBPO.Sort s : sortList){
+			SortField sf = new SortField(s.getField(),s.getReverse());
+			sortFields[i++] = sf;
+		}
+		if (sortFields.length > 0){
+		 breq.setSort(sortFields);
+		}
+		
+		List<BrowseRequestBPO.FacetSpec> fspecList = req.getFacetSpecsList();
+		for (BrowseRequestBPO.FacetSpec fspec : fspecList){
+			FacetSpec facetSpec = new FacetSpec();
+			facetSpec.setExpandSelection(fspec.getExpand());
+			facetSpec.setMaxCount(fspec.getMax());
+			facetSpec.setMinHitCount(fspec.getMinCount());
+			BrowseRequestBPO.FacetSpec.SortSpec fsort = fspec.getOrderBy();
+			if (fsort == BrowseRequestBPO.FacetSpec.SortSpec.HitsDesc)
+			{
+				facetSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
+			}
+			else
+			{
+				facetSpec.setOrderBy(FacetSortSpec.OrderValueAsc);
+				
+			}
+		}
+		
+		List<BrowseRequestBPO.Selection> selList = req.getSelectionsList();
+		for (BrowseRequestBPO.Selection sel : selList){
+			BrowseSelection bsel = null;
+			
+			List<String> vals = sel.getValuesList();
+			if (vals!=null)
+			{
+				if (bsel!=null)
+				{
+					bsel = new BrowseSelection(sel.getName());
+				}
+				bsel.setValues(vals.toArray(new String[vals.size()]));
+				
+			}
+			vals = sel.getNotValuesList();
+			if (vals!=null)
+			{
+				if (bsel!=null)
+				{
+					bsel = new BrowseSelection(sel.getName());
+				}
+				bsel.setNotValues(vals.toArray(new String[vals.size()]));
+				
+			}
+			
+			if (bsel!= null){
+				BrowseRequestBPO.Selection.Operation operation = sel.getOp();
+				if (operation == BrowseRequestBPO.Selection.Operation.OR){
+					bsel.setSelectionOperation(ValueOperation.ValueOperationOr);
+				}
+				else{
+					bsel.setSelectionOperation(ValueOperation.ValueOperationAnd);
+				}
+				List<BrowseRequestBPO.Property> props = sel.getPropsList();
+				if (props!=null)
+				{
+				  for (BrowseRequestBPO.Property prop : props){
+					  bsel.setSelectionProperty(prop.getKey(), prop.getVal());
+				  }
+				}
+				breq.addSelection(bsel);
+			}
+			
 		}
 		return breq;
 	}
