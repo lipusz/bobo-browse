@@ -1,10 +1,14 @@
 package com.browseengine.bobo.protobuf;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Map.Entry;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
@@ -127,9 +131,9 @@ public class BrowseProtobufConverter {
 			}
 			else
 			{
-				facetSpec.setOrderBy(FacetSortSpec.OrderValueAsc);
-				
+				facetSpec.setOrderBy(FacetSortSpec.OrderValueAsc);	
 			}
+			breq.setFacetSpec(fspec.getName(), facetSpec);
 		}
 		
 		List<BrowseRequestBPO.Selection> selList = req.getSelectionsList();
@@ -177,5 +181,129 @@ public class BrowseProtobufConverter {
 			
 		}
 		return breq;
+	}
+	
+	public static BrowseRequestBPO.Selection convert(BrowseSelection sel){
+		String name = sel.getFieldName();
+		String[] vals = sel.getValues();
+		String[] notVals = sel.getNotValues();
+		ValueOperation op =sel.getSelectionOperation();
+		Properties props = sel.getSelectionProperties();
+		
+		BrowseRequestBPO.Selection.Builder selBuilder = BrowseRequestBPO.Selection.newBuilder();
+		selBuilder.setName(name);
+		selBuilder.addAllValues(Arrays.asList(vals));
+		selBuilder.addAllNotValues(Arrays.asList(notVals));
+		if (op == ValueOperation.ValueOperationAnd){
+		  selBuilder.setOp(BrowseRequestBPO.Selection.Operation.AND);
+		}
+		else{
+		  selBuilder.setOp(BrowseRequestBPO.Selection.Operation.OR);
+		}
+		Iterator iter = props.keySet().iterator();
+		while(iter.hasNext()){
+			String key = (String)iter.next();
+			String val = props.getProperty(key);
+			BrowseRequestBPO.Property prop = BrowseRequestBPO.Property.newBuilder().setKey(key).setVal(val).build();
+			selBuilder.addProps(prop);
+		}
+		return selBuilder.build();
+	}
+	
+	public static BrowseRequestBPO.Request convert(BrowseRequest req){
+		Query q = req.getQuery();
+		String qString = null;
+		if (q!=null){
+			qString = q.toString();
+		}
+		
+		BrowseRequestBPO.Request.Builder reqBuilder = BrowseRequestBPO.Request.newBuilder();
+		reqBuilder.setOffset(req.getOffset());
+		reqBuilder.setCount(req.getCount());
+		if (qString!=null){
+		  reqBuilder.setQuery(qString);
+		}
+		// selections
+		BrowseSelection[] selections = req.getSelections();
+		for (BrowseSelection sel : selections){
+			reqBuilder.addSelections(convert(sel));
+		}
+		
+		// sort
+		SortField[] sortfields = req.getSort();
+		for (SortField sortfield : sortfields){
+			BrowseRequestBPO.Sort sort = BrowseRequestBPO.Sort.newBuilder().setField(sortfield.getField()).setReverse(sortfield.getReverse()).build();
+			reqBuilder.addSort(sort);
+		}
+		
+		// facetspec
+		Map<String,FacetSpec> facetSpecMap = req.getFacetSpecs();
+		Iterator<Entry<String,FacetSpec>> iter = facetSpecMap.entrySet().iterator();
+		while(iter.hasNext()){
+			Entry<String,FacetSpec> entry = iter.next();
+			FacetSpec fspec = entry.getValue();
+			BrowseRequestBPO.FacetSpec.Builder facetspecBuilder = BrowseRequestBPO.FacetSpec.newBuilder();
+			facetspecBuilder.setName(entry.getKey());
+			facetspecBuilder.setExpand(fspec.isExpandSelection());
+			facetspecBuilder.setMax(fspec.getMaxCount());
+			facetspecBuilder.setMinCount(fspec.getMinHitCount());
+			if (fspec.getOrderBy() == FacetSortSpec.OrderHitsDesc){
+			  facetspecBuilder.setOrderBy(BrowseRequestBPO.FacetSpec.SortSpec.HitsDesc);
+			}
+			else{
+			  facetspecBuilder.setOrderBy(BrowseRequestBPO.FacetSpec.SortSpec.ValueAsc);
+			}
+			reqBuilder.addFacetSpecs(facetspecBuilder);
+		}
+		return reqBuilder.build();
+	}
+	
+	public static BrowseResultBPO.Hit convert(BrowseHit hit){
+		BrowseResultBPO.Hit.Builder hitBuilder = BrowseResultBPO.Hit.newBuilder();
+		hitBuilder.setDocid(hit.getDocid());
+		hitBuilder.setScore(hit.getScore());
+		Map<String,String[]> fieldMap = hit.getFieldValues();
+		Iterator<Entry<String,String[]>> iter = fieldMap.entrySet().iterator();
+		while(iter.hasNext()){
+			Entry<String,String[]> entry = iter.next();
+			BrowseResultBPO.FieldVal fieldVal = BrowseResultBPO.FieldVal.newBuilder().setName(entry.getKey()).addAllVals(Arrays.asList(entry.getValue())).build();
+			hitBuilder.addFieldValues(fieldVal);
+		}
+		return hitBuilder.build();
+	}
+	
+	public static BrowseResultBPO.FacetContainer convert(String name,FacetAccessible facetAccessible){
+		BrowseResultBPO.FacetContainer.Builder facetBuilder = BrowseResultBPO.FacetContainer.newBuilder();
+		facetBuilder.setName(name);
+		List<BrowseFacet> list = facetAccessible.getFacets();
+		for (BrowseFacet facet : list){
+			BrowseResultBPO.Facet f = BrowseResultBPO.Facet.newBuilder().setVal(facet.getValue()).setCount(facet.getHitCount()).build();
+			facetBuilder.addFacets(f);
+		}
+		return facetBuilder.build();
+	}
+	
+	public static BrowseResultBPO.Result convert(BrowseResult res){
+		BrowseResultBPO.Result.Builder resBuilder = BrowseResultBPO.Result.newBuilder();
+		resBuilder.setTime(res.getTime());
+		resBuilder.setTotaldocs(res.getTotalDocs());
+		resBuilder.setNumhits(res.getNumHits());
+		
+		// hits
+		BrowseHit[] hits = res.getHits();
+		for (BrowseHit hit : hits){
+			BrowseResultBPO.Hit converted = convert(hit);
+			resBuilder.addHits(converted);
+		}
+		
+		// facet containers
+		Map<String,FacetAccessible> facetMap = res.getFacetMap();
+		Iterator<Entry<String,FacetAccessible>> iter = facetMap.entrySet().iterator();
+		while(iter.hasNext()){
+			Entry<String,FacetAccessible> entry = iter.next();
+			BrowseResultBPO.FacetContainer converted = convert(entry.getKey(),entry.getValue());
+			resBuilder.addFacetContainers(converted);
+		}
+		return resBuilder.build();
 	}
 }

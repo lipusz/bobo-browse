@@ -30,16 +30,16 @@ message Sort
 
 message FacetSpec
 {
-
-  optional uint32 max = 1;
-  optional bool expand = 2;
-  optional uint32 minCount = 3;
+  required string name = 1;
+  optional uint32 max = 2;
+  optional bool expand = 3;
+  optional uint32 minCount = 4;
   enum SortSpec
   {
     ValueAsc = 0;
     HitsDesc = 1;
   }
-  optional SortSpec orderBy = 4 [default = HitsDesc];
+  optional SortSpec orderBy = 5 [default = HitsDesc];
 }
 	
 message Request{

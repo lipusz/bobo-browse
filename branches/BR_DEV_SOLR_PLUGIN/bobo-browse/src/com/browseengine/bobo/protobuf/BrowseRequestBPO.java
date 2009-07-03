@@ -1328,29 +1328,36 @@ public final class BrowseRequestBPO {
       }
     }
     
-    // optional uint32 max = 1;
-    public static final int MAX_FIELD_NUMBER = 1;
+    // required string name = 1;
+    public static final int NAME_FIELD_NUMBER = 1;
+    private boolean hasName;
+    private java.lang.String name_ = "";
+    public boolean hasName() { return hasName; }
+    public java.lang.String getName() { return name_; }
+    
+    // optional uint32 max = 2;
+    public static final int MAX_FIELD_NUMBER = 2;
     private boolean hasMax;
     private int max_ = 0;
     public boolean hasMax() { return hasMax; }
     public int getMax() { return max_; }
     
-    // optional bool expand = 2;
-    public static final int EXPAND_FIELD_NUMBER = 2;
+    // optional bool expand = 3;
+    public static final int EXPAND_FIELD_NUMBER = 3;
     private boolean hasExpand;
     private boolean expand_ = false;
     public boolean hasExpand() { return hasExpand; }
     public boolean getExpand() { return expand_; }
     
-    // optional uint32 minCount = 3;
-    public static final int MINCOUNT_FIELD_NUMBER = 3;
+    // optional uint32 minCount = 4;
+    public static final int MINCOUNT_FIELD_NUMBER = 4;
     private boolean hasMinCount;
     private int minCount_ = 0;
     public boolean hasMinCount() { return hasMinCount; }
     public int getMinCount() { return minCount_; }
     
-    // optional .com.browseengine.bobo.protobuf.FacetSpec.SortSpec orderBy = 4 [default = HitsDesc];
-    public static final int ORDERBY_FIELD_NUMBER = 4;
+    // optional .com.browseengine.bobo.protobuf.FacetSpec.SortSpec orderBy = 5 [default = HitsDesc];
+    public static final int ORDERBY_FIELD_NUMBER = 5;
     private boolean hasOrderBy;
     private com.browseengine.bobo.protobuf.BrowseRequestBPO.FacetSpec.SortSpec orderBy_ = com.browseengine.bobo.protobuf.BrowseRequestBPO.FacetSpec.SortSpec.HitsDesc;
     public boolean hasOrderBy() { return hasOrderBy; }
@@ -1358,23 +1365,27 @@ public final class BrowseRequestBPO {
     
     @Override
     public final boolean isInitialized() {
+      if (!hasName) return false;
       return true;
     }
     
     @Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      if (hasName()) {
+        output.writeString(1, getName());
+      }
       if (hasMax()) {
-        output.writeUInt32(1, getMax());
+        output.writeUInt32(2, getMax());
       }
       if (hasExpand()) {
-        output.writeBool(2, getExpand());
+        output.writeBool(3, getExpand());
       }
       if (hasMinCount()) {
-        output.writeUInt32(3, getMinCount());
+        output.writeUInt32(4, getMinCount());
       }
       if (hasOrderBy()) {
-        output.writeEnum(4, getOrderBy().getNumber());
+        output.writeEnum(5, getOrderBy().getNumber());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1386,21 +1397,25 @@ public final class BrowseRequestBPO {
       if (size != -1) return size;
     
       size = 0;
+      if (hasName()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(1, getName());
+      }
       if (hasMax()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(1, getMax());
+          .computeUInt32Size(2, getMax());
       }
       if (hasExpand()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(2, getExpand());
+          .computeBoolSize(3, getExpand());
       }
       if (hasMinCount()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(3, getMinCount());
+          .computeUInt32Size(4, getMinCount());
       }
       if (hasOrderBy()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(4, getOrderBy().getNumber());
+          .computeEnumSize(5, getOrderBy().getNumber());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1543,6 +1558,9 @@ public final class BrowseRequestBPO {
       
       public Builder mergeFrom(com.browseengine.bobo.protobuf.BrowseRequestBPO.FacetSpec other) {
         if (other == com.browseengine.bobo.protobuf.BrowseRequestBPO.FacetSpec.getDefaultInstance()) return this;
+        if (other.hasName()) {
+          setName(other.getName());
+        }
         if (other.hasMax()) {
           setMax(other.getMax());
         }
@@ -1589,23 +1607,27 @@ public final class BrowseRequestBPO {
               }
               break;
             }
-            case 8: {
-              setMax(input.readUInt32());
+            case 10: {
+              setName(input.readString());
               break;
             }
             case 16: {
-              setExpand(input.readBool());
+              setMax(input.readUInt32());
               break;
             }
             case 24: {
-              setMinCount(input.readUInt32());
+              setExpand(input.readBool());
               break;
             }
             case 32: {
+              setMinCount(input.readUInt32());
+              break;
+            }
+            case 40: {
               int rawValue = input.readEnum();
               com.browseengine.bobo.protobuf.BrowseRequestBPO.FacetSpec.SortSpec value = com.browseengine.bobo.protobuf.BrowseRequestBPO.FacetSpec.SortSpec.valueOf(rawValue);
               if (value == null) {
-                unknownFields.mergeVarintField(4, rawValue);
+                unknownFields.mergeVarintField(5, rawValue);
               } else {
                 setOrderBy(value);
               }
@@ -1616,7 +1638,28 @@ public final class BrowseRequestBPO {
       }
       
       
-      // optional uint32 max = 1;
+      // required string name = 1;
+      public boolean hasName() {
+        return result.hasName();
+      }
+      public java.lang.String getName() {
+        return result.getName();
+      }
+      public Builder setName(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasName = true;
+        result.name_ = value;
+        return this;
+      }
+      public Builder clearName() {
+        result.hasName = false;
+        result.name_ = "";
+        return this;
+      }
+      
+      // optional uint32 max = 2;
       public boolean hasMax() {
         return result.hasMax();
       }
@@ -1634,7 +1677,7 @@ public final class BrowseRequestBPO {
         return this;
       }
       
-      // optional bool expand = 2;
+      // optional bool expand = 3;
       public boolean hasExpand() {
         return result.hasExpand();
       }
@@ -1652,7 +1695,7 @@ public final class BrowseRequestBPO {
         return this;
       }
       
-      // optional uint32 minCount = 3;
+      // optional uint32 minCount = 4;
       public boolean hasMinCount() {
         return result.hasMinCount();
       }
@@ -1670,7 +1713,7 @@ public final class BrowseRequestBPO {
         return this;
       }
       
-      // optional .com.browseengine.bobo.protobuf.FacetSpec.SortSpec orderBy = 4 [default = HitsDesc];
+      // optional .com.browseengine.bobo.protobuf.FacetSpec.SortSpec orderBy = 5 [default = HitsDesc];
       public boolean hasOrderBy() {
         return result.hasOrderBy();
       }
@@ -1785,6 +1828,9 @@ public final class BrowseRequestBPO {
         if (!element.isInitialized()) return false;
       }
       for (com.browseengine.bobo.protobuf.BrowseRequestBPO.Sort element : getSortList()) {
+        if (!element.isInitialized()) return false;
+      }
+      for (com.browseengine.bobo.protobuf.BrowseRequestBPO.FacetSpec element : getFacetSpecsList()) {
         if (!element.isInitialized()) return false;
       }
       return true;
@@ -2352,19 +2398,19 @@ public final class BrowseRequestBPO {
       "ction.Operation:\002OR\0227\n\005props\030\005 \003(\0132(.com" +
       ".browseengine.bobo.protobuf.Property\"\034\n\t" +
       "Operation\022\006\n\002OR\020\000\022\007\n\003AND\020\001\"&\n\004Sort\022\r\n\005fi" +
-      "eld\030\001 \002(\t\022\017\n\007reverse\030\002 \001(\010\"\261\001\n\tFacetSpec" +
-      "\022\013\n\003max\030\001 \001(\r\022\016\n\006expand\030\002 \001(\010\022\020\n\010minCoun" +
-      "t\030\003 \001(\r\022M\n\007orderBy\030\004 \001(\01622.com.browseeng" +
-      "ine.bobo.protobuf.FacetSpec.SortSpec:\010Hi" +
-      "tsDesc\"&\n\010SortSpec\022\014\n\010ValueAsc\020\000\022\014\n\010Hits" +
-      "Desc\020\001\"\351\001\n\007Request\022=\n\nselections\030\001 \003(\0132)" +
-      ".com.browseengine.bobo.protobuf.Selectio" +
-      "n\022\016\n\006offset\030\002 \001(\r\022\r\n\005count\030\003 \001(\r\0222\n\004sort" +
-      "\030\004 \003(\0132$.com.browseengine.bobo.protobuf." +
-      "Sort\022=\n\nfacetSpecs\030\005 \003(\0132).com.browseeng" +
-      "ine.bobo.protobuf.FacetSpec\022\r\n\005query\030\006 \001" +
-      "(\tB4\n\036com.browseengine.bobo.protobufB\020Br" +
-      "owseRequestBPOH\001";
+      "eld\030\001 \002(\t\022\017\n\007reverse\030\002 \001(\010\"\277\001\n\tFacetSpec" +
+      "\022\014\n\004name\030\001 \002(\t\022\013\n\003max\030\002 \001(\r\022\016\n\006expand\030\003 " +
+      "\001(\010\022\020\n\010minCount\030\004 \001(\r\022M\n\007orderBy\030\005 \001(\01622" +
+      ".com.browseengine.bobo.protobuf.FacetSpe" +
+      "c.SortSpec:\010HitsDesc\"&\n\010SortSpec\022\014\n\010Valu" +
+      "eAsc\020\000\022\014\n\010HitsDesc\020\001\"\351\001\n\007Request\022=\n\nsele" +
+      "ctions\030\001 \003(\0132).com.browseengine.bobo.pro" +
+      "tobuf.Selection\022\016\n\006offset\030\002 \001(\r\022\r\n\005count" +
+      "\030\003 \001(\r\0222\n\004sort\030\004 \003(\0132$.com.browseengine." +
+      "bobo.protobuf.Sort\022=\n\nfacetSpecs\030\005 \003(\0132)" +
+      ".com.browseengine.bobo.protobuf.FacetSpe" +
+      "c\022\r\n\005query\030\006 \001(\tB4\n\036com.browseengine.bob" +
+      "o.protobufB\020BrowseRequestBPOH\001";
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
         public com.google.protobuf.ExtensionRegistry assignDescriptors(
@@ -2399,7 +2445,7 @@ public final class BrowseRequestBPO {
           internal_static_com_browseengine_bobo_protobuf_FacetSpec_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_browseengine_bobo_protobuf_FacetSpec_descriptor,
-              new java.lang.String[] { "Max", "Expand", "MinCount", "OrderBy", },
+              new java.lang.String[] { "Name", "Max", "Expand", "MinCount", "OrderBy", },
               com.browseengine.bobo.protobuf.BrowseRequestBPO.FacetSpec.class,
               com.browseengine.bobo.protobuf.BrowseRequestBPO.FacetSpec.Builder.class);
           internal_static_com_browseengine_bobo_protobuf_Request_descriptor =
