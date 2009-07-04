@@ -76,9 +76,8 @@ public class BoboSearcher2 extends BoboSearcher{
         }
         else
         {
-            for(int i = 0; i < len; i++)
+            for(FacetHitCollector facetCollector : _collectors)
             {
-              FacetHitCollector facetCollector = _collectors[i];
               if(facetCollector._more)
               {
                 int sid = facetCollector._doc;
@@ -122,10 +121,9 @@ public class BoboSearcher2 extends BoboSearcher{
         else
         {
           FacetCountCollector[] countCollectors = _countCollectors;
-          len = _collectors.length;
-          for (int i = 0; i < len; ++i)
+          for (FacetCountCollector collector : countCollectors)
           {
-            countCollectors[i].collect(docid);
+        	 collector.collect(docid);
           }
           return true;
         }
@@ -151,10 +149,9 @@ public class BoboSearcher2 extends BoboSearcher{
           public boolean validate(int docid)
           {
             FacetCountCollector[] countCollectors = _countCollectors;
-            int len = _collectors.length;
-            for (int i = 0; i < len; ++i)
+            for (FacetCountCollector collector : countCollectors)
             {
-              countCollectors[i].collect(docid);
+            	collector.collect(docid);
             }
             return true;
           }
