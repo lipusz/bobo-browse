@@ -49,42 +49,25 @@
 					 dir="${bobo-solr}" target="clean"/>
 		<ant antfile="build.xml"
 					 dir="${bobo-perf}" target="clean"/>
-		<!--
-		<ant antfile="build.xml"
-			 dir="${bobo-bench}" target="clean" />
-			 
-		<ant antfile="build.xml"
-			dir="${geo-local}" target="clean" />
-		<ant antfile="build.xml"
-			dir="${bobo-solr}" target="clean" />
-		-->
     </target>
 	
-	<target name="perf" depends="dist">
+	<target name="perf" depends="jars">
 		<ant antfile="build.xml"
 					 dir="${bobo-perf}" target="perf"/>
 	</target>
 
-	<target name="dist" depends="init">
+	<target name="dist" depends="jars">
+		<ant antfile="build.xml"
+			 dir="${bobo-browse}" target="javadoc" />
+	</target>
+	
+	<target name="jars" depends="init">
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="dist"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-service}" target="dist"/>
 		<ant antfile="build.xml"
 		     dir="${bobo-solr}" target="dist" />
-		
-		<ant antfile="build.xml"
-			 dir="${bobo-browse}" target="javadoc" />
-		<!--
-		<ant antfile="build.xml"
-			 dir="${bobo-bench}" target="dist" />
-			 
-		<ant antfile="build.xml"
-			dir="${geo-local}" target="dist" />
-		
-		<ant antfile="build.xml"
-			 dir="${bobo-solr}" target="dist"/>		
-			 -->
 	</target>
 	
 	<target name="javadoc">
@@ -183,7 +166,7 @@
 		    <pathelement path="${resource}"/>
 	</path>
 				
-	<target name="test-build" depends="dist">
+	<target name="test-build" depends="jars">
 		<javac destdir="${build.test}">
             <src path="${test}"/>
             <classpath refid="test.compile.class.path"/>

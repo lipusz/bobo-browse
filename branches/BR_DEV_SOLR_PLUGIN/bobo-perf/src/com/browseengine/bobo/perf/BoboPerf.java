@@ -39,8 +39,17 @@ public class BoboPerf implements StatsCollector{
   }
   
   private void init() throws IOException{ 
-	  qlogFile = new File(_propConf.getString(QUERY_LOG_FILE));
-	  idxDir = new File(_propConf.getString(INDEX_DIR));
+	  String qlogFileName=_propConf.getString(QUERY_LOG_FILE);
+	  qlogFile = new File(qlogFileName);
+	  if (!qlogFile.isAbsolute()){
+		  qlogFile = new File(new File("conf"),qlogFileName);
+	  }
+	 
+	  String idxDirName = _propConf.getString(INDEX_DIR);
+	  idxDir = new File(idxDirName);
+	  if (!idxDir.isAbsolute()){
+		  idxDir = new File(new File("conf"),idxDirName);
+	  }
 	  numReq = _propConf.getInt(NUM_REQ);
 	  numThreads = _propConf.getInt(NUM_THREADS,10);
 	  throttleWait = _propConf.getLong(THROTTLE_WAIT, 500L);
