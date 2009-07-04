@@ -58,6 +58,10 @@ public class BrowseSelection implements Serializable{
 	
 	private Properties _selectionProperties;
 	
+	public void setSelectionProperty(String key,String val){
+		_selectionProperties.setProperty(key, val);
+	}
+	
 	/**
 	 * Gets if strict applied for counting. Used if the field is of type <b><i>path</i></b>.
 	 * @return is strict applied

@@ -65,12 +65,12 @@ function OutputSpec(){
 	
 	this.toHttpGetString=function(name){
 		var getString="";
-		getString+="&bobo.ospec."+name+".max="+this.max;
+		getString+="&bobo.groupby."+name+".max="+this.max;
 		if (this.expandSelection){
-			getString+="&bobo.ospec."+name+".expand=true";
+			getString+="&bobo.groupby."+name+".expand=true";
 		}
 		if (this.order==OutputSpec_Order_Hits){
-			getString+="&bobo.ospec."+name+".orderby=hits";
+			getString+="&bobo.groupby."+name+".orderby=hits";
 		}
 		return getString;
 	}

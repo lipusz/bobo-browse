@@ -3,10 +3,10 @@ package com.browseengine.solr;
 import java.io.IOException;
 import java.io.Writer;
 
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.QueryResponseWriter;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrQueryResponse;
-import org.apache.solr.util.NamedList;
 
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.util.XStreamDispenser;
@@ -20,12 +20,13 @@ public class BoboXMLResponseWriter implements QueryResponseWriter {
 		return CONTENT_TYPE_XML_UTF8;
 	}
 
-	public void init(NamedList args) {
+	public void init(NamedList arg0) {
 		// TODO Auto-generated method stub
+		
 	}
 
-	public void write(Writer writer, SolrQueryRequest request,
-			SolrQueryResponse response) throws IOException {
+	public void write(Writer writer, SolrQueryRequest request, SolrQueryResponse response)
+			throws IOException {
 		NamedList vals=response.getValues();
 		
 		BrowseResult res=(BrowseResult)vals.get(BoboRequestHandler.BOBORESULT);

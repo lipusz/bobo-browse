@@ -160,11 +160,12 @@ public class FacetDataCache implements Serializable {
 	
 	public static class FacetScoreDocComparator implements ScoreDocComparator{
 		private FacetDataCache _dataCache;
+		private BigIntArray orderArray;
 		public FacetScoreDocComparator(FacetDataCache dataCache){
 			_dataCache=dataCache;
+			orderArray=_dataCache.orderArray;
 		}
 		public int compare(ScoreDoc i, ScoreDoc j) {
-			BigIntArray orderArray=_dataCache.orderArray;
 			return orderArray.get(i.doc) - orderArray.get(j.doc);
 		}
 
@@ -173,7 +174,6 @@ public class FacetDataCache implements Serializable {
 		}
 
 		public Comparable sortValue(ScoreDoc i) {
-          BigIntArray orderArray=_dataCache.orderArray;
           int index = orderArray.get(i.doc);
           return _dataCache.valArray.get(index);
 		}

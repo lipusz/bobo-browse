@@ -1,9 +1,13 @@
 <project name="bobo-service" default="dist">
+		<property name="bobo.root" location="../"/>
 		<property name="src" value="src"/>
         <property name="lib" value="${bobo.root}/lib"/>
+        <property name="dist" value="${bobo.root}/dist"/>
         <property name="build" value="build"/>
         <property name="conf" value="conf"/>
 	    <property name="settings" value="settings"/>
+
+	    <property file="${bobo.root}/version.properties" />
       
 	    <property name="web" value="web"/>
 		
@@ -32,7 +36,7 @@
         </target>
 	
         <target name="dist" depends="compile">
-        	<war destfile="${dist}/bobo-service.war" webxml="${web}/web.xml">
+        	<war destfile="${dist}/bobo-service-${version}.war" webxml="${web}/web.xml">
         		<classes dir="${build}"/>
         		<classes dir="${conf}"/>
         		<classes dir="${settings}"/>
@@ -42,6 +46,5 @@
 	            	<include name="bobo-browse*.jar"/>
 				</lib>
         	</war>
-			<delete dir="${build}" />
         </target>
 </project>

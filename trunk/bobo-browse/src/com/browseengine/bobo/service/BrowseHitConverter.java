@@ -23,11 +23,14 @@ public class BrowseHitConverter implements Converter {
 		BrowseHit hit=(BrowseHit)obj;
 		writer.addAttribute("score", String.valueOf(hit.getScore()));
 		writer.addAttribute("docid", String.valueOf(hit.getDocid()));
+
 		
 		Map<String,String[]> fieldVals=hit.getFieldValues();
+		writer.addAttribute("numfields", fieldVals==null ? "0" : String.valueOf(fieldVals.size()));
 		
 		if (fieldVals!=null)
 		{
+			
 			Iterator<String> iter=fieldVals.keySet().iterator();
 			while(iter.hasNext()){
 				String name=iter.next();
@@ -35,7 +38,6 @@ public class BrowseHitConverter implements Converter {
 				writer.setValue(Arrays.toString(fieldVals.get(name)));
 				writer.endNode();
 			}
-			writer.addAttribute("numfields", String.valueOf(fieldVals.size()));
 		}
 	}
 

@@ -5,9 +5,11 @@
 	<property name="doc" location="${bobo.root}/doc"/>
 	
 	<property name="lib" location="lib" />
+	
 	<property name="bobo-browse" value="bobo-browse"/>
 	<property name="bobo-service" value="bobo-service"/>
 	<property name="bobo-solr" value="bobo-solr"/>
+	<property name="bobo-perf" value="bobo-perf"/>
 
 	<property name="geo-local" value="geo-local"/>
 	<property name="bobo-bench" value="bobo-bench"/>
@@ -43,72 +45,35 @@
 			 dir="${bobo-browse}" target="clean"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-service}" target="clean"/>
-		<!--
 		<ant antfile="build.xml"
-			 dir="${bobo-bench}" target="clean" />
-			 
+					 dir="${bobo-solr}" target="clean"/>
 		<ant antfile="build.xml"
-			dir="${geo-local}" target="clean" />
-		<ant antfile="build.xml"
-			dir="${bobo-solr}" target="clean" />
-		-->
+					 dir="${bobo-perf}" target="clean"/>
     </target>
+	
+	<target name="perf" depends="jars">
+		<ant antfile="build.xml"
+					 dir="${bobo-perf}" target="perf"/>
+	</target>
 
-	<target name="dist" depends="init">
+	<target name="dist" depends="jars">
+		<ant antfile="build.xml"
+			 dir="${bobo-browse}" target="javadoc" />
+	</target>
+	
+	<target name="jars" depends="init">
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="dist"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-service}" target="dist"/>
 		<ant antfile="build.xml"
-			 dir="${bobo-browse}" target="javadoc" />
-		<!--
-		<ant antfile="build.xml"
-			 dir="${bobo-bench}" target="dist" />
-			 
-		<ant antfile="build.xml"
-			dir="${geo-local}" target="dist" />
-		
-		<ant antfile="build.xml"
-			 dir="${bobo-solr}" target="dist"/>		
-			 -->
+		     dir="${bobo-solr}" target="dist" />
 	</target>
 	
 	<target name="javadoc">
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="javadoc" />
 	</target>		
-	
-	<path id="grinder.class.path">
-		<pathelement path="${bobo.root}/lib/servlet-api.jar" />		
-		<pathelement path="${bobo.root}/lib/lucene-core-2.4.0.jar" />
-		<pathelement path="${bobo.root}/lib/commons-logging.jar" />
-		<pathelement path="${bobo.root}/lib/jsonrpc.jar" />
-		<pathelement path="${bobo.root}/lib/org.mortbay.jetty.jar" />		
-		<pathelement path="${bobo.root}/lib/commons-collections-3.1.jar" />			
-		<pathelement path="${bobo.root}/lib/commons-httpclient-3.0.jar" />		
-		<pathelement path="${bobo.root}/lib/log4j-1.2.9.jar" />		
-		<pathelement path="${dist}/bobo-browse.jar" />		
-		
-		<pathelement path="${dist}/bobo-bench.jar" />	
-		
-		<pathelement path="${bobo.root}/lib/grinder.jar" />		
-	</path>
-	
-	<target name="grinder-console">
-		<java fork="true" classname="net.grinder.Console" classpathref="grinder.class.path" failonerror="true" maxmemory="150m"/>
-		
-	</target>
-	
-	<target name="grinder">
-		<java fork="true" classname="net.grinder.Grinder" classpathref="grinder.class.path" failonerror="true" maxmemory="150m">
-			<arg value="${bobo.root}/benchmark/bobo_bench.properties"/>
-		</java>
-	</target>
-
-	<target name="tigerlineindexrun" depends="init">
-		<ant antfile="build.xml"
-			dir="${bobo-browse}" target="tigerlineindexrun"/>
-	</target>
 	
 	<path id="tools.class.path">
 	            <fileset dir="${lib}">
@@ -177,7 +142,7 @@
 	
 	<target name="run-cardemo"  depends="dist,make-car-war" > 
 		<mkdir dir="${logs}" />
-		<java fork="true" jar="${bobo.root}/zoie-server.jar" failonerror="true" maxmemory="100m">
+		<java fork="true" jar="${bobo.root}/zoie-server.jar" failonerror="true" maxmemory="1000m">
 								<sysproperty key="log.home" value="${logs}" />
 								<sysproperty key="conf.dir" value="${jetty.home}" />
 								<jvmarg value="-server" />
@@ -201,7 +166,7 @@
 		    <pathelement path="${resource}"/>
 	</path>
 				
-	<target name="test-build" depends="dist">
+	<target name="test-build" depends="jars">
 		<javac destdir="${build.test}">
             <src path="${test}"/>
             <classpath refid="test.compile.class.path"/>

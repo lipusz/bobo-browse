@@ -101,7 +101,7 @@ public class BoboIndexReader extends FilterIndexReader
   private static Collection<FacetHandler> loadFromIndex(File file) throws IOException
   {
     File springFile = new File(file, SPRING_CONFIG);
-    ApplicationContext appCtx =
+    FileSystemXmlApplicationContext appCtx =
         new FileSystemXmlApplicationContext("file:" + springFile.getAbsolutePath());
     return (Collection<FacetHandler>) appCtx.getBean("handlers");
   }
