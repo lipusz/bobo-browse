@@ -26,7 +26,7 @@ For configuration, edit the_*bobo-perf/conf/bobo-perf.properties*_ file:
 
 `*` if the number of requests in the query.log.file is less the this specified number, the tool will replicate requests up to specified number
 
-`**` requests are the !BrowseRequest object text formatted by [http://code.google.com/p/protobuf/ Google Protobuf].
+`**` requests are the *!BrowseRequest* objects text formatted by [http://code.google.com/p/protobuf/ Google Protobuf].
 
 {{{
   BrowseRequest br = ...;
