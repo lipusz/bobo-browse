@@ -86,15 +86,14 @@ public class SortedHitQueue extends PriorityQueue {
 	    // run comparators
 	    final int n = comparators.length;
 	    int c = 0;
-	    SortField sf=null;
-	    for (int i=0; i<n && c==0; ++i) {
+	    int i;
+	    for (i=0; i<n && c==0; ++i) {
 	      c = comparators[i].compare(docA,docB);
-	      sf = sortFields[i];
 	    }
 	    
 	    if (c == 0)
 	      return docA.doc > docB.doc;
-	    return sf.getReverse() ? c < 0 : c > 0 ;
+	    return sortFields[i-1].getReverse() ? c < 0 : c > 0 ;
 	  }
 
 	  public FieldDoc[] getTopDocs(int offset,int numHits)

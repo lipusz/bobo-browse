@@ -61,11 +61,8 @@ public class BoboSearcher2 extends BoboSearcher{
       public boolean validate(final int docid)
         throws IOException
       {
-        int len;
         FacetHitCollector miss = null;
-        
-        len = _numPostFilters;
-        if (len == 1)
+        if (_numPostFilters == 1)
         {
             FacetHitCollector facetCollector = _collectors[0];
             RandomAccessDocIdSet set = facetCollector._docidSet;
@@ -120,8 +117,7 @@ public class BoboSearcher2 extends BoboSearcher{
         }
         else
         {
-          FacetCountCollector[] countCollectors = _countCollectors;
-          for (FacetCountCollector collector : countCollectors)
+          for (FacetCountCollector collector : _countCollectors)
           {
         	 collector.collect(docid);
           }
