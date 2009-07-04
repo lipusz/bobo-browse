@@ -4,30 +4,30 @@ import java.net.URL;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
-import org.apache.solr.core.SolrException;
-import org.apache.solr.request.SolrParams;
+import org.apache.solr.common.SolrException;
+import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrQueryResponse;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.search.QueryParsing;
+import org.apache.solr.search.SolrIndexReader;
 import org.apache.solr.search.SolrIndexSearcher;
-import org.apache.solr.util.NamedList;
 
+import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.impl.DefaultBrowseServiceImpl;
 import com.browseengine.bobo.server.protocol.BoboParams;
 import com.browseengine.bobo.server.protocol.BoboQueryBuilder;
 import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
 
 public class BoboRequestHandler implements SolrRequestHandler {
 	
-	private static final String VERSION="1.0";
+	private static final String VERSION="2.0.4";
 	private static final String NAME="Bobo-Browse";
 	
 	static final String BOBORESULT="boboresult";
@@ -74,11 +74,8 @@ public class BoboRequestHandler implements SolrRequestHandler {
 		public Sort parseSort(String sortStr) {
 			Sort sort=null;
 			if( sortStr != null ) {
-		        QueryParsing.SortSpec sortSpec = QueryParsing.parseSort(sortStr, _req.getSchema());
-		        if (sortSpec != null) {
-		          sort = sortSpec.getSort();
-		        }
-		      }
+		        sort = QueryParsing.parseSort(sortStr, _req.getSchema());
+		    }
 			return sort;
 		}
 	}
@@ -86,16 +83,18 @@ public class BoboRequestHandler implements SolrRequestHandler {
 	public void handleRequest(SolrQueryRequest req, SolrQueryResponse rsp) {
 		
 		SolrIndexSearcher searcher=req.getSearcher();
-		IndexReader reader=searcher.getReader();
+		
+		SolrIndexReader solrReader = searcher.getReader();
+		BoboIndexReader reader = (BoboIndexReader)solrReader.getWrappedReader();
 		
 		if (reader instanceof BoboIndexReader){
 			BrowseRequest br=BoboRequestBuilder.buildRequest(new BoboSolrParams(req.getParams()),new BoboSolrQueryBuilder(req));
+			logger.info("browse request: "+br);
 			
-		    DefaultBrowseServiceImpl svc=new DefaultBrowseServiceImpl((BoboIndexReader)reader);
-		    svc.setCloseReaderOnCleanup(false);
+			BoboBrowser browser = new BoboBrowser(reader);
 		    
 		    try {
-				BrowseResult res=svc.browse(br);
+				BrowseResult res=browser.browse(br);
 				rsp.add(BOBORESULT, res);
 				 /*
 				if(HighlightingUtils.isHighlightingEnabled(req) && query != null) {
@@ -108,12 +107,12 @@ public class BoboRequestHandler implements SolrRequestHandler {
 				
 			} catch (BrowseException e) {
 				logger.error(e.getMessage(),e);
-				throw new SolrException(400,e.getMessage(),e);
+				throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,e.getMessage(),e);
 			}
 		   
 		}
 		else{
-	        throw new SolrException(400,"invalid reader, please make sure BoboIndexReaderFactory is set.");
+	        throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,"invalid reader, please make sure BoboIndexReaderFactory is set.");
 		}
 	}
 
