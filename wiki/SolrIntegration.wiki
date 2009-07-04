@@ -3,7 +3,7 @@
 
 =Solr Integration=
 
-*_This is currently in experimental stage, and only available on the BR_DEV_SOLR_PLUGIN branch_*
+*_This is currently in experimental stage, and only available on trunk_*
 
 ==Introduction==
 
