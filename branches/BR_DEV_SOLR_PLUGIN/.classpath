@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="bobo-bench/src"/>
+	<classpathentry kind="src" path="bobo-perf/src"/>
 	<classpathentry kind="src" path="bobo-browse/src"/>
 	<classpathentry kind="src" path="bobo-service/src"/>
 	<classpathentry kind="src" path="bobo-solr/src"/>
@@ -21,7 +22,6 @@
 	<classpathentry kind="lib" path="lib/junit-3.8.1.jar"/>
 	<classpathentry kind="lib" path="lib/kamikaze-1.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-core-2.4.0.jar"/>
 	<classpathentry kind="lib" path="lib/org.mortbay.jetty.jar"/>
 	<classpathentry kind="lib" path="lib/segmenter.jar"/>
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
@@ -35,5 +35,9 @@
 	<classpathentry kind="lib" path="zoie-server.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="bobo-solr/lib/apache-solr-solrj-1.4-dev.jar"/>
+	<classpathentry kind="lib" path="lib/protobuf-java-2.1.0.jar"/>
+	<classpathentry kind="lib" path="bobo-perf/lib/commons-configuration-1.6.jar"/>
+	<classpathentry kind="lib" path="bobo-perf/lib/commons-lang-2.4.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/lucene_2.4"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
