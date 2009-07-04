@@ -1,6 +1,5 @@
 #summary Performance analysis and benchmarking
 #labels Phase-Implementation
-#label performance,benchmark
 
 = Introduction =
 
