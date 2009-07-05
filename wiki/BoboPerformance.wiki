@@ -13,6 +13,9 @@ The tool is ready to run out of the box, simply do:
 
 and a performance summary will be printed to console. By default, this measures 100 requests against the default cardemo data (15k documents)
 
+= Diagram =
+[http://john.wang.googlepages.com/bobo-perf.png]
+
 = Configuration =
 
 For configuration, edit the_*bobo-perf/conf/bobo-perf.properties*_ file:
