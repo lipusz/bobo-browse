@@ -215,12 +215,12 @@ public class MultiValueFacetHandler extends FacetHandler implements FacetHandler
                                   {
       super(sel,dataCache,name,ospec);
       _array = ((MultiValueFacetDataCache)(_dataCache))._nestedArray;
-                                  }
+    }
 
     @Override
     public final void collect(int docid) 
     {
-      if(_array.count(docid, _count) == 0) _count[0]++;
+      _array.count(docid, _count);
     }
 
     @Override
