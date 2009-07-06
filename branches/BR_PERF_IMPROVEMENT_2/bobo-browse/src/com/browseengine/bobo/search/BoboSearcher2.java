@@ -62,7 +62,9 @@ public class BoboSearcher2 extends BoboSearcher{
         throws IOException
       {
         FacetHitCollector miss = null;
-        if (_numPostFilters == 1)
+        
+        final int len = _numPostFilters;
+        if (len == 1)
         {
             FacetHitCollector facetCollector = _collectors[0];
             RandomAccessDocIdSet set = facetCollector._docidSet;
@@ -73,8 +75,9 @@ public class BoboSearcher2 extends BoboSearcher{
         }
         else
         {
-            for(FacetHitCollector facetCollector : _collectors)
+            for(int i = 0; i < len; i++)
             {
+              FacetHitCollector facetCollector = _collectors[i];
               if(facetCollector._more)
               {
                 int sid = facetCollector._doc;
