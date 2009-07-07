@@ -7,7 +7,7 @@ Some requirements considered when building the default set of !FacetHandlers:
   *Fast lookup between a docid and the corresponding facet value.
   *Filters should produce fast !DocIdSetIterators.
 
-=Diagram of a FacetHandler=
+=Diagram=
 [http://john.wang.googlepages.com/bobo-fh-arch.png]
 
 Below is a detailed description for the predefined set of !FacetHandlers.
