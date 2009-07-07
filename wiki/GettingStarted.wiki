@@ -14,14 +14,14 @@ Familiarity with the Lucene API is helpful.
 
 Here are some of the basic concepts or objects to understand:
 
-  *!BrowseSelection: A selection or filter to be applied, e.g. Color=Red
-  *!FacetSpec: Specifies how facets are to be returned on the result object, e.g. Top 10 facets of car types ordered by count with a min count of 5
-  *!BrowseRequest: A set of !BrowseSelections, a keyword text query, and a set of !FacetSpecs.
-  *!BrowseFacet: a facet, (a string value with a hit count)
-  *!FacetCollection: A Collection object of !BrowseFacets
-  *!BrowseResult: Result of a browse operation.
-  *!FacetHandler: A plugin into the browse engine to knows how to manipulate facet data.
-  *!BoboIndexReader: A Lucene !IndexReader containing a List of !FacetHandlers.
+  * !BrowseSelection: A selection or filter to be applied, e.g. Color=Red
+  * !FacetSpec: Specifies how facets are to be returned on the result object, e.g. Top 10 facets of car types ordered by count with a min count of 5
+  * !BrowseRequest: A set of !BrowseSelections, a keyword text query, and a set of !FacetSpecs.
+  * !BrowseFacet: a facet, (a string value with a hit count)
+  * !FacetCollection: A Collection object of !BrowseFacets
+  * !BrowseResult: Result of a browse operation.
+  * !FacetHandler: A plugin into the browse engine to knows how to manipulate facet data.
+  * !BoboIndexReader: A Lucene !IndexReader containing a List of !FacetHandlers.
 
 
 ==Example:==
