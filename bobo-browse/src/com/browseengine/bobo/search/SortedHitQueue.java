@@ -26,12 +26,12 @@
 package com.browseengine.bobo.search;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.FieldDoc;
-import org.apache.lucene.search.FieldSortedHitQueue;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortField;
@@ -56,20 +56,25 @@ public class SortedHitQueue extends PriorityQueue {
 	  _comparatorMap = new HashMap<String,ScoreDocComparator>();
 	  _boboBrowser=boboBrowser;
       final int n = sortFields.length;
-      comparators = new ScoreDocComparator[n];
-      this.sortFields = new SortField[n];
+      ArrayList<ScoreDocComparator> comparatorList = new ArrayList<ScoreDocComparator>(n);
+      ArrayList<SortField> sfList = new ArrayList<SortField>(n);
+      
       for (int i=0; i<n; ++i) {
         String fieldname = sortFields[i].getField();
-        comparators[i] = getScoreDocComparator(sortFields[i]);
-        if (comparators[i] != null)
+        ScoreDocComparator comparator = getScoreDocComparator(sortFields[i]);
+        
+        if (comparator != null)
         {
-          if (comparators[i].sortType() == SortField.STRING) {
-              this.sortFields[i] = new SortField (fieldname, sortFields[i].getLocale(), sortFields[i].getReverse());
+          if (comparator.sortType() == SortField.STRING) {
+        	  sfList.add(new SortField (fieldname, sortFields[i].getLocale(), sortFields[i].getReverse()));
           } else {
-              this.sortFields[i] = new SortField (fieldname, comparators[i].sortType(), sortFields[i].getReverse());
+        	  sfList.add(new SortField (fieldname, comparator.sortType(), sortFields[i].getReverse()));
           }
+          comparatorList.add(comparator);
         }
       }
+      this.sortFields = sfList.toArray(new SortField[sfList.size()]);
+      this.comparators = comparatorList.toArray(new ScoreDocComparator[comparatorList.size()]);
       initialize (size);
 	}
 	
