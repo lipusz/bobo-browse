@@ -112,7 +112,9 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
         {
           String fieldName = f.getField();
           ScoreDocComparator comparator = hitQueue._comparatorMap.get(fieldName);
-          hit.addComparable(fieldName, comparator.sortValue(fdoc));
+          if (comparator!=null){
+            hit.addComparable(fieldName, comparator.sortValue(fdoc));
+          }
         }
       }
       hitList.add(hit);
