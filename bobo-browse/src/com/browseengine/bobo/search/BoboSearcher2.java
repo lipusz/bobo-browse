@@ -147,8 +147,7 @@ public class BoboSearcher2 extends BoboSearcher{
         {
           public boolean validate(int docid)
           {
-            FacetCountCollector[] countCollectors = _countCollectors;
-            for (FacetCountCollector collector : countCollectors)
+            for (FacetCountCollector collector : _countCollectors)
             {
             	collector.collect(docid);
             }
