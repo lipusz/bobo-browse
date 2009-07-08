@@ -53,8 +53,10 @@
         			<pathelement location="${resource}"/>
         		</classpath>
         		<arg value="${conf}/bobo-perf.properties" />
-				<sysproperty key="conf.dir" value="${jetty.home}" />
 				<jvmarg value="-server" />
+        		<!-- 
+        		<jvmarg value="-d64" />
+        		-->
 				<!-- uncomment to turn on yourkit profiling
 				<jvmarg value="-agentlib:yjpagent" />
 					-->
