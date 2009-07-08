@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
@@ -52,6 +53,14 @@ public class BrowseRequest implements Serializable{
 	private int _offset;
 	private int _count;
 	private Filter _filter;
+	
+	public Set<String> getSelectionNames(){
+		return _selections.keySet();
+	}
+	
+	public void removeSelection(String name){
+		_selections.remove(name);
+	}
 	
 	public void setFacetSpecs(Map<String,FacetSpec> facetSpecMap)
 	{
