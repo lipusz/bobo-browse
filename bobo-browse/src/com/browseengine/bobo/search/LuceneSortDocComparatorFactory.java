@@ -35,7 +35,7 @@ public class LuceneSortDocComparatorFactory
     
     Locale locale = entry.locale;
     SortComparatorSource factory = entry.custom;
-    ScoreDocComparator comparator;
+    ScoreDocComparator comparator=null;
     switch (type) {
       case SortField.AUTO:
         comparator = comparatorAuto (reader, fieldname);
@@ -63,7 +63,12 @@ public class LuceneSortDocComparatorFactory
         else comparator = comparatorString (reader, fieldname);
         break;
       case SortField.CUSTOM:
-        comparator = factory.newComparator(reader, fieldname);
+    	if (factory!=null){
+          comparator = factory.newComparator(reader, fieldname);
+    	}
+    	else{
+    	  logger.warn(fieldname+": no factory specified, ignored.");
+    	}
         break;
       default:
         throw new RuntimeException ("unknown field type: "+type);
