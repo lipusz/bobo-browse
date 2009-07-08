@@ -2,9 +2,12 @@ package com.browseengine.bobo.search;
 
 import java.io.IOException;
 import java.text.Collator;
+import java.util.Collection;
 import java.util.Locale;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexReader.FieldOption;
 import org.apache.lucene.search.ExtendedFieldCache;
 import org.apache.lucene.search.FieldCache;
 import org.apache.lucene.search.ScoreDoc;
@@ -14,6 +17,8 @@ import org.apache.lucene.search.SortField;
 
 public class LuceneSortDocComparatorFactory
 {
+  private static Logger logger = Logger.getLogger(LuceneSortDocComparatorFactory.class);
+  
   public static final ScoreDocComparator buildScoreDocComparator(IndexReader reader, SortFieldEntry entry) throws IOException
   {
     String fieldname = entry.field;
@@ -21,6 +26,12 @@ public class LuceneSortDocComparatorFactory
     
     if (type == SortField.DOC) return ScoreDocComparator.INDEXORDER;
     if (type == SortField.SCORE) return ScoreDocComparator.RELEVANCE;
+    
+    Collection indexFieldnames = reader.getFieldNames(FieldOption.INDEXED);
+    if (!indexFieldnames.contains(fieldname)){
+    	logger.warn(fieldname+" is not a sortable field, ignored.");
+    	return null;
+    }
     
     Locale locale = entry.locale;
     SortComparatorSource factory = entry.custom;

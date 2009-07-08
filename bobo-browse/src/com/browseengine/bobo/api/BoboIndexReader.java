@@ -257,7 +257,9 @@ public class BoboIndexReader extends FilterIndexReader
         if (comparator == null)
         {
           comparator = LuceneSortDocComparatorFactory.buildScoreDocComparator(this, entry);
-          _defaultSortFieldCache.put(entry, comparator);
+          if (comparator!=null){
+            _defaultSortFieldCache.put(entry, comparator);
+          }
         }
       }
       return comparator;
