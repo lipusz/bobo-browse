@@ -964,7 +964,7 @@ public final class BrowseRequestBPO {
       return com.browseengine.bobo.protobuf.BrowseRequestBPO.internal_static_com_browseengine_bobo_protobuf_Sort_fieldAccessorTable;
     }
     
-    // required string field = 1;
+    // optional string field = 1;
     public static final int FIELD_FIELD_NUMBER = 1;
     private boolean hasField;
     private java.lang.String field_ = "";
@@ -978,9 +978,15 @@ public final class BrowseRequestBPO {
     public boolean hasReverse() { return hasReverse; }
     public boolean getReverse() { return reverse_; }
     
+    // optional uint32 type = 3;
+    public static final int TYPE_FIELD_NUMBER = 3;
+    private boolean hasType;
+    private int type_ = 0;
+    public boolean hasType() { return hasType; }
+    public int getType() { return type_; }
+    
     @Override
     public final boolean isInitialized() {
-      if (!hasField) return false;
       return true;
     }
     
@@ -992,6 +998,9 @@ public final class BrowseRequestBPO {
       }
       if (hasReverse()) {
         output.writeBool(2, getReverse());
+      }
+      if (hasType()) {
+        output.writeUInt32(3, getType());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1010,6 +1019,10 @@ public final class BrowseRequestBPO {
       if (hasReverse()) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(2, getReverse());
+      }
+      if (hasType()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(3, getType());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1158,6 +1171,9 @@ public final class BrowseRequestBPO {
         if (other.hasReverse()) {
           setReverse(other.getReverse());
         }
+        if (other.hasType()) {
+          setType(other.getType());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -1200,12 +1216,16 @@ public final class BrowseRequestBPO {
               setReverse(input.readBool());
               break;
             }
+            case 24: {
+              setType(input.readUInt32());
+              break;
+            }
           }
         }
       }
       
       
-      // required string field = 1;
+      // optional string field = 1;
       public boolean hasField() {
         return result.hasField();
       }
@@ -1241,6 +1261,24 @@ public final class BrowseRequestBPO {
       public Builder clearReverse() {
         result.hasReverse = false;
         result.reverse_ = false;
+        return this;
+      }
+      
+      // optional uint32 type = 3;
+      public boolean hasType() {
+        return result.hasType();
+      }
+      public int getType() {
+        return result.getType();
+      }
+      public Builder setType(int value) {
+        result.hasType = true;
+        result.type_ = value;
+        return this;
+      }
+      public Builder clearType() {
+        result.hasType = false;
+        result.type_ = 0;
         return this;
       }
     }
@@ -1827,9 +1865,6 @@ public final class BrowseRequestBPO {
       for (com.browseengine.bobo.protobuf.BrowseRequestBPO.Selection element : getSelectionsList()) {
         if (!element.isInitialized()) return false;
       }
-      for (com.browseengine.bobo.protobuf.BrowseRequestBPO.Sort element : getSortList()) {
-        if (!element.isInitialized()) return false;
-      }
       for (com.browseengine.bobo.protobuf.BrowseRequestBPO.FacetSpec element : getFacetSpecsList()) {
         if (!element.isInitialized()) return false;
       }
@@ -2397,20 +2432,21 @@ public final class BrowseRequestBPO {
       "(\01623.com.browseengine.bobo.protobuf.Sele" +
       "ction.Operation:\002OR\0227\n\005props\030\005 \003(\0132(.com" +
       ".browseengine.bobo.protobuf.Property\"\034\n\t" +
-      "Operation\022\006\n\002OR\020\000\022\007\n\003AND\020\001\"&\n\004Sort\022\r\n\005fi" +
-      "eld\030\001 \002(\t\022\017\n\007reverse\030\002 \001(\010\"\277\001\n\tFacetSpec" +
-      "\022\014\n\004name\030\001 \002(\t\022\013\n\003max\030\002 \001(\r\022\016\n\006expand\030\003 " +
-      "\001(\010\022\020\n\010minCount\030\004 \001(\r\022M\n\007orderBy\030\005 \001(\01622" +
-      ".com.browseengine.bobo.protobuf.FacetSpe" +
-      "c.SortSpec:\010HitsDesc\"&\n\010SortSpec\022\014\n\010Valu" +
-      "eAsc\020\000\022\014\n\010HitsDesc\020\001\"\351\001\n\007Request\022=\n\nsele" +
-      "ctions\030\001 \003(\0132).com.browseengine.bobo.pro" +
-      "tobuf.Selection\022\016\n\006offset\030\002 \001(\r\022\r\n\005count" +
-      "\030\003 \001(\r\0222\n\004sort\030\004 \003(\0132$.com.browseengine." +
-      "bobo.protobuf.Sort\022=\n\nfacetSpecs\030\005 \003(\0132)" +
-      ".com.browseengine.bobo.protobuf.FacetSpe" +
-      "c\022\r\n\005query\030\006 \001(\tB4\n\036com.browseengine.bob" +
-      "o.protobufB\020BrowseRequestBPOH\001";
+      "Operation\022\006\n\002OR\020\000\022\007\n\003AND\020\001\"4\n\004Sort\022\r\n\005fi" +
+      "eld\030\001 \001(\t\022\017\n\007reverse\030\002 \001(\010\022\014\n\004type\030\003 \001(\r" +
+      "\"\277\001\n\tFacetSpec\022\014\n\004name\030\001 \002(\t\022\013\n\003max\030\002 \001(" +
+      "\r\022\016\n\006expand\030\003 \001(\010\022\020\n\010minCount\030\004 \001(\r\022M\n\007o" +
+      "rderBy\030\005 \001(\01622.com.browseengine.bobo.pro" +
+      "tobuf.FacetSpec.SortSpec:\010HitsDesc\"&\n\010So" +
+      "rtSpec\022\014\n\010ValueAsc\020\000\022\014\n\010HitsDesc\020\001\"\351\001\n\007R" +
+      "equest\022=\n\nselections\030\001 \003(\0132).com.browsee" +
+      "ngine.bobo.protobuf.Selection\022\016\n\006offset\030" +
+      "\002 \001(\r\022\r\n\005count\030\003 \001(\r\0222\n\004sort\030\004 \003(\0132$.com" +
+      ".browseengine.bobo.protobuf.Sort\022=\n\nface" +
+      "tSpecs\030\005 \003(\0132).com.browseengine.bobo.pro" +
+      "tobuf.FacetSpec\022\r\n\005query\030\006 \001(\tB4\n\036com.br" +
+      "owseengine.bobo.protobufB\020BrowseRequestB" +
+      "POH\001";
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
         public com.google.protobuf.ExtensionRegistry assignDescriptors(
@@ -2437,7 +2473,7 @@ public final class BrowseRequestBPO {
           internal_static_com_browseengine_bobo_protobuf_Sort_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_browseengine_bobo_protobuf_Sort_descriptor,
-              new java.lang.String[] { "Field", "Reverse", },
+              new java.lang.String[] { "Field", "Reverse", "Type", },
               com.browseengine.bobo.protobuf.BrowseRequestBPO.Sort.class,
               com.browseengine.bobo.protobuf.BrowseRequestBPO.Sort.Builder.class);
           internal_static_com_browseengine_bobo_protobuf_FacetSpec_descriptor =

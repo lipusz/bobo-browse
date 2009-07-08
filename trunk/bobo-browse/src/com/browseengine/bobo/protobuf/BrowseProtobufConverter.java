@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
@@ -27,6 +28,8 @@ import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat.ParseException;
 
 public class BrowseProtobufConverter {
+	
+	private static Logger logger = Logger.getLogger(BrowseProtobufConverter.class);
 	
 	private static class FacetContainerAccessible implements FacetAccessible{
 		private Map<String,BrowseFacet> _data;
@@ -117,7 +120,11 @@ public class BrowseProtobufConverter {
 		List<BrowseRequestBPO.Sort> sortList = req.getSortList();
 		SortField[] sortFields = new SortField[sortList == null ? 0 : sortList.size()];
 		for (BrowseRequestBPO.Sort s : sortList){
-			SortField sf = new SortField(s.getField(),s.getReverse());
+			String fieldname = s.getField();
+			if (fieldname!=null && fieldname.length() == 0){
+				fieldname=null;
+			}
+			SortField sf = new SortField(fieldname,s.getType(),s.getReverse());
 			sortFields[i++] = sf;
 		}
 		if (sortFields.length > 0){
@@ -238,7 +245,12 @@ public class BrowseProtobufConverter {
 		// sort
 		SortField[] sortfields = req.getSort();
 		for (SortField sortfield : sortfields){
-			BrowseRequestBPO.Sort sort = BrowseRequestBPO.Sort.newBuilder().setField(sortfield.getField()).setReverse(sortfield.getReverse()).build();
+			String fn = sortfield.getField();
+			BrowseRequestBPO.Sort.Builder sortBuilder = BrowseRequestBPO.Sort.newBuilder();
+			if (fn!=null){
+				sortBuilder.setField(fn);
+			}
+			BrowseRequestBPO.Sort sort = sortBuilder.setReverse(sortfield.getReverse()).setType(sortfield.getType()).build();
 			reqBuilder.addSort(sort);
 		}
 		
@@ -248,18 +260,24 @@ public class BrowseProtobufConverter {
 		while(iter.hasNext()){
 			Entry<String,FacetSpec> entry = iter.next();
 			FacetSpec fspec = entry.getValue();
-			BrowseRequestBPO.FacetSpec.Builder facetspecBuilder = BrowseRequestBPO.FacetSpec.newBuilder();
-			facetspecBuilder.setName(entry.getKey());
-			facetspecBuilder.setExpand(fspec.isExpandSelection());
-			facetspecBuilder.setMax(fspec.getMaxCount());
-			facetspecBuilder.setMinCount(fspec.getMinHitCount());
-			if (fspec.getOrderBy() == FacetSortSpec.OrderHitsDesc){
-			  facetspecBuilder.setOrderBy(BrowseRequestBPO.FacetSpec.SortSpec.HitsDesc);
+			if (fspec!=null)
+			{
+				BrowseRequestBPO.FacetSpec.Builder facetspecBuilder = BrowseRequestBPO.FacetSpec.newBuilder();
+				facetspecBuilder.setName(entry.getKey());
+				facetspecBuilder.setExpand(fspec.isExpandSelection());
+				facetspecBuilder.setMax(fspec.getMaxCount());
+				facetspecBuilder.setMinCount(fspec.getMinHitCount());
+				if (fspec.getOrderBy() == FacetSortSpec.OrderHitsDesc){
+				  facetspecBuilder.setOrderBy(BrowseRequestBPO.FacetSpec.SortSpec.HitsDesc);
+				}
+				else{
+				  facetspecBuilder.setOrderBy(BrowseRequestBPO.FacetSpec.SortSpec.ValueAsc);
+				}
+				reqBuilder.addFacetSpecs(facetspecBuilder);
 			}
 			else{
-			  facetspecBuilder.setOrderBy(BrowseRequestBPO.FacetSpec.SortSpec.ValueAsc);
+				logger.warn("facet handler: "+entry.getKey()+" is null, skipped");
 			}
-			reqBuilder.addFacetSpecs(facetspecBuilder);
 		}
 		return reqBuilder.build();
 	}

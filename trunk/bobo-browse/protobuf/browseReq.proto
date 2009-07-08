@@ -24,8 +24,9 @@ message Selection {
 
 message Sort
 {
-  required string field = 1;
+  optional string field = 1;
   optional bool reverse = 2;
+  optional uint32 type = 3;
 }
 
 message FacetSpec
