@@ -15,7 +15,6 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.document.FieldSelectorResult;
 import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.HitCollector;
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -183,6 +182,12 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
         FacetSpec ospec = req.getFacetSpec(name);
 
         FacetHandler handler = getFacetHandler(name);
+        
+        if (handler == null){
+        	logger.warn("facet handler: "+name+" is not defined, ignored.");
+        	continue;
+        }
+        
         FacetHitCollector facetHitCollector = null;
 
         RandomAccessFilter filter = null;
