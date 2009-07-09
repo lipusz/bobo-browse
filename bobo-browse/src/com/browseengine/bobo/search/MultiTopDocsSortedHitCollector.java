@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.SortField;
@@ -28,7 +29,7 @@ public class MultiTopDocsSortedHitCollector extends TopDocsSortedHitCollector
   private final SortField[] _sort;
   
   
-  public MultiTopDocsSortedHitCollector(MultiBoboBrowser multiBrowser,SortField[] sort, int offset, int count)
+  public MultiTopDocsSortedHitCollector(MultiBoboBrowser multiBrowser,SortField[] sort, Set<String> fieldsToFetch,int offset, int count)
   {
     _sort = sort;
     _offset=offset;
@@ -38,7 +39,7 @@ public class MultiTopDocsSortedHitCollector extends TopDocsSortedHitCollector
     _subCollectors = new TopDocsSortedHitCollector[subBrowsers.length];
     for (int i=0;i<subBrowsers.length;++i)
     {
-      _subCollectors[i] = subBrowsers[i].getSortedHitCollector(sort, 0, _offset+_count);
+      _subCollectors[i] = subBrowsers[i].getSortedHitCollector(sort, fieldsToFetch, 0, _offset+_count);
     }
     _starts = _multiBrowser.getStarts();
     _totalCount = 0; 

@@ -1,8 +1,13 @@
 <project name="bobo-app" default="dist">
+    <property name="bobo.root" location="../" />
+    <property name="dist" value="${bobo.root}/dist"/>
 	<property name="app-resource" value="app-resource"/>
 	<property name="app-webapp" value="app-webapp"/>
 	<property name="app-settings" value="app-settings" />
 	<property name="app-conf" value="app-conf" />
+	
+    <property name="lib" value="${bobo.root}/lib"/>
+    <property name="app-lib" value="lib"/>
 	
 	<target name="dist">
 			<war destfile="${dist}/bobo-app.war" webxml="${app-resource}/web.xml" >
@@ -11,6 +16,7 @@
 				<classes dir="${app-settings}"/>
 				<webinf dir="${app-resource}" />
 	            <lib dir="${lib}" />
+	            <lib dir="${app-lib}" />
 				<lib dir="${dist}">
 					<include name="*.jar"/>
 				</lib>

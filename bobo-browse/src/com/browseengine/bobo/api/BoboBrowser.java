@@ -15,7 +15,6 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.document.FieldSelectorResult;
 import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.HitCollector;
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -299,16 +298,21 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
    */
   public BrowseResult browse(BrowseRequest req) throws BrowseException
   {
-    if (_reader == null)
-      return new BrowseResult();
+	  System.out.println("!!!!!!!!!!BEGIN");
+	final BrowseResult result = new BrowseResult();
+    
+	if (_reader == null)
+      return result;
 
-    final BrowseResult result = new BrowseResult();
+	  System.out.println("!!!!!!!!!!2");
 
     long start = System.currentTimeMillis();
 
-    TopDocsSortedHitCollector myHC = getSortedHitCollector(req.getSort(), req.getOffset(), req.getCount());
+    TopDocsSortedHitCollector myHC = getSortedHitCollector(req.getSort(),req.getFieldsToFetch(),req.getOffset(), req.getCount());
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
+    System.out.println("!!!!!!!!!!BEFORE");
     browse(req, myHC, facetCollectors);
+    System.out.println("!!!!!!!!!!after:" + myHC.getTotalHits());
     BrowseHit[] hits = null;
 
     try
@@ -319,7 +323,6 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
     {
       logger.error(e.getMessage(), e);
       hits = new BrowseHit[0];
-      e.printStackTrace();
     }
     result.setHits(hits);
     result.setNumHits(myHC.getTotalHits());
@@ -401,10 +404,11 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
   }
 
   public TopDocsSortedHitCollector getSortedHitCollector(SortField[] sort,
+		  												 Set<String> fieldsToFetch,
                                                          int offset,
                                                          int count)
   {
-    return new InternalBrowseHitCollector(this, sort, offset, count);
+    return new InternalBrowseHitCollector(this,sort,fieldsToFetch,offset, count);
   }
 
 }

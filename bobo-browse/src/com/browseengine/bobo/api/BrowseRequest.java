@@ -29,7 +29,9 @@ package com.browseengine.bobo.api;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
@@ -52,6 +54,15 @@ public class BrowseRequest implements Serializable{
 	private int _offset;
 	private int _count;
 	private Filter _filter;
+	private Set<String> _fieldsToFetch;
+	
+	public void setFieldsToFetch(Set<String> fieldsToFetch){
+		_fieldsToFetch=fieldsToFetch;
+	}
+	
+	public Set<String> getFieldsToFetch(){
+		return _fieldsToFetch;
+	}
 	
 	public void setFacetSpecs(Map<String,FacetSpec> facetSpecMap)
 	{
@@ -106,6 +117,7 @@ public class BrowseRequest implements Serializable{
 		_selections=new HashMap<String,BrowseSelection>();
 		_sortSpecs=new ArrayList<SortField>();
 		_facetSpecMap=new HashMap<String,FacetSpec>();
+		_fieldsToFetch = null;
 		_filter = null;
 	}
 	
