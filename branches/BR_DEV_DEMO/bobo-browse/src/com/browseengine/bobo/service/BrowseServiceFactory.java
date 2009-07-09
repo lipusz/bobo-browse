@@ -34,7 +34,6 @@ import org.apache.lucene.store.Directory;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseException;
-import com.browseengine.bobo.config.FieldConfiguration;
 import com.browseengine.bobo.impl.BrowseServiceImpl;
 import com.browseengine.bobo.impl.DefaultBrowseServiceImpl;
 
@@ -42,10 +41,10 @@ public class BrowseServiceFactory {
 	
 	private static Logger logger=Logger.getLogger(BrowseServiceFactory.class);
 	
-	public static BrowseService createBrowseService(File idxDir,long refreshtime)
+	public static BrowseService createBrowseService(File idxDir)
 													throws BrowseException {
 		if (idxDir==null) throw new IllegalArgumentException("Null index dir specified");
-			return new BrowseServiceImpl(idxDir,refreshtime);
+			return new BrowseServiceImpl(idxDir);
 	}
 	
 	public static BrowseService createBrowseService(BoboIndexReader bReader){

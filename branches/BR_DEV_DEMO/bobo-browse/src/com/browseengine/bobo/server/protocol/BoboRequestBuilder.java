@@ -2,6 +2,7 @@ package com.browseengine.bobo.server.protocol;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
@@ -26,6 +27,8 @@ public class BoboRequestBuilder {
 	private static final String COUNT="rows";
 	
 	private static final String SORT="sort";
+	private static Pattern sortSep = Pattern.compile(",");
+	
 	private static final Logger logger = Logger.getLogger(BoboRequestBuilder.class);
 	
 	private static void fillBoboRequest(BrowseRequest req,BoboParams params){
@@ -142,23 +145,73 @@ public class BoboRequestBuilder {
 		}
 	}
 	
-	public static BrowseRequest buildRequest(BoboParams params,BoboQueryBuilder qb){
+	private static Sort parseSort(String sortSpec) {
+		if (sortSpec==null || sortSpec.length()==0) return null;
 
+	    String[] parts = sortSep.split(sortSpec.trim());
+	    if (parts.length == 0) return null;
+
+	    SortField[] lst = new SortField[parts.length];
+	    for( int i=0; i<parts.length; i++ ) {
+	      String part = parts[i].trim();
+	      boolean top=true;
+	        
+	      int idx = part.indexOf( ' ' );
+	      if( idx > 0 ) {
+	        String order = part.substring( idx+1 ).trim();
+	    	if( "desc".equals( order ) || "top".equals(order) ) {
+	    	  top = true;
+	    	}
+	    	else if ("asc".equals(order) || "bottom".equals(order)) {
+	    	  top = false;
+	    	}
+	    	else {
+	    	  throw new IllegalArgumentException("Unknown sort order: "+order);
+	    	}
+	    	part = part.substring( 0, idx ).trim();
+	      }
+	      else {
+			throw new IllegalArgumentException("Missing sort order." );
+	      }
+	    	
+	      if( "score".equals(part) ) {
+	        if (top) {
+	          // If thre is only one thing in the list, just do the regular thing...
+	          if( parts.length == 1 ) {
+	            return null; // do normal scoring...
+	          }
+	          lst[i] = SortField.FIELD_SCORE;
+	        }
+	        else {
+	          lst[i] = new SortField(null, SortField.SCORE, true);
+	        }
+	      } 
+	      else {
+	        lst[i] = new SortField(part,top);
+	      }
+	    }
+	    return new Sort(lst);
+	}
+	
+	public static BrowseRequest buildRequest(BoboParams params,BoboQueryBuilder qb){
+		BrowseRequest br=new BrowseRequest();
+		    
 	    int offset=params.getInt(START, 0);
 	  
 	    int count=params.getInt(COUNT, 10);
 	    
-	      
-		Sort sort = qb.parseSort(params.getString(SORT));
-
-	    // parse the query from the 'q' parameter (sort has been striped)
-	    Query query =qb.parseQuery(params.getString(QUERY), params.getString(DEFAULT_FIELD));
-	    
-	    BrowseRequest br=new BrowseRequest();
 	    br.setOffset(offset);
 	    br.setCount(count);
-	    br.setQuery(query);
 	    
+	    // parse the query from the 'q' parameter (sort has been striped)
+		if (qb!=null){
+			Query query =qb.parseQuery(params.getString(QUERY), params.getString(DEFAULT_FIELD));
+			br.setQuery(query);   
+		}
+	    
+	    
+	    
+		Sort sort = parseSort(params.getString(SORT));
 	    if (sort!=null){
 		    SortField[] sortFields=sort.getSort();
 		    if (sortFields!=null && sortFields.length>0){

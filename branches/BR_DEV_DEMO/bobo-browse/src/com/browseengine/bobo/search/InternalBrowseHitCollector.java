@@ -3,8 +3,9 @@ package com.browseengine.bobo.search;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -30,13 +31,16 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
   private final int _offset;
   private final int _count;
   private final BoboBrowser _boboBrowser;
+  private final Set<String> _fieldsToFetch;
 
   public InternalBrowseHitCollector(BoboBrowser boboBrowser,
                                     SortField[] sort,
+                                    Set<String> fieldsToFetch,
                                     int offset,
                                     int count)
   {
     super();
+    _fieldsToFetch = fieldsToFetch;
     _boboBrowser = boboBrowser;
     _reader = boboBrowser.getIndexReader();
     sortFields = QueryProducer.convertSort(sort, _reader);
@@ -95,13 +99,16 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
     for (FieldDoc fdoc : fdocs)
     {
       BrowseHit hit=new BrowseHit();
-      Document doc=_reader.document(fdoc.doc);
+      Set<String> fields = _fieldsToFetch;
+      if (fields == null){
+    	fields = new HashSet<String>();
+    	fields.addAll(_reader.getFacetHandlerMap().keySet());
+      }
+      
       Map<String,String[]> map = new HashMap<String,String[]>();
-      List<Field> fields=doc.getFields();
-      for (Field f : fields)
+      for (String f : fields)
       {
-          String name=f.name();
-          map.put(f.name(),doc.getValues(name));
+          map.put(f,_boboBrowser.getFieldVal(fdoc.doc, f));
       }
       hit.setFieldValues(map);
       hit.setDocid(fdoc.doc);

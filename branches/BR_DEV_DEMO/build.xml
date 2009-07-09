@@ -165,13 +165,13 @@
 		<mkdir dir="cardemo/cars" />
 		<antcall target="create-ui">
 			<param name="ui.name" value="cars"/>
-			<param name="ui.out" value="dist"/>
+			<param name="ui.out" value="cardemo"/>
 			<param name="ui.idx.dir" value="cardata/cartag"/>
 		</antcall>
 		<delete dir="cardemo/cars" />
 	</target>
 	
-	<target name="run-cardemo"  depends="dist,make-car-war" > 
+	<target name="run-cardemo" depends="dist,make-car-war"> 
 		<mkdir dir="${logs}" />
 		<java fork="true" jar="${bobo.root}/zoie-server.jar" failonerror="true" maxmemory="100m">
 								<sysproperty key="log.home" value="${logs}" />

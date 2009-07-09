@@ -2,6 +2,7 @@ package com.browseengine.bobo.api;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.HitCollector;
@@ -35,5 +36,5 @@ public interface Browsable extends Searchable
 	
 	Explanation explain(Query q, int docid) throws IOException;
 	
-	TopDocsSortedHitCollector getSortedHitCollector(SortField[] sort,int offset,int count);
+	TopDocsSortedHitCollector getSortedHitCollector(SortField[] sort,Set<String> fieldsToFetch,int offset,int count);
 }

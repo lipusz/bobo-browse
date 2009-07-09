@@ -26,9 +26,7 @@
 package com.browseengine.bobo.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
@@ -47,8 +45,7 @@ public class BrowseServiceImpl implements BrowseService {
 	private final File _idxDir;
 	private BoboIndexReader _reader;
 		
-	
-	public BrowseServiceImpl(File idxDir,long refreshtime) {
+	public BrowseServiceImpl(File idxDir) {
 		super();
 		_idxDir=idxDir;
 		try
@@ -77,10 +74,15 @@ public class BrowseServiceImpl implements BrowseService {
         BoboIndexReader reader;
         
         try {
-                reader = BoboIndexReader.getInstance(ir);
+           reader = BoboIndexReader.getInstance(ir);
         } catch (IOException ioe) {
-                try { ir.close(); } catch (IOException ioe2) {}
-                throw ioe;
+           try { 
+        	   ir.close(); 
+           } 
+           catch (IOException ioe2) {
+        	   logger.error(ioe2.getMessage(),ioe2);
+           }
+           throw ioe;
         }
 
         long end=System.currentTimeMillis();
