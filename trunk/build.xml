@@ -31,6 +31,9 @@
 	
 	<property name="cardata" value="cardata" />
 	<property name="carindex" value="${cardata}/cartag"/>
+	
+	<property file="${bobo.root}/version.properties" />
+
 		
 	<target name="init">
 		<mkdir dir="${dist}" />
@@ -80,7 +83,7 @@
 	                <include name="*.jar"/>
 				</fileset>
 				<fileset dir="${dist}">
-	                <include name="${bobo-browse}.jar"/>
+	                <include name="bobo-browse-${version}.jar"/>
 		        </fileset>
 		</path>
 	
@@ -102,8 +105,8 @@
 		<war destfile="${ui.out}/${ui.name}.war" webxml="${resource}/web.xml">
 			  <fileset dir="${ui.out}/${ui.name}/"/>
 			  <lib dir="${dist}">
-			    <include name="${bobo-browse}.jar"/>
-			  	<include name="${bobo-server}.jar"/>
+			    <include name="bobo-browse-${version}.jar"/>
+			  	<include name="bobo-server-${version}.jar"/>
 			  </lib>
 			  <lib dir="${lib}" excludes="servlet-api.jar">
 			    <include name="*.jar"/>

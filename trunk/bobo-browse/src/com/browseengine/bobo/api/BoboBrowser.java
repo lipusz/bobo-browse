@@ -324,7 +324,6 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
     {
       logger.error(e.getMessage(), e);
       hits = new BrowseHit[0];
-      e.printStackTrace();
     }
     result.setHits(hits);
     result.setNumHits(myHC.getTotalHits());
