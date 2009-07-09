@@ -3,9 +3,9 @@
 
 Some requirements considered when building the default set of !FacetHandlers:
 
-  *Efficient memory representation of data
-  *Fast lookup between a docid and the corresponding facet value.
-  *Filters should produce fast !DocIdSetIterators.
+  * Efficient memory representation of data
+  * Fast lookup between a docid and the corresponding facet value.
+  * Filters should produce fast !DocIdSetIterators.
 
 =Diagram=
 [http://john.wang.googlepages.com/bobo-fh-arch.png]
