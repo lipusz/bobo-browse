@@ -6,7 +6,7 @@
 
   <allow>
     <create creator="spring" javascript="BoboService">
-      <param name="beanName" value="boboService"/>
+      <param name="beanName" value="browse-service"/>
     </create>
     
     

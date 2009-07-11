@@ -1,6 +1,8 @@
 package com.browseengine.bobo.app.service;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -12,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.directwebremoting.util.Logger;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -82,6 +83,12 @@ public class BoboAppServlet extends HttpServlet {
 				facetObj.put(entry.getKey(), JsonRenderer.renderDataTable(facetDataTable, true, false));
 			}
 			retObj.put("facets", facetObj);
+			
+			String jsonString = retObj.toString();
+			OutputStream ostream = resp.getOutputStream();
+			OutputStreamWriter writer = new OutputStreamWriter(ostream,"UTF-8");
+			writer.write(jsonString);
+			writer.flush();
 		}
 		catch(BrowseException be){
 			throw new ServletException(be.getMessage(),be);
