@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="bobo-bench/src"/>
+	<classpathentry kind="src" path="bobo-app/src"/>
 	<classpathentry kind="src" path="bobo-browse/src"/>
 	<classpathentry kind="src" path="bobo-service/src"/>
 	<classpathentry kind="src" path="bobo-tools/src"/>
@@ -33,5 +34,6 @@
 	<classpathentry kind="lib" path="lib/zoie-1.2.0.jar"/>
 	<classpathentry kind="lib" path="zoie-server.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="bobo-app/lib/visualization-datasource-1.0.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

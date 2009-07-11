@@ -28,6 +28,12 @@
   	</init-param>
   	<load-on-startup>2</load-on-startup>
   </servlet>
+  
+  <servlet>
+         <servlet-name>BoboAppServlet</servlet-name>
+         <servlet-class>com.browseengine.bobo.app.service.BoboAppServlet</servlet-class>              
+   </servlet>
+  
  
   <!-- ******************************************************************* -->
   <!-- * Servlets mapping * -->
@@ -36,5 +42,9 @@
   <servlet-mapping>
   	<servlet-name>dwr</servlet-name>
   	<url-pattern>/dwr/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+  	<servlet-name>BoboAppServlet</servlet-name>
+  	<url-pattern>/bobo-app/*</url-pattern>
   </servlet-mapping>
 </web-app>
