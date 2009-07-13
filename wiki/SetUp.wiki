@@ -9,18 +9,18 @@ Assuming checked out to ~/bobo-trunk:
 
 ===Builds jars:===
 
- *cd ~/bobo-trunk
- *ant
+ * cd ~/bobo-trunk
+ * ant
 
 
 ==Run cardemo app:==
 
- *In ~/bobo-trunk, do ant run-cardemo
- *cardemo should be deployed at: http://localhost:8080/cars/
+ * In ~/bobo-trunk, do ant run-cardemo
+ * cardemo should be deployed at: http://localhost:8080/cars/
 
 cars.war is generated under cardemo/
 
 ==Build Javadocs==
 
-  *In ~/bobo-trunk, do ant javadoc
-  *javadocs are generated under doc/
+  * In ~/bobo-trunk, do ant javadoc
+  * javadocs are generated under doc/
