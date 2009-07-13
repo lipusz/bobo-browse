@@ -26,19 +26,21 @@ public class MultiValueFacetFilter extends RandomAccessFilter
         _index = index;
     }
     
-    private final class MultiValueFacetDocIdSetIterator extends FacetDocIdSetIterator
+    private final static class MultiValueFacetDocIdSetIterator extends FacetDocIdSetIterator
     {
+        private final BigNestedIntArray _nestedArray;
+
         public MultiValueFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, int index) 
         {
             super(dataCache, index);
+            _nestedArray = dataCache._nestedArray;
         }
         
         @Override
         final public boolean next() throws IOException {
             while(_doc < _maxID) // not yet reached end
             {
-                _doc++;
-                if (_nestedArray.contains(_doc, _index)){
+                if (_nestedArray.contains(++_doc, _index)){
                     return true;
                 }
             }

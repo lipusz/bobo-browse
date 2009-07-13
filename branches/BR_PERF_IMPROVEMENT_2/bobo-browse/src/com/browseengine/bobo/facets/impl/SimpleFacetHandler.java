@@ -91,20 +91,26 @@ public class SimpleFacetHandler extends FacetHandler implements FacetHandlerFact
   @Override
   public RandomAccessFilter buildRandomAccessOrFilter(String[] vals,Properties prop,boolean isNot) throws IOException
   {
-    if (vals.length > 1)
+    RandomAccessFilter filter = null;
+    
+    int[] indexes = FacetDataCache.convert(_dataCache,vals);
+    if(indexes.length > 1)
     {
       return new FacetOrFilter(_dataCache,FacetDataCache.convert(_dataCache,vals),isNot);
     }
+    else if(indexes.length == 1)
+    {
+      filter = new FacetFilter(_dataCache, indexes[0]);
+    }
     else
     {
-      RandomAccessFilter filter = buildRandomAccessFilter(vals[0],prop);
-      if (filter == null) return filter;
-      if (isNot)
-      {
-        filter = new RandomAccessNotFilter(filter);
-      }
-      return filter;
+      filter = EmptyFilter.getInstance();
     }
+    if (isNot)
+    {
+      filter = new RandomAccessNotFilter(filter);
+    }
+    return filter;
   }
 
   @Override

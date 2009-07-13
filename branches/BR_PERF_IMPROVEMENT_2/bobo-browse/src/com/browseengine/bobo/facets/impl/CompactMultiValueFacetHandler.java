@@ -111,26 +111,22 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
   @Override
   public RandomAccessFilter buildRandomAccessOrFilter(String[] vals,Properties prop,boolean isNot) throws IOException
   {
+    RandomAccessFilter filter = null;
     
-    if (vals.length > 1)
+    int[] indexes = FacetDataCache.convert(_dataCache,vals);
+    if(indexes.length > 0)
     {
-      RandomAccessFilter f = new CompactMultiValueFacetFilter(_dataCache,FacetDataCache.convert(_dataCache,vals));
-      if (isNot)
-      {
-        f = new RandomAccessNotFilter(f);
-      }
-      return f;
+      filter = new CompactMultiValueFacetFilter(_dataCache,indexes);
     }
     else
     {
-      RandomAccessFilter filter = buildRandomAccessFilter(vals[0],prop);
-      if (filter == null) return filter;
-      if (isNot)
-      {
-        filter = new RandomAccessNotFilter(filter);
-      }
-      return filter;
+      filter = EmptyFilter.getInstance();
     }
+    if (isNot)
+    {
+      filter = new RandomAccessNotFilter(filter);
+    }
+    return filter;
   }
 
   @Override

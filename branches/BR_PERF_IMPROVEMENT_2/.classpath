@@ -6,7 +6,8 @@
 	<classpathentry kind="src" path="test/src"/>
 	<classpathentry kind="lib" path="jetty/servlet-api-2.5-6.1.11.jar"/>
 	<classpathentry kind="lib" path="lib/ant-1.6.5.jar"/>
-	<classpathentry kind="lib" path="lib/apache-solr-1.2-dev.jar"/>
+	<classpathentry kind="lib" path="bobo-solr/lib/apache-solr-core-1.4-dev.jar"/>
+	<classpathentry kind="lib" path="bobo-solr/lib/apache-solr-solrj-1.4-dev.jar"/>
 	<classpathentry kind="lib" path="lib/commons-cli-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-digester-1.7.jar"/>
