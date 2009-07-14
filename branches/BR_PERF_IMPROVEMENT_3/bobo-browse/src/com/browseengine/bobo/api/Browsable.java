@@ -35,5 +35,5 @@ public interface Browsable extends Searchable
 	
 	Explanation explain(Query q, int docid) throws IOException;
 	
-	TopDocsSortedHitCollector getSortedHitCollector(SortField[] sort,int offset,int count);
+	TopDocsSortedHitCollector getSortedHitCollector(SortField[] sort,int offset,int count,boolean fetchStoredFields);
 }

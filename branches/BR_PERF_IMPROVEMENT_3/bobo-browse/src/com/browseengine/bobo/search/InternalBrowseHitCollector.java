@@ -2,12 +2,10 @@ package com.browseengine.bobo.search;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
 import org.apache.lucene.search.FieldDoc;
 import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortField;
@@ -30,11 +28,13 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
   private final int _offset;
   private final int _count;
   private final BoboBrowser _boboBrowser;
+  private final boolean _fetchStoredFields;
 
   public InternalBrowseHitCollector(BoboBrowser boboBrowser,
                                     SortField[] sort,
                                     int offset,
-                                    int count)
+                                    int count,
+                                    boolean fetchStoredFields)
   {
     super();
     _boboBrowser = boboBrowser;
@@ -44,6 +44,7 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
     _count = count;
     hitQueue = new SortedHitQueue(_boboBrowser, sortFields, offset+count);
     _totalHits = 0;
+    _fetchStoredFields = fetchStoredFields;
   }
 
   @Override
@@ -92,16 +93,18 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
   public BrowseHit[] buildHits(FieldDoc[] fdocs) throws IOException
   {
     ArrayList<BrowseHit> hitList = new ArrayList<BrowseHit>(fdocs.length);
+
+    Collection<FacetHandler> facetHandlers= _reader.getFacetHandlerMap().values();
     for (FieldDoc fdoc : fdocs)
     {
       BrowseHit hit=new BrowseHit();
-      Document doc=_reader.document(fdoc.doc);
+      if (_fetchStoredFields){
+         hit.setStoredFields(_reader.document(fdoc.doc));
+      }
       Map<String,String[]> map = new HashMap<String,String[]>();
-      List<Field> fields=doc.getFields();
-      for (Field f : fields)
+      for (FacetHandler facetHandler : facetHandlers)
       {
-          String name=f.name();
-          map.put(f.name(),doc.getValues(name));
+          map.put(facetHandler.getName(),facetHandler.getFieldValues(fdoc.doc));
       }
       hit.setFieldValues(map);
       hit.setDocid(fdoc.doc);

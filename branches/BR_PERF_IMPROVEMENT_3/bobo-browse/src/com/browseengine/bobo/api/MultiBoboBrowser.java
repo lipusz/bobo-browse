@@ -131,7 +131,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 
     long start = System.currentTimeMillis();
     
-    TopDocsSortedHitCollector hitCollector = getSortedHitCollector(req.getSort(), req.getOffset(), req.getCount());
+    TopDocsSortedHitCollector hitCollector = getSortedHitCollector(req.getSort(), req.getOffset(), req.getCount(),req.isFetchStoredFields());
 
     Map<String, FacetAccessible> mergedMap = new HashMap<String,FacetAccessible>();
     browse(req, hitCollector, mergedMap);
@@ -260,8 +260,9 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 
   public TopDocsSortedHitCollector getSortedHitCollector(SortField[] sort,
                                                          int offset,
-                                                         int count)
+                                                         int count,
+                                                         boolean fetchStoredFields)
   {
-    return new MultiTopDocsSortedHitCollector(this,sort,offset,count);
+    return new MultiTopDocsSortedHitCollector(this,sort,offset,count,fetchStoredFields);
   }
 }

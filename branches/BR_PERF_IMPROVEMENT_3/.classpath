@@ -33,5 +33,6 @@
 	<classpathentry kind="lib" path="lib/zoie-1.2.0.jar"/>
 	<classpathentry kind="lib" path="zoie-server.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/protobuf-java-2.1.0.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

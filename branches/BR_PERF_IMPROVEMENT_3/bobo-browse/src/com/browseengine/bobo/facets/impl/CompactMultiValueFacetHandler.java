@@ -296,10 +296,11 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 	    else
 	    {
 	      int offset = 0;
-	      while(encoded != 0)
+	      while(true)
 	      {
 	        _combinationCount[(encoded & 0x0F) + offset]++;
 	        encoded = (encoded >>> 4);
+	        if (encoded == 0) break;
 	        offset += 16;
 	      }
 	    }

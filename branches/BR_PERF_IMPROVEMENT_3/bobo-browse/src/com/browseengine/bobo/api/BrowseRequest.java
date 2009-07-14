@@ -52,6 +52,7 @@ public class BrowseRequest implements Serializable{
 	private Query _query;
 	private int _offset;
 	private int _count;
+	private boolean _fetchStoredFields;
 	private Filter _filter;
 	
 	public Set<String> getSelectionNames(){
@@ -116,6 +117,15 @@ public class BrowseRequest implements Serializable{
 		_sortSpecs=new ArrayList<SortField>();
 		_facetSpecMap=new HashMap<String,FacetSpec>();
 		_filter = null;
+		_fetchStoredFields = false;
+	}
+	
+	public boolean isFetchStoredFields(){
+		return _fetchStoredFields;
+	}
+	
+	public void setFetchStoredFields(boolean fetchStoredFields){
+		_fetchStoredFields = fetchStoredFields;
 	}
 	
 	/**
