@@ -88,7 +88,6 @@ public class BoboSearcher2 extends BoboSearcher{
                   DocIdSetIterator iterator = facetCollector._postDocIDSetIterator;
                   if(iterator.skipTo(docid))
                   {
-                    facetCollector._more = true;
                     sid = iterator.doc();
                     facetCollector._doc = sid;
                     if(sid == docid) continue; // matched
