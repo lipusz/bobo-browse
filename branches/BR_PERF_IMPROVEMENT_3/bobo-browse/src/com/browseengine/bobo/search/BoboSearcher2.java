@@ -19,39 +19,18 @@ public class BoboSearcher2 extends BoboSearcher{
         super(reader);
     }
 
-    private abstract class FacetValidator
+    private abstract static class FacetValidator
     {
       protected final FacetHitCollector[] _collectors;
       protected final FacetCountCollector[] _countCollectors;
       protected final int _numPostFilters;
       public int _nextTarget;
       
-      public FacetValidator() throws IOException
+      public FacetValidator(FacetHitCollector[] collectors,FacetCountCollector[] countCollectors,int numPostFilters) throws IOException
       {
-        _collectors = new FacetHitCollector[_facetCollectors.size()];
-        _countCollectors = new FacetCountCollector[_collectors.length];
-        
-        int i = 0;
-        int j = _collectors.length;
-        
-        for (FacetHitCollector facetCollector : _facetCollectors)
-        {
-          if (facetCollector._postDocIDSetIterator != null) 
-          {
-            facetCollector._more = facetCollector._postDocIDSetIterator.next();
-            facetCollector._doc = (facetCollector._more ? facetCollector._postDocIDSetIterator.doc() : Integer.MAX_VALUE);
-            _collectors[i] = facetCollector;
-            _countCollectors[i]=facetCollector._facetCountCollector;
-            i++;
-          }
-          else
-          {
-            j--;
-            _collectors[j] = facetCollector;
-            _countCollectors[j] = facetCollector._facetCountCollector;
-          }
-        }
-        _numPostFilters = i;
+        _collectors = collectors;
+        _countCollectors = countCollectors;
+        _numPostFilters = numPostFilters;
       }
       /**
        * This method validates the doc against any multi-select enabled fields.
@@ -63,10 +42,10 @@ public class BoboSearcher2 extends BoboSearcher{
       
     }
     
-    private final class DefaultFacetValidator extends FacetValidator{
+    private final static class DefaultFacetValidator extends FacetValidator{
     	
-    	public DefaultFacetValidator() throws IOException{
-    		super();
+    	public DefaultFacetValidator(FacetHitCollector[] collectors,FacetCountCollector[] countCollectors,int numPostFilters) throws IOException{
+    		super(collectors,countCollectors,numPostFilters);
     	}
     	 /**
          * This method validates the doc against any multi-select enabled fields.
@@ -78,50 +57,39 @@ public class BoboSearcher2 extends BoboSearcher{
           throws IOException
         {
           FacetHitCollector miss = null;
-          if (_numPostFilters == 1)
+          
+          for(int i = 0; i < _numPostFilters; i++)
           {
-              FacetHitCollector facetCollector = _collectors[0];
-              RandomAccessDocIdSet set = facetCollector._docidSet;
-              if (set!=null && !set.get(docid))
+            FacetHitCollector facetCollector = _collectors[i];
+            if(facetCollector._more)
+            {
+              int sid = facetCollector._doc;
+              if(sid == docid) continue; // matched
+              
+              if(sid < docid)
               {
-                miss = facetCollector;
-              }
-          }
-          else
-          {
-              for(int i = 0; i < _numPostFilters; i++)
-              {
-                FacetHitCollector facetCollector = _collectors[i];
-                if(facetCollector._more)
+                DocIdSetIterator iterator = facetCollector._postDocIDSetIterator;
+                if(iterator.skipTo(docid))
                 {
-                  int sid = facetCollector._doc;
+                  sid = iterator.doc();
+                  facetCollector._doc = sid;
                   if(sid == docid) continue; // matched
-                  
-                  if(sid < docid)
-                  {
-                    DocIdSetIterator iterator = facetCollector._postDocIDSetIterator;
-                    if(iterator.skipTo(docid))
-                    {
-                      sid = iterator.doc();
-                      facetCollector._doc = sid;
-                      if(sid == docid) continue; // matched
-                    }
-                    else
-                    {
-                      facetCollector._more = false;
-                      facetCollector._doc = Integer.MAX_VALUE;
-                    }
-                  }  
                 }
-                
-                if(miss != null)
+                else
                 {
-                  // failed because we already have a mismatch
-                  _nextTarget = (miss._doc < facetCollector._doc ? miss._doc : facetCollector._doc);
-                  return false;
+                  facetCollector._more = false;
+                  facetCollector._doc = Integer.MAX_VALUE;
                 }
-                miss = facetCollector;
-              }
+              }  
+            }
+            
+            if(miss != null)
+            {
+              // failed because we already have a mismatch
+              _nextTarget = (miss._doc < facetCollector._doc ? miss._doc : facetCollector._doc);
+              return false;
+            }
+            miss = facetCollector;
           }
           
           _nextTarget = docid + 1;
@@ -142,9 +110,43 @@ public class BoboSearcher2 extends BoboSearcher{
         }
     }
     
-    private final class NoNeedFacetValidator extends FacetValidator{
-    	NoNeedFacetValidator() throws IOException{
-    		super();
+    private final static class OnePostFilterFacetValidator extends FacetValidator{
+    	private FacetHitCollector _firsttime;
+    	OnePostFilterFacetValidator(FacetHitCollector[] collectors,FacetCountCollector[] countCollectors,int numPostFilters) throws IOException{
+    		super(collectors,countCollectors,numPostFilters);
+    		_firsttime = _collectors[0];
+    	}
+
+		@Override
+		public final boolean validate(int docid) throws IOException {
+			FacetHitCollector miss = null;
+			
+            RandomAccessDocIdSet set = _firsttime._docidSet;
+            if (set!=null && !set.get(docid))
+            {
+              miss = _firsttime;
+            }
+            _nextTarget = docid + 1;
+
+            if(miss != null)
+            {
+              miss._facetCountCollector.collect(docid);
+              return false;
+            }
+            else
+            {
+              for (FacetCountCollector collector : _countCollectors)
+              {
+            	 collector.collect(docid);
+              }
+              return true;
+            }
+		}
+    }
+    
+    private final static class NoNeedFacetValidator extends FacetValidator{
+    	NoNeedFacetValidator(FacetHitCollector[] collectors,FacetCountCollector[] countCollectors,int numPostFilters) throws IOException{
+    		super(collectors,countCollectors,numPostFilters);
     	}
 
 		@Override
@@ -160,21 +162,40 @@ public class BoboSearcher2 extends BoboSearcher{
     
     protected FacetValidator createFacetValidator() throws IOException
     {
-      boolean needToValidate = false;
-      for (FacetHitCollector facetCollector : _facetCollectors)
-      {
-        if (facetCollector._postDocIDSetIterator != null) 
+    	
+    	FacetHitCollector[] collectors = new FacetHitCollector[_facetCollectors.size()];
+    	FacetCountCollector[] countCollectors = new FacetCountCollector[collectors.length];
+        int numPostFilters;
+        int i = 0;
+        int j = collectors.length;
+        
+        for (FacetHitCollector facetCollector : _facetCollectors)
         {
-          needToValidate = true;
-          break;
+          if (facetCollector._postDocIDSetIterator != null) 
+          {
+            facetCollector._more = facetCollector._postDocIDSetIterator.next();
+            facetCollector._doc = (facetCollector._more ? facetCollector._postDocIDSetIterator.doc() : Integer.MAX_VALUE);
+            collectors[i] = facetCollector;
+            countCollectors[i]=facetCollector._facetCountCollector;
+            i++;
+          }
+          else
+          {
+            j--;
+            collectors[j] = facetCollector;
+            countCollectors[j] = facetCollector._facetCountCollector;
+          }
         }
-      }
+        numPostFilters = i;
 
-      if(!needToValidate){
-        return new NoNeedFacetValidator();
+      if(numPostFilters == 0){
+        return new NoNeedFacetValidator(collectors,countCollectors,numPostFilters);
+      }
+      else if (numPostFilters==1){
+    	return new OnePostFilterFacetValidator(collectors,countCollectors,numPostFilters);  
       }
       else{
-        return new DefaultFacetValidator();
+        return new DefaultFacetValidator(collectors,countCollectors,numPostFilters);
       }
     }
     
