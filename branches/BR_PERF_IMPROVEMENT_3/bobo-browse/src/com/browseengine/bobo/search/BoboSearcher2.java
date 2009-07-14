@@ -19,11 +19,11 @@ public class BoboSearcher2 extends BoboSearcher{
         super(reader);
     }
 
-    private class FacetValidator
+    private abstract class FacetValidator
     {
       protected final FacetHitCollector[] _collectors;
       protected final FacetCountCollector[] _countCollectors;
-      private final int _numPostFilters;
+      protected final int _numPostFilters;
       public int _nextTarget;
       
       public FacetValidator() throws IOException
@@ -58,74 +58,106 @@ public class BoboSearcher2 extends BoboSearcher{
        * @param docid
        * @return true if all fields matched
        */
-      public boolean validate(final int docid)
-        throws IOException
-      {
-        FacetHitCollector miss = null;
-        
-        final int numPostFilters = _numPostFilters;
-        if (numPostFilters == 1)
+      public abstract boolean validate(final int docid)
+        throws IOException;
+      
+    }
+    
+    private final class DefaultFacetValidator extends FacetValidator{
+    	
+    	public DefaultFacetValidator() throws IOException{
+    		super();
+    	}
+    	 /**
+         * This method validates the doc against any multi-select enabled fields.
+         * @param docid
+         * @return true if all fields matched
+         */
+    	@Override
+        public final boolean validate(final int docid)
+          throws IOException
         {
-            FacetHitCollector facetCollector = _collectors[0];
-            RandomAccessDocIdSet set = facetCollector._docidSet;
-            if (set!=null && !set.get(docid))
-            {
-              miss = facetCollector;
-            }
-        }
-        else
-        {
-            for(int i = 0; i < numPostFilters; i++)
-            {
-              FacetHitCollector facetCollector = _collectors[i];
-              if(facetCollector._more)
-              {
-                int sid = facetCollector._doc;
-                if(sid == docid) continue; // matched
-                
-                if(sid < docid)
-                {
-                  DocIdSetIterator iterator = facetCollector._postDocIDSetIterator;
-                  if(iterator.skipTo(docid))
-                  {
-                    sid = iterator.doc();
-                    facetCollector._doc = sid;
-                    if(sid == docid) continue; // matched
-                  }
-                  else
-                  {
-                    facetCollector._more = false;
-                    facetCollector._doc = Integer.MAX_VALUE;
-                  }
-                }  
-              }
-              
-              if(miss != null)
-              {
-                // failed because we already have a mismatch
-                _nextTarget = (miss._doc < facetCollector._doc ? miss._doc : facetCollector._doc);
-                return false;
-              }
-              miss = facetCollector;
-            }
-        }
-        
-        _nextTarget = docid + 1;
-
-        if(miss != null)
-        {
-          miss._facetCountCollector.collect(docid);
-          return false;
-        }
-        else
-        {
-          for (FacetCountCollector collector : _countCollectors)
+          FacetHitCollector miss = null;
+          
+          final int numPostFilters = _numPostFilters;
+          if (numPostFilters == 1)
           {
-        	 collector.collect(docid);
+              FacetHitCollector facetCollector = _collectors[0];
+              RandomAccessDocIdSet set = facetCollector._docidSet;
+              if (set!=null && !set.get(docid))
+              {
+                miss = facetCollector;
+              }
           }
-          return true;
+          else
+          {
+              for(int i = 0; i < numPostFilters; i++)
+              {
+                FacetHitCollector facetCollector = _collectors[i];
+                if(facetCollector._more)
+                {
+                  int sid = facetCollector._doc;
+                  if(sid == docid) continue; // matched
+                  
+                  if(sid < docid)
+                  {
+                    DocIdSetIterator iterator = facetCollector._postDocIDSetIterator;
+                    if(iterator.skipTo(docid))
+                    {
+                      sid = iterator.doc();
+                      facetCollector._doc = sid;
+                      if(sid == docid) continue; // matched
+                    }
+                    else
+                    {
+                      facetCollector._more = false;
+                      facetCollector._doc = Integer.MAX_VALUE;
+                    }
+                  }  
+                }
+                
+                if(miss != null)
+                {
+                  // failed because we already have a mismatch
+                  _nextTarget = (miss._doc < facetCollector._doc ? miss._doc : facetCollector._doc);
+                  return false;
+                }
+                miss = facetCollector;
+              }
+          }
+          
+          _nextTarget = docid + 1;
+
+          if(miss != null)
+          {
+            miss._facetCountCollector.collect(docid);
+            return false;
+          }
+          else
+          {
+            for (FacetCountCollector collector : _countCollectors)
+            {
+          	 collector.collect(docid);
+            }
+            return true;
+          }
         }
-      }
+    }
+    
+    private final class NoNeedFacetValidator extends FacetValidator{
+    	NoNeedFacetValidator() throws IOException{
+    		super();
+    	}
+
+		@Override
+		public final boolean validate(int docid) throws IOException {
+			for (FacetCountCollector collector : _countCollectors)
+            {
+            	collector.collect(docid);
+            }
+            return true;
+		}
+    	
     }
     
     protected FacetValidator createFacetValidator() throws IOException
@@ -140,21 +172,12 @@ public class BoboSearcher2 extends BoboSearcher{
         }
       }
 
-      if(!needToValidate)
-      {
-        return new FacetValidator()
-        {
-          public boolean validate(int docid)
-          {
-            for (FacetCountCollector collector : _countCollectors)
-            {
-            	collector.collect(docid);
-            }
-            return true;
-          }
-        };
+      if(!needToValidate){
+        return new NoNeedFacetValidator();
       }
-      return new FacetValidator();
+      else{
+        return new DefaultFacetValidator();
+      }
     }
     
     @Override
