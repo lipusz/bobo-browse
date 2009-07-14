@@ -56,7 +56,7 @@ public class MultiValueFacetFilter extends RandomAccessFilter
             return next();
           }
           
-          return (id == _doc) ? next() : false;
+          return next();
         }
     }
 
