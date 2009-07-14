@@ -298,21 +298,17 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
    */
   public BrowseResult browse(BrowseRequest req) throws BrowseException
   {
-	  System.out.println("!!!!!!!!!!BEGIN");
 	final BrowseResult result = new BrowseResult();
     
 	if (_reader == null)
       return result;
 
-	  System.out.println("!!!!!!!!!!2");
 
     long start = System.currentTimeMillis();
 
     TopDocsSortedHitCollector myHC = getSortedHitCollector(req.getSort(),req.getFieldsToFetch(),req.getOffset(), req.getCount());
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
-    System.out.println("!!!!!!!!!!BEFORE");
     browse(req, myHC, facetCollectors);
-    System.out.println("!!!!!!!!!!after:" + myHC.getTotalHits());
     BrowseHit[] hits = null;
 
     try
