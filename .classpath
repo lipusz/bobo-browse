@@ -18,7 +18,6 @@
 	<classpathentry kind="lib" path="lib/grinder.jar"/>
 	<classpathentry kind="lib" path="lib/jsonrpc.jar"/>
 	<classpathentry kind="lib" path="lib/junit-3.8.1.jar"/>
-	<classpathentry kind="lib" path="lib/kamikaze-1.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-core-2.4.0.jar"/>
 	<classpathentry kind="lib" path="lib/org.mortbay.jetty.jar"/>
@@ -34,5 +33,6 @@
 	<classpathentry kind="lib" path="zoie-server.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/protobuf-java-2.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/kamikaze-1.0.8.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
