@@ -1,6 +1,9 @@
 #labels Featured,Phase-Support
 =Release Notes=
 
+==2.0.5==
+ * bug fix for custom lucene sort
+
 ==2.0.4==
 Performance release
 
