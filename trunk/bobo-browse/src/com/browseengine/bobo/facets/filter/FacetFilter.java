@@ -20,28 +20,28 @@ public class FacetFilter extends RandomAccessFilter
 	private static final long serialVersionUID = 1L;
 	
 	protected final FacetDataCache _dataCache;
+    protected final BigIntArray _orderArray;
 	protected final int _index;
 	
 	public FacetFilter(FacetDataCache dataCache, int index)
 	{
 		_dataCache = dataCache;
+		_orderArray = dataCache.orderArray;
 		_index=index;
 	}
 	
 	public static class FacetDocIdSetIterator extends DocIdSetIterator
 	{
 		protected int _doc;
-		protected final FacetDataCache _dataCache;
 		protected final int _index;
 		protected final int _maxID;
-		protected final BigIntArray _orderArray;
+        protected final BigIntArray _orderArray;
 		
 		public FacetDocIdSetIterator(FacetDataCache dataCache,int index)
 		{
-			_dataCache=dataCache;
 			_index=index;
-			_doc=Math.max(-1,_dataCache.minIDs[_index]-1);
-			_maxID = _dataCache.maxIDs[_index];
+			_doc=Math.max(-1,dataCache.minIDs[_index]-1);
+			_maxID = dataCache.maxIDs[_index];
 			_orderArray = dataCache.orderArray;
 		}
 		
@@ -58,8 +58,7 @@ public class FacetFilter extends RandomAccessFilter
 		public boolean next() throws IOException {
 		    while(_doc < _maxID) // not yet reached end
 			{
-				_doc++;
-				if (_orderArray.get(_doc) == _index){
+				if (_orderArray.get(++_doc) == _index){
 					return true;
 				}
 			}
@@ -68,15 +67,14 @@ public class FacetFilter extends RandomAccessFilter
 
 		@Override
 		public boolean skipTo(int id) throws IOException {
-		  if (_doc < id)
-		  {
-		    _doc=id-1;
-		  }
+          if (_doc < id)
+          {
+            _doc = id - 1;
+          }
 		  
 		  while(_doc < _maxID) // not yet reached end
 		  {
-		    _doc++;
-		    if (_orderArray.get(_doc) == _index){
+		    if (_orderArray.get(++_doc) == _index){
 		      return true;
 		    }
 		  }
@@ -119,7 +117,7 @@ public class FacetFilter extends RandomAccessFilter
         @Override
         final public boolean get(int docId)
         {
-          return _dataCache.orderArray.get(docId) == _index;
+          return _orderArray.get(docId) == _index;
         }
 			};
 		}

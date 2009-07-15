@@ -50,10 +50,12 @@ public class BrowseThread extends Thread {
 				try{
 					svc = new BoboBrowser(_reader);
 					BrowseResult res = svc.browse(req);
-					time = res.getTime();
+//System.out.println("num hits: "+res.getNumHits());					
+time = res.getTime();
 				}
 				catch(Exception e){
-					ex = e;
+	e.printStackTrace();			
+	ex = e;
 				}
 				finally{
 					if (_collector!=null){

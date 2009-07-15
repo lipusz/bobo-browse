@@ -19,12 +19,14 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
   private static final long serialVersionUID = 1L;
   
   private final MultiValueFacetDataCache _dataCache;
+  private final BigNestedIntArray _nestedArray;
   private final OpenBitSet _bitset;
-  protected final int[] _index;
+  private final int[] _index;
   
   public MultiValueORFacetFilter(MultiValueFacetDataCache dataCache,int[] index)
   {
     _dataCache = dataCache;
+    _nestedArray = dataCache._nestedArray;
     _index = index;
     _bitset = new OpenBitSet(_dataCache.valArray.size());
     for (int i : _index)
@@ -35,7 +37,7 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
   
   private final static class MultiValueFacetDocIdSetIterator extends FacetOrDocIdSetIterator
   {
-      private BigNestedIntArray _nestedArray;
+      private final BigNestedIntArray _nestedArray;
       public MultiValueFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, int[] index,OpenBitSet bs) 
       {
         super(dataCache,index,bs);
@@ -46,8 +48,7 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
       final public boolean next() throws IOException {
           while(_doc < _maxID) // not yet reached end
           {
-              _doc++;
-              if (_nestedArray.contains(_doc, _bitset)){
+              if (_nestedArray.contains(++_doc, _bitset)){
                   return true;
               }
           }
@@ -63,8 +64,7 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
         
         while(_doc < _maxID) // not yet reached end
         {
-          _doc++;
-          if (_nestedArray.contains(_doc, _bitset)){
+          if (_nestedArray.contains(++_doc, _bitset)){
             return true;
           }
         }
@@ -103,11 +103,11 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
                 return new MultiValueFacetDocIdSetIterator(_dataCache,_index,_bitset);
             }
 
-    @Override
-    final public boolean get(int docId)
-    {
-      return _dataCache._nestedArray.contains(docId,_bitset);
-    }
+            @Override
+            final public boolean get(int docId)
+            {
+              return _nestedArray.contains(docId,_bitset);
+            }
         };
     }
   }

@@ -42,6 +42,7 @@ public final class FastMatchAllDocsQuery extends Query
     final float       _score;
     final int[] _deletedDocs;
     private final int _maxDoc;
+    private final int _delLen;
 
     public FastMatchAllScorer(int maxdoc, int[] delDocs, float score)
     {
@@ -55,6 +56,7 @@ public final class FastMatchAllDocsQuery extends Query
       _deletedDocs = delDocs;
       _deletedIndex = 0;
       _moreDeletions = _deletedDocs != null && _deletedDocs.length > 0;
+      _delLen = _deletedDocs != null ? _deletedDocs.length : 0;
       _score = score;
       _maxDoc = maxdoc;
     }
@@ -71,8 +73,7 @@ public final class FastMatchAllDocsQuery extends Query
 
     public final boolean next()
     {
-      _doc++;
-      while(_doc < _maxDoc)
+      while(++_doc < _maxDoc)
       {
         if(!_moreDeletions || _doc < _deletedDocs[_deletedIndex]) 
         {
@@ -83,26 +84,11 @@ public final class FastMatchAllDocsQuery extends Query
           while(_moreDeletions && _doc > _deletedDocs[_deletedIndex]) // catch up _deletedIndex to _doc
           {
             _deletedIndex++;
-            if(_deletedIndex >= _deletedDocs.length) 
-            {
-              _moreDeletions = false;
-            }
+            _moreDeletions = _deletedIndex < _delLen;
           }
-          if(!_moreDeletions)
+          if(!_moreDeletions || _doc < _deletedDocs[_deletedIndex])
           { 
             return true;
-          }
-          else
-          {
-            if(_doc < _deletedDocs[_deletedIndex])
-            {
-              return true;
-            }
-            else
-            {
-              _doc++;
-              continue;
-            }
           }
         }
       }
@@ -113,7 +99,7 @@ public final class FastMatchAllDocsQuery extends Query
     {
       return _score;
     }
-
+    
     public final boolean skipTo(int target)
     {
       if(target > _doc)
@@ -121,14 +107,8 @@ public final class FastMatchAllDocsQuery extends Query
         _doc = target - 1;
         return next();
       }
-      else if(target == _doc)
-      {
-        return next();
-      }
-      else
-      {
-        return false;
-      }
+      
+      return (target == _doc) ? next() : false;
     }
 
   }
@@ -260,19 +240,24 @@ public final class FastMatchAllDocsQuery extends Query
 	Random rand = new Random();
 	for (int i=0;i<numDel;++i)
 	{
-		delSet.add(rand.nextInt(maxDoc));
+		delSet.add(i*30);
 	}
 	long numIter = 1000000;
+	int[] delArray = delSet.toIntArray();
 	for (long i=0;i<numIter;++i)
 	{
 		long start=System.currentTimeMillis();
-	  FastMatchAllScorer innerIter = new FastMatchAllScorer(maxDoc,null,1.0f);
-	  TestDocIdSetIterator testIter = new TestDocIdSetIterator(delSet,innerIter);
-	  while(testIter.next())
+	  FastMatchAllScorer innerIter = new FastMatchAllScorer(maxDoc,delArray,1.0f);
+	//  TestDocIdSetIterator testIter = new TestDocIdSetIterator(delSet,innerIter);
+/*	  while(testIter.next())
 	  {
 		  testIter.doc();
 	  }
-
+*/
+	  for (int k=0;k<maxDoc;++k)
+	  {
+	    innerIter.skipTo(k*3);
+	  }
 		long end=System.currentTimeMillis();
 		System.out.println("took: "+(end-start));
 	}

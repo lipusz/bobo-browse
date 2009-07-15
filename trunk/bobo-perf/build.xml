@@ -38,7 +38,7 @@
         </target>
 	
         <target name="perf" depends="compile">
-        	<java fork="true" classname="com.browseengine.bobo.perf.BoboPerf" failonerror="true" maxmemory="1000m">
+        	<java fork="true" classname="com.browseengine.bobo.perf.BoboPerf" failonerror="true" maxmemory="5000m">
         		<classpath>
         			<fileset dir="${lib}">
 				      <include name="**/*.jar"/>
@@ -54,12 +54,8 @@
         		</classpath>
         		<arg value="${conf}/bobo-perf.properties" />
 				<jvmarg value="-server" />
-        		<!-- 
         		<jvmarg value="-d64" />
-        		-->
-				<!-- uncomment to turn on yourkit profiling
 				<jvmarg value="-agentlib:yjpagent" />
-					-->
         	</java>
         </target>
 </project>

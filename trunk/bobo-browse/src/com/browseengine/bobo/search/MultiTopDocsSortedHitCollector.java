@@ -27,8 +27,7 @@ public class MultiTopDocsSortedHitCollector extends TopDocsSortedHitCollector
   private final int _count;
   private final SortField[] _sort;
   
-  
-  public MultiTopDocsSortedHitCollector(MultiBoboBrowser multiBrowser,SortField[] sort, int offset, int count)
+  public MultiTopDocsSortedHitCollector(MultiBoboBrowser multiBrowser,SortField[] sort, int offset, int count,boolean fetchStoredFields)
   {
     _sort = sort;
     _offset=offset;
@@ -38,7 +37,7 @@ public class MultiTopDocsSortedHitCollector extends TopDocsSortedHitCollector
     _subCollectors = new TopDocsSortedHitCollector[subBrowsers.length];
     for (int i=0;i<subBrowsers.length;++i)
     {
-      _subCollectors[i] = subBrowsers[i].getSortedHitCollector(sort, 0, _offset+_count);
+      _subCollectors[i] = subBrowsers[i].getSortedHitCollector(sort, 0, _offset+_count,fetchStoredFields);
     }
     _starts = _multiBrowser.getStarts();
     _totalCount = 0; 
@@ -67,6 +66,7 @@ public class MultiTopDocsSortedHitCollector extends TopDocsSortedHitCollector
         for (BrowseHit hit : subHits)
         {
           hit.setDocid(hit.getDocid()+base);
+          hit.setStoredFields(hit.getStoredFields());
         }
         iteratorList.add(Arrays.asList(subHits).iterator());
       }
