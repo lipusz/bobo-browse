@@ -50,6 +50,9 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Payload;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.ScoreDocComparator;
+import org.apache.lucene.search.SortComparatorSource;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.store.Directory;
@@ -1000,6 +1003,49 @@ public class BoboTestCase extends TestCase {
       doTest(br,3,null,new String[]{"5","1","7"});
       br.setSort(new SortField[]{new SortField("name",false)});
       doTest(br,3,null,new String[]{"7","1","5"});
+	}
+	
+	public void testCustomSort(){
+		
+		final class CustomSortComparatorSource implements SortComparatorSource{
+
+			public ScoreDocComparator newComparator(IndexReader reader,
+					String fld) throws IOException {
+				return new CustomSortDocComparator();
+			}
+			
+			final class CustomSortDocComparator implements ScoreDocComparator{
+
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					int id1 = Math.abs(doc1.doc - 4);
+					int id2 = Math.abs(doc2.doc - 4);
+					int val = id1 - id2;
+					if (val==0){
+						return doc1.doc - doc2.doc;
+					}
+					return val;
+				}
+
+				public int sortType() {
+					return SortField.CUSTOM;
+				}
+
+				public Comparable sortValue(ScoreDoc doc) {
+					return new Integer(Math.abs(doc.doc-4));
+				}
+				
+			}
+			
+		}
+		// no sel
+		BrowseRequest br=new BrowseRequest();
+	    br.setCount(10);
+	    br.setOffset(0);
+	      
+	    br.setSort(new SortField[]{new SortField("custom",new CustomSortComparatorSource())});
+	    doTest(br,7,null,new String[]{"5","4","6","3","7","2","1"});
+	    
+	    
 	}
 	
 	public void testDefaultBrowse(){
