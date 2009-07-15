@@ -20,6 +20,7 @@ public class FacetOrFilter extends RandomAccessFilter
   private static final long serialVersionUID = 1L;
   
   protected final FacetDataCache _dataCache;
+  protected final BigIntArray _orderArray;
   protected final int[] _index;
   private OpenBitSet _bitset;
   
@@ -31,6 +32,7 @@ public class FacetOrFilter extends RandomAccessFilter
   public FacetOrFilter(FacetDataCache dataCache, int[] index,boolean takeCompliment)
   {
     _dataCache = dataCache;
+    _orderArray = dataCache.orderArray;
     _index = index;
     _bitset = new OpenBitSet(_dataCache.valArray.size());
     for (int i : _index)
@@ -77,7 +79,7 @@ public class FacetOrFilter extends RandomAccessFilter
     @Override
     final public boolean get(int docId)
     {
-      return _bitset.get(_dataCache.orderArray.get(docId));
+      return _bitset.fastGet(_orderArray.get(docId));
     }
         };
     }
@@ -128,8 +130,7 @@ public class FacetOrFilter extends RandomAccessFilter
       public boolean next() throws IOException {
           while(_doc < _maxID) // not yet reached end
           {
-              _doc++;
-              if (_bitset.get(_orderArray.get(_doc))){
+              if (_bitset.fastGet(_orderArray.get(++_doc))){
                   return true;
               }
           }
@@ -145,8 +146,7 @@ public class FacetOrFilter extends RandomAccessFilter
         
         while(_doc < _maxID) // not yet reached end
         {
-          _doc++;
-          if (_bitset.get(_orderArray.get(_doc))){
+          if (_bitset.fastGet(_orderArray.get(++_doc))){
             return true;
           }
         }

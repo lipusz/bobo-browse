@@ -311,7 +311,7 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
 
     long start = System.currentTimeMillis();
 
-    TopDocsSortedHitCollector myHC = getSortedHitCollector(req.getSort(), req.getOffset(), req.getCount());
+    TopDocsSortedHitCollector myHC = getSortedHitCollector(req.getSort(), req.getOffset(), req.getCount(),req.isFetchStoredFields());
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, myHC, facetCollectors);
     BrowseHit[] hits = null;
@@ -406,9 +406,10 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
 
   public TopDocsSortedHitCollector getSortedHitCollector(SortField[] sort,
                                                          int offset,
-                                                         int count)
+                                                         int count,
+                                                         boolean fetchStoredFields)
   {
-    return new InternalBrowseHitCollector(this, sort, offset, count);
+    return new InternalBrowseHitCollector(this, sort, offset, count,fetchStoredFields);
   }
 
 }

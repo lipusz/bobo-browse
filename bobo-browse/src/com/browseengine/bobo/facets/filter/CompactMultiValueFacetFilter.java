@@ -74,8 +74,7 @@ public class CompactMultiValueFacetFilter extends RandomAccessFilter {
         public final boolean next() throws IOException {
 		    while(_doc < _maxID) // not yet reached end
             {
-                _doc++;
-                if ((_orderArray.get(_doc) & _bits) != 0x0){
+                if ((_orderArray.get(++_doc) & _bits) != 0x0){
                     return true;
                 }
             }
@@ -91,8 +90,7 @@ public class CompactMultiValueFacetFilter extends RandomAccessFilter {
           
           while(_doc < _maxID) // not yet reached end
           {
-            _doc++;
-            if ((_orderArray.get(_doc) & _bits) != 0x0){
+            if ((_orderArray.get(++_doc) & _bits) != 0x0){
               return true;
             }
           }

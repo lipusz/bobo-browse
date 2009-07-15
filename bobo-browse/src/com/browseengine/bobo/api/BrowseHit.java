@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.lucene.document.Document;
+
 /**
  * A hit from a browse
  */
@@ -60,14 +62,15 @@ public class BrowseHit
 	private int docid;
 	
 	private Map<String,String[]> _fieldValues;
-	private Map<String,Comparable> _comparableMap = new HashMap<String,Comparable>();
+	private Map<String,Comparable<?>> _comparableMap = new HashMap<String,Comparable<?>>();
+	private Document _storedFields;
 	
-	public void addComparable(String field,Comparable comparable)
+	public void addComparable(String field,Comparable<?> comparable)
 	{
 	  _comparableMap.put(field, comparable);
 	}
 	
-	public Comparable getComparable(String field)
+	public Comparable<?> getComparable(String field)
 	{
 	  return _comparableMap.get(field);
 	}
@@ -115,6 +118,14 @@ public class BrowseHit
 	 */
 	public void setScore(float score) {
 		this.score = score;
+	}
+	
+	public void setStoredFields(Document doc){
+		_storedFields = doc;
+	}
+	
+	public Document getStoredFields(){
+		return _storedFields;
 	}
 	
 	public String toString(Map<String, String[]> map)

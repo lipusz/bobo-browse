@@ -182,25 +182,27 @@ public class MultiValueFacetHandler extends FacetHandler implements FacetHandler
   @Override
   public RandomAccessFilter buildRandomAccessOrFilter(String[] vals,Properties prop,boolean isNot) throws IOException
   {
-    if (vals.length > 1)
+    RandomAccessFilter filter = null;
+    
+    int[] indexes = FacetDataCache.convert(_dataCache,vals);
+    if (indexes.length > 1)
     {
-      RandomAccessFilter f = new MultiValueORFacetFilter(_dataCache,FacetDataCache.convert(_dataCache,vals));
-      if (isNot)
-      {
-        f = new RandomAccessNotFilter(f);
-      }
-      return f;
+      filter = new MultiValueORFacetFilter(_dataCache,indexes);
+    }
+    else if(indexes.length == 1)
+    {
+      filter = new MultiValueFacetFilter(_dataCache,indexes[0]);
     }
     else
     {
-      RandomAccessFilter filter = buildRandomAccessFilter(vals[0],prop);
-      if (filter == null) return filter;
-      if (isNot)
-      {
-        filter = new RandomAccessNotFilter(filter);
-      }
-      return filter;
+      filter = EmptyFilter.getInstance();
     }
+    
+    if (isNot)
+    {
+      filter = new RandomAccessNotFilter(filter);
+    }
+    return filter;
   }
 
 
@@ -215,12 +217,12 @@ public class MultiValueFacetHandler extends FacetHandler implements FacetHandler
                                   {
       super(sel,dataCache,name,ospec);
       _array = ((MultiValueFacetDataCache)(_dataCache))._nestedArray;
-                                  }
+    }
 
     @Override
     public final void collect(int docid) 
     {
-      if(_array.count(docid, _count) == 0) _count[0]++;
+      _array.count(docid, _count);
     }
 
     @Override

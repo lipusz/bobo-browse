@@ -1,7 +1,9 @@
 package com.browseengine.bobo.perf;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -76,6 +78,14 @@ public class BoboPerf implements StatsCollector{
 
 	  BoboIndexReader boboReader = null;
 	  System.out.println("loading index...");
+	  System.out.println("Press key to continue...");
+
+	  {
+	    BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); 
+	    int ch = br.read(); 
+	    char c = (char) ch; 
+	  }
+	  
 	  IndexReader r = IndexReader.open(idxDir);
 	  try{
 		  boboReader = BoboIndexReader.getInstance(r);
@@ -86,14 +96,20 @@ public class BoboPerf implements StatsCollector{
 	  }
 	  
 	  System.out.println("initializing threads...");
-
+	  
 	  ReqIterator iter = _reqFactory.iterator();
 	  Thread[] threadPool = new Thread[numThreads];
 	  for (int i =0;i < threadPool.length;++i){
 		  threadPool[i]=new BrowseThread(boboReader,iter,throttleWait,this);
 	  }
 	  
-	  System.out.println("starting ... ");
+	  System.out.println("press key to start load test... ");
+	  {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); 
+		int ch = br.read(); 
+		char c = (char) ch; 
+	  }
+	  
 	  long start = System.currentTimeMillis();
 	  for (int i =0;i<threadPool.length;++i){
 		  threadPool[i].start();

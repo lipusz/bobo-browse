@@ -19,20 +19,155 @@ public class BoboSearcher2 extends BoboSearcher{
         super(reader);
     }
 
-    private class FacetValidator
+    private abstract static class FacetValidator
     {
       protected final FacetHitCollector[] _collectors;
       protected final FacetCountCollector[] _countCollectors;
-      private final int _numPostFilters;
+      protected final int _numPostFilters;
       public int _nextTarget;
       
-      public FacetValidator() throws IOException
+      public FacetValidator(FacetHitCollector[] collectors,FacetCountCollector[] countCollectors,int numPostFilters) throws IOException
       {
-        _collectors = new FacetHitCollector[_facetCollectors.size()];
-        _countCollectors = new FacetCountCollector[_collectors.length];
-        
+        _collectors = collectors;
+        _countCollectors = countCollectors;
+        _numPostFilters = numPostFilters;
+      }
+      /**
+       * This method validates the doc against any multi-select enabled fields.
+       * @param docid
+       * @return true if all fields matched
+       */
+      public abstract boolean validate(final int docid)
+        throws IOException;
+      
+    }
+    
+    private final static class DefaultFacetValidator extends FacetValidator{
+    	
+    	public DefaultFacetValidator(FacetHitCollector[] collectors,FacetCountCollector[] countCollectors,int numPostFilters) throws IOException{
+    		super(collectors,countCollectors,numPostFilters);
+    	}
+    	 /**
+         * This method validates the doc against any multi-select enabled fields.
+         * @param docid
+         * @return true if all fields matched
+         */
+    	@Override
+        public final boolean validate(final int docid)
+          throws IOException
+        {
+          FacetHitCollector miss = null;
+          
+          for(int i = 0; i < _numPostFilters; i++)
+          {
+            FacetHitCollector facetCollector = _collectors[i];
+            if(facetCollector._more)
+            {
+              int sid = facetCollector._doc;
+              if(sid == docid) continue; // matched
+              
+              if(sid < docid)
+              {
+                DocIdSetIterator iterator = facetCollector._postDocIDSetIterator;
+                if(iterator.skipTo(docid))
+                {
+                  sid = iterator.doc();
+                  facetCollector._doc = sid;
+                  if(sid == docid) continue; // matched
+                }
+                else
+                {
+                  facetCollector._more = false;
+                  facetCollector._doc = Integer.MAX_VALUE;
+                }
+              }  
+            }
+            
+            if(miss != null)
+            {
+              // failed because we already have a mismatch
+              _nextTarget = (miss._doc < facetCollector._doc ? miss._doc : facetCollector._doc);
+              return false;
+            }
+            miss = facetCollector;
+          }
+          
+          _nextTarget = docid + 1;
+
+          if(miss != null)
+          {
+            miss._facetCountCollector.collect(docid);
+            return false;
+          }
+          else
+          {
+            for (FacetCountCollector collector : _countCollectors)
+            {
+          	 collector.collect(docid);
+            }
+            return true;
+          }
+        }
+    }
+    
+    private final static class OnePostFilterFacetValidator extends FacetValidator{
+    	private FacetHitCollector _firsttime;
+    	OnePostFilterFacetValidator(FacetHitCollector[] collectors,FacetCountCollector[] countCollectors,int numPostFilters) throws IOException{
+    		super(collectors,countCollectors,numPostFilters);
+    		_firsttime = _collectors[0];
+    	}
+
+		@Override
+		public final boolean validate(int docid) throws IOException {
+			FacetHitCollector miss = null;
+			
+            RandomAccessDocIdSet set = _firsttime._docidSet;
+            if (set!=null && !set.get(docid))
+            {
+              miss = _firsttime;
+            }
+            _nextTarget = docid + 1;
+
+            if(miss != null)
+            {
+              miss._facetCountCollector.collect(docid);
+              return false;
+            }
+            else
+            {
+              for (FacetCountCollector collector : _countCollectors)
+              {
+            	 collector.collect(docid);
+              }
+              return true;
+            }
+		}
+    }
+    
+    private final static class NoNeedFacetValidator extends FacetValidator{
+    	NoNeedFacetValidator(FacetHitCollector[] collectors,FacetCountCollector[] countCollectors,int numPostFilters) throws IOException{
+    		super(collectors,countCollectors,numPostFilters);
+    	}
+
+		@Override
+		public final boolean validate(int docid) throws IOException {
+			for (FacetCountCollector collector : _countCollectors)
+            {
+            	collector.collect(docid);
+            }
+            return true;
+		}
+    	
+    }
+    
+    protected FacetValidator createFacetValidator() throws IOException
+    {
+    	
+    	FacetHitCollector[] collectors = new FacetHitCollector[_facetCollectors.size()];
+    	FacetCountCollector[] countCollectors = new FacetCountCollector[collectors.length];
+        int numPostFilters;
         int i = 0;
-        int j = _collectors.length;
+        int j = collectors.length;
         
         for (FacetHitCollector facetCollector : _facetCollectors)
         {
@@ -40,122 +175,28 @@ public class BoboSearcher2 extends BoboSearcher{
           {
             facetCollector._more = facetCollector._postDocIDSetIterator.next();
             facetCollector._doc = (facetCollector._more ? facetCollector._postDocIDSetIterator.doc() : Integer.MAX_VALUE);
-            _collectors[i] = facetCollector;
-            _countCollectors[i]=facetCollector._facetCountCollector;
+            collectors[i] = facetCollector;
+            countCollectors[i]=facetCollector._facetCountCollector;
             i++;
           }
           else
           {
             j--;
-            _collectors[j] = facetCollector;
-            _countCollectors[j] = facetCollector._facetCountCollector;
+            collectors[j] = facetCollector;
+            countCollectors[j] = facetCollector._facetCountCollector;
           }
         }
-        _numPostFilters = i;
-      }
-      /**
-       * This method validates the doc against any multi-select enabled fields.
-       * @param docid
-       * @return true if all fields matched
-       */
-      public boolean validate(final int docid)
-        throws IOException
-      {
-        FacetHitCollector miss = null;
-        
-        final int numPostFilters = _numPostFilters;
-        if (numPostFilters == 1)
-        {
-            FacetHitCollector facetCollector = _collectors[0];
-            RandomAccessDocIdSet set = facetCollector._docidSet;
-            if (set!=null && !set.get(docid))
-            {
-              miss = facetCollector;
-            }
-        }
-        else
-        {
-            for(int i = 0; i < numPostFilters; i++)
-            {
-              FacetHitCollector facetCollector = _collectors[i];
-              if(facetCollector._more)
-              {
-                int sid = facetCollector._doc;
-                if(sid == docid) continue; // matched
-                
-                if(sid < docid)
-                {
-                  DocIdSetIterator iterator = facetCollector._postDocIDSetIterator;
-                  if(iterator.skipTo(docid))
-                  {
-                    facetCollector._more = true;
-                    sid = iterator.doc();
-                    facetCollector._doc = sid;
-                    if(sid == docid) continue; // matched
-                  }
-                  else
-                  {
-                    facetCollector._more = false;
-                    facetCollector._doc = Integer.MAX_VALUE;
-                  }
-                }  
-              }
-              
-              if(miss != null)
-              {
-                // failed because we already have a mismatch
-                _nextTarget = (miss._doc < facetCollector._doc ? miss._doc : facetCollector._doc);
-                return false;
-              }
-              miss = facetCollector;
-            }
-        }
-        
-        _nextTarget = docid + 1;
+        numPostFilters = i;
 
-        if(miss != null)
-        {
-          miss._facetCountCollector.collect(docid);
-          return false;
-        }
-        else
-        {
-          for (FacetCountCollector collector : _countCollectors)
-          {
-        	 collector.collect(docid);
-          }
-          return true;
-        }
+      if(numPostFilters == 0){
+        return new NoNeedFacetValidator(collectors,countCollectors,numPostFilters);
       }
-    }
-    
-    protected FacetValidator createFacetValidator() throws IOException
-    {
-      boolean needToValidate = false;
-      for (FacetHitCollector facetCollector : _facetCollectors)
-      {
-        if (facetCollector._postDocIDSetIterator != null) 
-        {
-          needToValidate = true;
-          break;
-        }
+      else if (numPostFilters==1){
+    	return new OnePostFilterFacetValidator(collectors,countCollectors,numPostFilters);  
       }
-
-      if(!needToValidate)
-      {
-        return new FacetValidator()
-        {
-          public boolean validate(int docid)
-          {
-            for (FacetCountCollector collector : _countCollectors)
-            {
-            	collector.collect(docid);
-            }
-            return true;
-          }
-        };
+      else{
+        return new DefaultFacetValidator(collectors,countCollectors,numPostFilters);
       }
-      return new FacetValidator();
     }
     
     @Override

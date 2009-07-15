@@ -296,7 +296,7 @@ public abstract class FacetHandler implements Cloneable
       for (String val : vals)
       {
         RandomAccessFilter f = buildRandomAccessFilter(val, prop);
-        if(f != null) 
+        if(f != null && !(f instanceof EmptyFilter)) 
         {
           filterList.add(f);
         }
