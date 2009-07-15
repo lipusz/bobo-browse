@@ -1,6 +1,13 @@
 #labels Featured,Phase-Support
 =Release Notes=
 
+==2.0.4==
+Performance release
+
+ * numerous performance enhancements
+ * revived bobo solr plugin
+ * added local perf benchmarking tool
+
 ==2.0.3==
 Bug fix release
 
