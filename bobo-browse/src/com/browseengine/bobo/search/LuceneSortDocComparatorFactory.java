@@ -27,6 +27,10 @@ public class LuceneSortDocComparatorFactory
     if (type == SortField.DOC) return ScoreDocComparator.INDEXORDER;
     if (type == SortField.SCORE) return ScoreDocComparator.RELEVANCE;
     
+    if (type == SortField.CUSTOM && entry.custom!=null){
+    	return entry.custom.newComparator(reader, fieldname);
+    }
+    
     Collection indexFieldnames = reader.getFieldNames(FieldOption.INDEXED);
     if (!indexFieldnames.contains(fieldname)){
     	logger.warn(fieldname+" is not a sortable field, ignored.");
