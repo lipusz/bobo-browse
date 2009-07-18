@@ -1,5 +1,5 @@
 #summary Performance analysis and benchmarking
-#labels Phase-Implementation
+#labels Phase-Implementation,Featured
 
 = Introduction =
 
