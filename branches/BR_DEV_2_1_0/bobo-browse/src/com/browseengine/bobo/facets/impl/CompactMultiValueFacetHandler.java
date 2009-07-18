@@ -1,17 +1,20 @@
 package com.browseengine.bobo.facets.impl;
 
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortField;
@@ -32,10 +35,13 @@ import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
+import com.browseengine.bobo.query.scoring.BoboDocScorer;
+import com.browseengine.bobo.query.scoring.FacetScoreable;
+import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
 import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.StringArrayComparator;
 
-public class CompactMultiValueFacetHandler extends FacetHandler implements FacetHandlerFactory 
+public class CompactMultiValueFacetHandler extends FacetHandler implements FacetHandlerFactory,FacetScoreable
 {
 	private static Logger logger = Logger.getLogger(CompactMultiValueFacetHandler.class);
 	
@@ -256,6 +262,61 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 
 		public Comparable sortValue(ScoreDoc sdoc) {
 			return new StringArrayComparator(getFieldValues(sdoc.doc));
+		}	
+	}
+	
+	public BoboDocScorer getDocScorer(FacetTermScoringFunctionFactory scoringFunctionFactory,Map<String,Float> boostMap){
+		float[] boostList = BoboDocScorer.buildBoostList(_dataCache.valArray, boostMap);
+		return new CompactMultiValueDocScorer(_dataCache,scoringFunctionFactory,boostList);
+	}
+	
+	private static final class CompactMultiValueDocScorer extends BoboDocScorer{
+		private final FacetDataCache _dataCache;
+		CompactMultiValueDocScorer(FacetDataCache dataCache,FacetTermScoringFunctionFactory scoreFunctionFactory,float[] boostList){
+			super(scoreFunctionFactory.getFacetTermScoringFunction(dataCache.valArray.size(), dataCache.orderArray.size()),boostList);
+			_dataCache = dataCache;
+		}
+		
+		@Override
+		public Explanation explain(int doc){
+			int encoded=_dataCache.orderArray.get(doc);
+			
+			int count=1;
+			FloatList scoreList = new FloatArrayList(_dataCache.valArray.size());
+			ArrayList<Explanation> explList = new ArrayList<Explanation>(scoreList.size());
+			while(encoded != 0)
+			{
+				if ((encoded & 0x00000001) != 0x0){
+					int idx = count -1;
+					scoreList.add(_function.score(_dataCache.freqs[idx], _boostList[idx]));
+					explList.add(_function.explain(_dataCache.freqs[idx], _boostList[idx]));
+				}
+				count++;
+				encoded >>>= 1;
+			}
+			Explanation topLevel = _function.explain(scoreList.toFloatArray());
+			for (Explanation sub : explList){
+				topLevel.addDetail(sub);
+			}
+			return topLevel;
+		}
+		
+		@Override
+		public final float score(int docid) {
+			int encoded=_dataCache.orderArray.get(docid);
+			
+			int count=1;
+			FloatList scoreList = new FloatArrayList(_dataCache.valArray.size());
+			while(encoded != 0)
+			{
+				if ((encoded & 0x00000001) != 0x0){
+					int idx = count -1;
+					scoreList.add(_function.score(_dataCache.freqs[idx], _boostList[idx]));
+				}
+				count++;
+				encoded >>>= 1;
+			}
+			return _function.combine(scoreList.toFloatArray());
 		}
 		
 	}
