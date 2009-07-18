@@ -1,0 +1,8 @@
+#building Query instances with FacetHandlers
+
+= Introduction =
+
+Bobo is enhanced with the capability to produce Lucene Query objects with certain built-in FacetHandlers.
+
+
+= Details =
