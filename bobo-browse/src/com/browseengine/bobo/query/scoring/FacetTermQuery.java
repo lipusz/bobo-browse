@@ -2,17 +2,24 @@ package com.browseengine.bobo.query.scoring;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.DocIdSet;
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.filter.RandomAccessFilter;
+import com.browseengine.bobo.query.FastMatchAllDocsQuery.FastMatchAllScorer;
 
 public class FacetTermQuery extends Query {
 	private final String _name;
@@ -20,22 +27,11 @@ public class FacetTermQuery extends Query {
 	private final FacetTermScoringFunctionFactory _scoringFactory;
 	private final Map<String,Float> _boostMap;
 	
-	public FacetTermQuery(String name,BrowseSelection sel,Map<String,Float> boostMap,FacetTermScoringFunctionFactory scoringFactory){
-		_name = name;
+	public FacetTermQuery(BrowseSelection sel,Map<String,Float> boostMap,FacetTermScoringFunctionFactory scoringFactory){
+		_name = sel.getFieldName();
 		_sel = sel;
 		_scoringFactory = scoringFactory;
 		_boostMap = boostMap;
-	}
-	
-	private final float getBoost(String term){
-		if (_boostMap == null){
-			return 1.0f;
-		}
-		Float boost = _boostMap.get(term);
-		if (boost!=null){
-			return boost.floatValue();
-		}
-		return 1.0f;
 	}
 
 	@Override
@@ -43,11 +39,39 @@ public class FacetTermQuery extends Query {
 		return String.valueOf(_sel);
 	}
 	
-	private class FacetTermWeight implements Weight{
+	@Override
+	protected Weight createWeight(Searcher searcher) throws IOException {
+		return new FacetTermWeight(searcher.getSimilarity());
+	}
+	
+	@Override
+	public void extractTerms(Set terms) {
+		String[] vals =_sel.getValues();
+		for (String val : vals){
+			terms.add(new Term(_name,val));
+		}
+	}
 
-		public Explanation explain(IndexReader reader, int arg1)
+	private class FacetTermWeight implements Weight{
+        Similarity _similarity;
+        public FacetTermWeight(Similarity sim) {
+        	_similarity = sim;
+		}
+        
+		public Explanation explain(IndexReader reader, int docid)
 				throws IOException {
-			// TODO Auto-generated method stub
+			BoboIndexReader boboReader = (BoboIndexReader)reader;
+			FacetHandler fhandler = boboReader.getFacetHandler(FacetTermQuery.this._name);
+			if (fhandler!=null){
+				 BoboDocScorer scorer = null;
+				 if (fhandler instanceof FacetScoreable){
+					 scorer = ((FacetScoreable)fhandler).getDocScorer(_scoringFactory, _boostMap);
+					 return scorer.explain(docid);
+				 }
+				 else{
+					 return null;
+				 }
+			}
 			return null;
 		}
 
@@ -56,7 +80,6 @@ public class FacetTermQuery extends Query {
 		}
 
 		public float getValue() {
-			// TODO Auto-generated method stub
 			return 0;
 		}
 
@@ -70,7 +93,22 @@ public class FacetTermQuery extends Query {
 			  BoboIndexReader boboReader = (BoboIndexReader)reader;
 			  FacetHandler fhandler = boboReader.getFacetHandler(FacetTermQuery.this._name);
 			  if (fhandler!=null){
-				  
+				 DocIdSetIterator dociter = null;
+				 RandomAccessFilter filter = fhandler.buildFilter(FacetTermQuery.this._sel);
+				 if (filter!=null){
+					 DocIdSet docset =filter.getDocIdSet(boboReader);
+					 if (docset!=null){
+						 dociter = docset.iterator();
+					 }
+				 }
+				 if (dociter==null){
+					 dociter = new FastMatchAllScorer(boboReader.maxDoc(),new int[0],1.0f);
+				 }
+				 BoboDocScorer scorer = null;
+				 if (fhandler instanceof FacetScoreable){
+					 scorer = ((FacetScoreable)fhandler).getDocScorer(_scoringFactory, _boostMap);
+				 }
+				 return new FacetTermScorer(_similarity,dociter,scorer);
 			  }
 			  return null;
 			}
@@ -87,39 +125,42 @@ public class FacetTermQuery extends Query {
 	}
 	
 	private class FacetTermScorer extends Scorer{
-
-		protected FacetTermScorer(Similarity similarity) {
+		private final DocIdSetIterator _docSetIter;
+		private final BoboDocScorer _scorer;
+		
+		protected FacetTermScorer(Similarity similarity,DocIdSetIterator docidsetIter,BoboDocScorer scorer) {
 			super(similarity);
+			_docSetIter = docidsetIter;
+			_scorer = scorer;
 		}
 
 		@Override
-		public Explanation explain(int arg0) throws IOException {
-			// TODO Auto-generated method stub
-			return null;
+		public Explanation explain(int docid) throws IOException {
+			Explanation expl = null;
+			if (_scorer!=null){
+				expl = _scorer.explain(docid);
+			}
+			return expl;
 		}
 
 		@Override
 		public float score() throws IOException {
-			// TODO Auto-generated method stub
-			return 0;
+			return _scorer==null ? 1.0f : _scorer.score(doc());
 		}
 
 		@Override
 		public int doc() {
-			// TODO Auto-generated method stub
-			return 0;
+			return _docSetIter.doc();
 		}
 
 		@Override
 		public boolean next() throws IOException {
-			// TODO Auto-generated method stub
-			return false;
+			return _docSetIter.next();
 		}
 
 		@Override
-		public boolean skipTo(int arg0) throws IOException {
-			// TODO Auto-generated method stub
-			return false;
+		public boolean skipTo(int target) throws IOException {
+			return _docSetIter.skipTo(target);
 		}
 		
 	}

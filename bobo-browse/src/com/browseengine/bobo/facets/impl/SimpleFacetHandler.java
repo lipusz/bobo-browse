@@ -1,9 +1,11 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.ScoreDocComparator;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -19,8 +21,12 @@ import com.browseengine.bobo.facets.filter.FacetFilter;
 import com.browseengine.bobo.facets.filter.FacetOrFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
+import com.browseengine.bobo.query.scoring.BoboDocScorer;
+import com.browseengine.bobo.query.scoring.FacetScoreable;
+import com.browseengine.bobo.query.scoring.FacetTermScoringFunction;
+import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
 
-public class SimpleFacetHandler extends FacetHandler implements FacetHandlerFactory
+public class SimpleFacetHandler extends FacetHandler implements FacetHandlerFactory,FacetScoreable
 {
 	private static Logger logger = Logger.getLogger(SimpleFacetHandler.class);
 	private FacetDataCache _dataCache;
@@ -132,6 +138,11 @@ public class SimpleFacetHandler extends FacetHandler implements FacetHandlerFact
 		_dataCache.load(_indexFieldName, reader, _termListFactory);
 	}
 	
+	public BoboDocScorer getDocScorer(FacetTermScoringFunctionFactory scoringFunctionFactory,Map<String,Float> boostMap){
+		float[] boostList = BoboDocScorer.buildBoostList(_dataCache.valArray, boostMap);
+		return new SimpleBoboDocScorer(_dataCache,scoringFunctionFactory,boostList);
+	}
+	
 	public static final class SimpleFacetCountCollector extends DefaultFacetCountCollector
 	{
 		public SimpleFacetCountCollector(BrowseSelection sel,FacetDataCache dataCache,String name,FacetSpec ospec)
@@ -146,5 +157,26 @@ public class SimpleFacetHandler extends FacetHandler implements FacetHandlerFact
 		public final void collectAll() {
 		  _count = _dataCache.freqs;
         }
+	}
+	
+	public static final class SimpleBoboDocScorer extends BoboDocScorer{
+		private final FacetDataCache _dataCache;
+		
+		public SimpleBoboDocScorer(FacetDataCache dataCache,FacetTermScoringFunctionFactory scoreFunctionFactory,float[] boostList){
+			super(scoreFunctionFactory.getFacetTermScoringFunction(dataCache.valArray.size(), dataCache.orderArray.size()),boostList);
+			_dataCache = dataCache;
+		}
+		
+		@Override
+		public Explanation explain(int doc){
+			int idx = _dataCache.orderArray.get(doc);
+			return _function.explain(_dataCache.freqs[idx],_boostList[idx]);
+		}
+
+		@Override
+		public final float score(int docid) {
+			int idx = _dataCache.orderArray.get(docid);
+			return _function.score(_dataCache.freqs[idx],_boostList[idx]);
+		}
 	}
 }

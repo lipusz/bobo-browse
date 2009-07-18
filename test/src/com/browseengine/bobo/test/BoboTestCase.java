@@ -50,11 +50,13 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Payload;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortComparatorSource;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
@@ -82,6 +84,8 @@ import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.index.BoboIndexer;
 import com.browseengine.bobo.index.digest.DataDigester;
+import com.browseengine.bobo.query.scoring.DefaultFacetTermScoringFunctionFactory;
+import com.browseengine.bobo.query.scoring.FacetTermQuery;
 
 public class BoboTestCase extends TestCase {
 	private Directory _indexDir;
@@ -1509,6 +1513,36 @@ public class BoboTestCase extends TestCase {
       browseRequest.setSort(new SortField[]{new SortField("multinum",true)});
       mergedResult = multiBoboBrowser.browse(browseRequest);
       doTest(mergedResult, browseRequest, 4, answer, new String[]{"7","7","1","1"});
+	}
+	
+	public void testFacetQuery() throws Exception{
+		BrowseSelection sel = new BrowseSelection("color");
+		sel.addValue("red");
+		sel.addValue("blue");
+		HashMap map = new HashMap<String, Float>();
+		map.put("red", 3.0f);
+		map.put("blue", 2.0f);
+		FacetTermQuery colorQ = new FacetTermQuery(sel,map,new DefaultFacetTermScoringFunctionFactory());
+		
+		BrowseSelection sel2 = new BrowseSelection("tag");
+		sel2.addValue("rabbit");
+		sel2.addValue("dog");
+		HashMap map2 = new HashMap<String, Float>();
+		map2.put("rabbit", 100.0f);
+		map2.put("dog", 50.0f);
+		FacetTermQuery tagQ = new FacetTermQuery(sel2,map2,new DefaultFacetTermScoringFunctionFactory());
+		
+		
+		BrowseRequest br = new BrowseRequest();
+		br.setQuery(colorQ);
+		br.setOffset(0);
+		br.setCount(10);
+		
+		doTest(br,5,null,new String[]{"1","2","7","4","5"});
+		
+		br.setQuery(tagQ);
+		doTest(br,4,null,new String[]{"7","1","3","2"});
+		
 	}
 	
 	public static void main(String[] args)throws Exception {
