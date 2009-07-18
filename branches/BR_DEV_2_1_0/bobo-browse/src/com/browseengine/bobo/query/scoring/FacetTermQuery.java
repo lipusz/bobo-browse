@@ -22,10 +22,19 @@ import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.query.FastMatchAllDocsQuery.FastMatchAllScorer;
 
 public class FacetTermQuery extends Query {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private final String _name;
 	private final BrowseSelection _sel;
 	private final FacetTermScoringFunctionFactory _scoringFactory;
 	private final Map<String,Float> _boostMap;
+	
+	public FacetTermQuery(BrowseSelection sel,Map<String,Float> boostMap){
+		this(sel,boostMap,new DefaultFacetTermScoringFunctionFactory());
+	}
 	
 	public FacetTermQuery(BrowseSelection sel,Map<String,Float> boostMap,FacetTermScoringFunctionFactory scoringFactory){
 		_name = sel.getFieldName();
