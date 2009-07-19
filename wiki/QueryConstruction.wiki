@@ -62,8 +62,11 @@ The two above snippets accomplishes the same thing.
 = Performance Comparison =
 
 Dataset: expanded the car demo dataset to 3 million cars.
+
 Java version: 1.6.0_13
+
 JVM options: -Xms1g -Xmx1g -server
+
 HW: iMac, 2.4 GHZ INTEL CORE 2 Duo, 4GB 667 MHz DDR2 SDRAM
 
 Benchmark two types of field data:
