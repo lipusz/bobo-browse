@@ -137,4 +137,4 @@ public class DefaultFacetTermScoringFunction implements FacetTermScoringFunction
 }
 }}}
 
-There are addition contracts to provide Explanation instances for the scoring function.
+There are additional contracts to provide Explanation instances for the scoring function.
