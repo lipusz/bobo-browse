@@ -96,12 +96,12 @@ With the Lucene Similarity class, scoring can be customized by modifying certain
 
 With Bobo's !FacetTermQuery class, a !FacetTermScoringFunctionFactory may be specified to hook in custom scoring function.
 
-! FacetTermScoringFunctionFactory simply is a factory that creates !FacetTermScoringFunction instances, which have the following APIs:
+!FacetTermScoringFunctionFactory simply is a factory that creates !FacetTermScoringFunction instances, which have the following APIs:
 
   * {{{ float score(int df, float boost) }}} - returns a score based on document frequency of the term and a boost
   * {{{ void clearScores() }}} - when there are multiple terms to be scored, the api follows a collector pattern, and this method initializes the collection
   *  {{{ void scoreAndCollect() }}} - when there are multiple terms to be score, this api calculates the score and collects it internally, !getCurrentScore() will be called to fetch a combined score from the collected scores
-  * {{{ float getCurrentScore() ||| - gets a combined score from the collected scores
+  * {{{ float getCurrentScore() }}} - gets a combined score from the collected scores
 
 Code example:
 
