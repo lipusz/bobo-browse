@@ -303,20 +303,21 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 		
 		@Override
 		public final float score(int docid) {
+			_function.clearScores();
 			int encoded=_dataCache.orderArray.get(docid);
 			
 			int count=1;
-			FloatList scoreList = new FloatArrayList(_dataCache.valArray.size());
+			
 			while(encoded != 0)
 			{
-				if ((encoded & 0x00000001) != 0x0){
-					int idx = count -1;
-					scoreList.add(_function.score(_dataCache.freqs[idx], _boostList[idx]));
+				int idx = count -1;
+				if ((encoded & 0x00000001) != 0x0){	
+					_function.scoreAndCollect(_dataCache.freqs[idx], _boostList[idx]);
 				}
 				count++;
 				encoded >>>= 1;
 			}
-			return _function.combine(scoreList.toFloatArray());
+			return _function.getCurrentScore();
 		}
 		
 	}

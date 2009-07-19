@@ -436,6 +436,7 @@ public final class BigNestedIntArray
   }
   
   public final float getScores(int id,int[] freqs,float[] boosts,FacetTermScoringFunction function){
+	  function.clearScores();
 	  final int[] page = (int[])_list[id >> PAGEID_SHIFT];
 	  int val = page[id & SLOTID_MASK];
 	    
@@ -447,14 +448,13 @@ public final class BigNestedIntArray
       {
         final int num = (val & COUNT_MASK);
         val >>= VALIDX_SHIFT; // signed shift, remember this is a negative number
-        FloatList scores = new FloatArrayList(num);
         int idx;
         for(int i = 0; i < num; i++)
         {
           idx = page[i-val];
-          scores.add(function.score(freqs[idx],boosts[idx]));
+          function.scoreAndCollect(freqs[idx],boosts[idx]);
         }
-        return function.combine(scores.toFloatArray());
+        return function.getCurrentScore();
       }
   }
   
