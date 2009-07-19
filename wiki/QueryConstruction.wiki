@@ -71,20 +71,65 @@ Benchmark two types of field data:
   # single valued - each doc has at most 1 value in the field (!SimpleFacetHandler)
   # multi valued - each doc has any number of values in the field (!MultiValueFacetHandler)
 
-Single Valued, OR clauses:
+Single Valued:
 
-|| * number values/clauses * || * Bobo !FacetTermQuery * || * Lucene  !BooleanQuery * || 
-|| 2 || 57 ms || 95 ms || 
-|| 5 || 93 ms || 170 ms ||
-|| 10 || 118 ms || 230 ms ||
+|| * number values/clauses * || * Bobo !FacetTermQuery  (OR)* || * Lucene  !BooleanQuery (OR) * ||  * Bobo !FacetTermQuery  (AND)* || * Lucene  !BooleanQuery (AND) * || 
+|| 2 || 57 ms || 95 ms || 0 ms || 14 ms ||
+|| 5 || 93 ms || 170 ms || 0 ms || 20 ms ||
+|| 10 || 118 ms || 230 ms || 0 ms || 20 ms ||
 
-Multi Valued, OR clauses:
+Multi Valued:
 
-|| * number values/clauses * || * Bobo !FacetTermQuery * || * Lucene !BooleanQuery * || 
-|| 2 || 165 ms || 210 ms || 
-|| 5 || 205 ms || 400 ms ||
-|| 10 || 185 ms || 825 ms ||
+|| * number values/clauses * || * Bobo !FacetTermQuery (OR) * || * Lucene !BooleanQuery (OR) * ||  * Bobo !FacetTermQuery  (AND)* || * Lucene  !BooleanQuery (AND) * || 
+|| 2 || 165 ms || 210 ms || 107 ms || 114 ms ||
+|| 5 || 205 ms || 400 ms || 90 ms || 145 ms ||
+|| 10 || 185 ms || 825 ms || 90 ms || 108 ms ||
 
 Some explanation:
 
-One may be confused why the time went down when we increased number of clause from 5 to 10 for Multi Valued data. The reason here being although scoring cost increased, the iteration cost over the docid set actually went down because coverage of the clauses makes evaluation of a hit cheaper.
+  * One may be confused why the time went down when we increased number of clause from 5 to 10 for Multi Valued data in the disjunction case. The reason here being although scoring cost increased, the iteration cost over the docid set actually went down because coverage of the clauses makes evaluation of a hit cheaper.
+  * In the conjunction case for both Bobo and Lucene, as number of clauses increases, times decreased. That is because as number of clauses increase, the less hits are to be collected.
+
+= Scoring =
+
+With the Lucene Similarity class, scoring can be customized by modifying certain scoring parameters, e.g. tf, norm, idf etc. However, how they are composed together cannot be easily modified.
+
+With Bobo's !FacetTermQuery class, a !FacetTermScoringFunctionFactory may be specified to hook in custom scoring function.
+
+! FacetTermScoringFunctionFactory simply is a factory that creates !FacetTermScoringFunction instances, which have the following APIs:
+
+  * {{{ float score(int df, float boost) }}} - returns a score based on document frequency of the term and a boost
+  * {{{ void clearScores() }}} - when there are multiple terms to be scored, the api follows a collector pattern, and this method initializes the collection
+  *  {{{ void scoreAndCollect() }}} - when there are multiple terms to be score, this api calculates the score and collects it internally, !getCurrentScore() will be called to fetch a combined score from the collected scores
+  * {{{ float getCurrentScore() ||| - gets a combined score from the collected scores
+
+Code example:
+
+{{{
+
+// this is actually the default scoring function if no FacetTermScoringFunction is specified.
+
+public class DefaultFacetTermScoringFunction implements FacetTermScoringFunction {
+	private float _sum=0.0f;
+	
+	public final void clearScores(){
+		_sum = 0.0f;
+	}
+	
+	public final float score(int df, float boost) {
+		return boost;
+	}
+	
+	public final void scoreAndCollect(int df,float boost){
+		_sum+=boost;
+	}
+
+	public final float getCurrentScore() {
+		return _sum;
+	}
+
+	...
+}
+}}}
+
+There are addition contracts to provide Explanation instances for the scoring function.
