@@ -73,14 +73,14 @@ Benchmark two types of field data:
 
 Single Valued, OR clauses:
 
-|| * number values/clauses * || * Bobo !FacetTermQuery * || Lucene! BooleanQuery || 
+|| * number values/clauses * || * Bobo !FacetTermQuery * || Lucene  !BooleanQuery || 
 || 2 || 57 ms || 95 ms || 
 || 5 || 93 ms || 170 ms ||
 || 10 || 118 ms || 230 ms ||
 
 Multi Valued, OR clauses:
 
-|| * number values/clauses * || * Bobo !FacetTermQuery * || Lucene! BooleanQuery || 
+|| * number values/clauses * || * Bobo !FacetTermQuery * || Lucene !BooleanQuery || 
 || 2 || 165 ms || 210 ms || 
 || 5 || 205 ms || 400 ms ||
 || 10 || 185 ms || 825 ms ||
