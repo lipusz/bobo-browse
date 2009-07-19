@@ -1,4 +1,4 @@
-#summary building Query instances with !FacetHandlers
+#summary building Query instances with FacetHandlers
 
 = Introduction =
 
