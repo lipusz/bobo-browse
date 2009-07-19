@@ -96,6 +96,11 @@ With the Lucene Similarity class, scoring can be customized by modifying certain
 
 With Bobo's !FacetTermQuery class, a !FacetTermScoringFunctionFactory may be specified to hook in custom scoring function.
 
+e.g.:
+{{{
+FacetTermQuery query = new FacetTermQuery(mySel,boostMap,myFacetTermScoringFunctionFactory);
+}}}
+
 !FacetTermScoringFunctionFactory simply is a factory that creates !FacetTermScoringFunction instances, which have the following APIs:
 
   * {{{ float score(int df, float boost) }}} - returns a score based on document frequency of the term and a boost
