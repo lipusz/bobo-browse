@@ -1,8 +1,90 @@
-#building Query instances with FacetHandlers
+#building Query instances with !FacetHandlers
 
 = Introduction =
 
-Bobo is enhanced with the capability to produce Lucene Query objects with certain built-in FacetHandlers.
+For the following type of boolean queries, we can leverage facet handlers' data structure to build highly performing Query objects with enhanced scoring flexibilities:
 
+  * f1:v1^b1 OR f1:v2^b2 OR f1:v3^b3 OR ...
+  * f1:v1^b1 AND f1:v2^b2 AND f1:v3^b3 AND ...
 
-= Details =
+The characteristics of the above types of queries are:
+
+  * values in all clauses are in the same field
+  * operators of all clauses are of the same type
+
+= Implementation =
+
+Let's first look at how you would this using the standard Lucene API:
+
+{{{
+  // replace Occur.SHOULD with Occur.MUST to produce conjunctive clauses
+   BooleanQuery resultQ = new BooleanQuery();
+
+   
+   TermQuery tq = new TermQuery(new Term(f1,v1));
+   tq.setBoost(b1);
+   resultQ.addClause(tq,Occur.SHOULD);
+
+  tq = new TermQuery(new Term(f1,v2));
+   tq.setBoost(b2);
+   resultQ.addClause(tq,Occur.SHOULD);
+
+   tq = new TermQuery(new Term(f1,v3));
+   tq.setBoost(b3);
+   resultQ.addClause(tq,Occur.SHOULD);
+
+   ...
+}}}
+
+And this is what you can do to build exactly the same query with Bobo !FacetHandlers:
+
+{{{
+
+  // assumption: we have a FacetHandler of name f1, and it implements FacetScorable interface
+  BrowseSelection sel = new BrowseSelection(f1);
+  sel.setValues(new String[]{v1,v2,v3,...});
+  
+  Map<String,Float> boostMap = new HashMap<String,Float>();
+  boostMap.put(v1,b1);
+  boostMap.put(v2,b2);
+  boostMap.put(v3,b3);
+  
+  ...
+
+  // to produce conjunctive clauses:
+  // sel.setSelectionOperation(ValueOperation.ValueOperationAnd);  // default is OR
+
+  FacetTermQuery resultQ = new FacetTermQuery(sel,boostMap);
+}}}
+
+The two above snippets accomplishes the same thing.
+
+= Performance Comparison =
+
+Dataset: expanded the car demo dataset to 3 million cars.
+Java version: 1.6.0_13
+JVM options: -Xms1g -Xmx1g -server
+HW: iMac, 2.4 GHZ INTEL CORE 2 Duo, 4GB 667 MHz DDR2 SDRAM
+
+Benchmark two types of field data:
+
+  # single valued - each doc has at most 1 value in the field (!SimpleFacetHandler)
+  # multi valued - each doc has any number of values in the field (!MultiValueFacetHandler)
+
+Single Valued, OR clauses:
+
+|| * number values/clauses * || * Bobo !FacetTermQuery * || Lucene! BooleanQuery || 
+|| 2 || 57 ms || 95 ms || 
+|| 5 || 93 ms || 170 ms ||
+|| 10 || 118 ms || 230 ms ||
+
+Multi Valued, OR clauses:
+
+|| * number values/clauses * || * Bobo !FacetTermQuery * || Lucene! BooleanQuery || 
+|| 2 || 165 ms || 210 ms || 
+|| 5 || 205 ms || 400 ms ||
+|| 10 || 185 ms || 825 ms ||
+
+Some explanation:
+
+One may be confused why the time went down when we increased number of clause from 5 to 10 for Multi Valued data. The reason here being although scoring cost increased, the iteration cost over the docid set actually went down because coverage of the clauses makes evaluation of a hit cheaper.
