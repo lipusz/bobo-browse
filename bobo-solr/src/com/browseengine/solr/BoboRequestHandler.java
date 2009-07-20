@@ -34,7 +34,7 @@ public class BoboRequestHandler implements SolrRequestHandler {
 	
 	private static Logger logger=Logger.getLogger(BoboRequestHandler.class);
 	
-	private static class BoboSolrParams extends BoboParams{
+	public static class BoboSolrParams extends BoboParams{
 		SolrParams _params;
 		BoboSolrParams(SolrParams params){
 			_params=params;
@@ -59,7 +59,7 @@ public class BoboRequestHandler implements SolrRequestHandler {
 		
 	}
 	
-	private static class BoboSolrQueryBuilder extends BoboQueryBuilder{
+	public static class BoboSolrQueryBuilder extends BoboQueryBuilder{
 		SolrQueryRequest _req;
 		BoboSolrQueryBuilder(SolrQueryRequest req){
 			_req=req;
