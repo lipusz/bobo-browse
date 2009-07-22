@@ -1,6 +1,8 @@
 package com.browseengine.bobo.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -8,6 +10,7 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.MappedFacetAccessible;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
@@ -58,7 +61,41 @@ public class BrowseResultConverter implements Converter {
 			UnmarshallingContext ctx) {		
 		BrowseResult res=new BrowseResult();
 		
+		String numHitsString=reader.getAttribute("numHits");
+		if (numHitsString!=null){
+			res.setNumHits(Integer.parseInt(numHitsString));
+		}
 		
+		String totalDocsString=reader.getAttribute("totaldocs");
+		if (totalDocsString!=null){
+			res.setTotalDocs(Integer.parseInt(totalDocsString));
+		}
+		
+		String timeString=reader.getAttribute("time");
+		if (timeString!=null){
+			res.setTime(Long.parseLong(timeString));
+		}
+		
+		Map<String,FacetAccessible> facetMap = new HashMap<String,FacetAccessible>();
+		if (reader.hasMoreChildren()){
+			reader.moveDown();
+			if ("facets".equals(reader.getNodeName())){
+				String facetCountString = reader.getAttribute("count");
+				if (facetCountString!=null){
+					int count = Integer.parseInt(facetCountString);
+					if (count > 0){
+						for (int i=0;i<count;++i){
+							reader.moveDown();
+							String name = reader.getAttribute("name");
+							BrowseFacet[] facets = (BrowseFacet[])ctx.convertAnother(res,BrowseFacet[].class);
+							facetMap.put(name,new MappedFacetAccessible(facets));
+							reader.moveUp();
+						}
+					}
+				}
+			}
+			reader.moveUp();
+		}
 		
 		BrowseHit[] hits=(BrowseHit[])ctx.convertAnother(res,BrowseHit[].class);
 		res.setHits(hits);
