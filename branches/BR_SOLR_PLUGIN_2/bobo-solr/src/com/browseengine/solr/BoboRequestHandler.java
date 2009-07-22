@@ -9,8 +9,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -23,8 +23,10 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
@@ -58,7 +60,7 @@ public class BoboRequestHandler implements SolrRequestHandler {
 	
 	private static Logger logger=Logger.getLogger(BoboRequestHandler.class);
 	
-	private static class BoboSolrParams extends BoboParams{
+	public static class BoboSolrParams extends BoboParams{
 		SolrParams _params;
 		BoboSolrParams(SolrParams params){
 			_params=params;
@@ -79,8 +81,6 @@ public class BoboRequestHandler implements SolrRequestHandler {
         {
           return _params.getParams(name);
         }
-		
-		
 	}
 	
 	public static class BoboSolrQueryBuilder extends BoboQueryBuilder{
@@ -151,105 +151,6 @@ public class BoboRequestHandler implements SolrRequestHandler {
 		}
 	}
 	
-	private static class ClientInfo{
-		HttpClient client;
-		String  baseURL;
-	}
-	
-	private static BrowseResult broadcast(ExecutorService threadPool,BoboSolrParams boboSolrParams,BrowseRequest req,ClientInfo[] clientInfos,int maxRetry){
-		long start = System.currentTimeMillis();
-		Future<BrowseResult>[] futureList = (Future<BrowseResult>[]) new Future[clientInfos.length];
-        for (int i = 0; i < clientInfos.length; i++)
-		{
-          Callable<BrowseResult> callable = newCallable(boboSolrParams,clientInfos[i].baseURL,clientInfos[i].client,maxRetry);
-          futureList[i] = threadPool.submit(callable);
-		}
-        
-	//	List<BrowseResult> resultList=new ArrayList<BrowseResult>(clientInfos.length);
-		
-		ArrayList<Iterator<BrowseHit>> iteratorList = new ArrayList<Iterator<BrowseHit>>(clientInfos.length);
-		int numHits = 0;
-		int totalDocs = 0;
-        for (int i = 0; i < futureList.length; i++)
-		{
-			try { 
-				BrowseResult res = futureList[i].get();
-				iteratorList.add(Arrays.asList(res.getHits()).iterator());
-				//resultList.add(res); 
-				numHits += res.getNumHits();
-				totalDocs += res.getTotalDocs();
-			}
-			catch (InterruptedException e) { logger.error(e.getMessage(),e); }
-			catch (ExecutionException e) { logger.error(e.getMessage(),e); }
-		}
-        
-        Comparator<BrowseHit> comparator = new SortedFieldBrowseHitComparator(req.getSort());
-        
-        ArrayList<BrowseHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList.toArray(new Iterator[iteratorList.size()]), comparator);
-        BrowseHit[] hits = mergedList.toArray(new BrowseHit[mergedList.size()]);
-        long end = System.currentTimeMillis();
-        
-        BrowseResult merged = new BrowseResult();
-        merged.setHits(hits);
-        merged.setNumHits(numHits);
-        merged.setTotalDocs(totalDocs);
-        merged.setTime(end-start);
-        
-        // TODO: merged facets
-        return merged;
-	}
-	
-	private static BrowseResult parseResponse(InputStream input, String charset) throws UnsupportedEncodingException{
-		XStream parser = XStreamDispenser.getXMLXStream();
-		Reader r = new InputStreamReader(input,charset);
-		return (BrowseResult)(parser.fromXML(r));
-	}
-	
-	private static BrowseResult doShardCall(BoboSolrParams boboSolrParams,String baseURL,HttpClient client,int maxRetry) throws HttpException, IOException{
-		String path = "/select";
-		GetMethod method = null;
-		try{
-			method = new GetMethod( baseURL + path + ClientUtils.toQueryString( boboSolrParams._params, false ) );
-			String charset = method.getResponseCharSet();
-			InputStream responseStream = null;
-			while(maxRetry-- > 0){
-				try
-				{
-				  int status = client.executeMethod(method);
-				  if (HttpStatus.SC_OK != status){
-					  logger.error("status: "+status+", retry #: "+maxRetry);
-					  continue;
-				  }
-				  responseStream = method.getResponseBodyAsStream();
-				  
-				}
-				catch(Exception e){
-				  logger.error(e.getMessage()+" retry #: "+maxRetry,e);
-				}
-			}
-			
-			if (responseStream == null){
-				throw new IOException("unable to perform remote request, all retries have been exhausted");
-			}
-			// Read the contents
-		    return parseResponse(responseStream, charset);
-		}
-		finally{
-			if (method!=null){
-				method.releaseConnection();
-			}
-		}
-	}
-	
-	private static Callable<BrowseResult> newCallable(final BoboSolrParams boboSolrParams,final String baseURL,final HttpClient client,final int maxRetry){
-		return new Callable<BrowseResult>(){
-
-			public BrowseResult call() throws Exception {
-				return doShardCall(boboSolrParams, baseURL, client, maxRetry);
-			}
-			
-		};
-	}
 
 	public void init(NamedList params) {
 		// TODO Auto-generated method stub
