@@ -9,9 +9,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.config.FieldConfiguration;
+import com.browseengine.bobo.service.BrowseFacetConverter;
 import com.browseengine.bobo.service.BrowseHitConverter;
 import com.browseengine.bobo.service.BrowseResultConverter;
 import com.browseengine.bobo.service.FieldConfConverter;
@@ -33,6 +35,9 @@ public class XStreamDispenser {
 	private static HashMap<Class<?>,String> aliasMap=new HashMap<Class<?>,String>();
 	
 	static{
+	  converterSet.add(new  BrowseFacetConverter());
+	  aliasMap.put(BrowseFacet.class, "facet");
+		  
 	  converterSet.add(new  BrowseHitConverter());
 	  aliasMap.put(BrowseHit.class, "hit");
 	  
