@@ -45,7 +45,7 @@ public class BrowseHitConverter implements Converter {
 	public Object unmarshal(HierarchicalStreamReader reader,
 			UnmarshallingContext ctx) {
 		BrowseHit hit=new BrowseHit();
-		
+		reader.moveDown();
 		String scoreString=reader.getAttribute("score");
 		if (scoreString!=null){
 			hit.setScore(Float.parseFloat(scoreString));
@@ -72,6 +72,7 @@ public class BrowseHitConverter implements Converter {
 			fieldVals.put(fieldname, parts);
 			reader.moveUp();
 		}
+		reader.moveUp();
 		return hit;
 	}
 
