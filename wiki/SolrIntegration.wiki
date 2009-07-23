@@ -3,7 +3,7 @@
 
 =Solr Integration=
 
-*_This is currently in experimental stage, and only available on trunk_*
+*_Sharding support is currently in experimental stage, and only available on branch BR_SOLR_PLUGIN_2_*
 
 ==Introduction==
 
