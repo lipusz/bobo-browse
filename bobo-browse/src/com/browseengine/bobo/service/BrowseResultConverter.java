@@ -43,9 +43,7 @@ public class BrowseResultConverter implements Converter {
 			writer.addAttribute("facetcount", String.valueOf(facetList.size()));
 			
 			for (BrowseFacet facet : facetList){
-				writer.startNode("facet");
 				ctx.convertAnother(facet);
-				writer.endNode();
 			}
 			writer.endNode();
 		}
@@ -92,7 +90,15 @@ public class BrowseResultConverter implements Converter {
 						for (int i=0;i<count;++i){
 							reader.moveDown();
 							String name = reader.getAttribute("name");
-							BrowseFacet[] facets = (BrowseFacet[])ctx.convertAnother(res,BrowseFacet[].class);
+							String countStr = reader.getAttribute("count");
+							int fcount = 0;
+							if (countStr!=null){
+								fcount = Integer.parseInt(countStr);
+							}
+							BrowseFacet[] facets = new BrowseFacet[fcount];
+							for (int k=0;k<fcount;++k){
+								facets[i] = (BrowseFacet)ctx.convertAnother(res,BrowseFacet.class);
+							}
 							facetMap.put(name,new MappedFacetAccessible(facets));
 							reader.moveUp();
 						}
@@ -104,9 +110,7 @@ public class BrowseResultConverter implements Converter {
 				int hitLen = Integer.parseInt(countStr);
 				BrowseHit[] hits = new BrowseHit[hitLen];
 				for (int i = 0; i< hitLen; ++i){
-					reader.moveDown();
 					hits[i]=(BrowseHit)ctx.convertAnother(res, BrowseHit.class);
-					reader.moveUp();
 				}
 				res.setHits(hits);
 			}

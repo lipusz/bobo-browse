@@ -7,8 +7,14 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -23,10 +29,15 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.params.SolrParams;
 
+import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
+import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.MappedFacetAccessible;
 import com.browseengine.bobo.impl.SortedFieldBrowseHitComparator;
+import com.browseengine.bobo.protobuf.BrowseResultBPO.FacetContainer;
 import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
 import com.browseengine.bobo.util.ListMerger;
 import com.browseengine.bobo.util.XStreamDispenser;
@@ -94,6 +105,67 @@ public class DispatchUtil {
 		}
 	}
 	
+	private static Map<String,FacetAccessible> mergeFacetContainer(Collection<Map<String,FacetAccessible>> subMaps,BrowseRequest req)
+	  {
+	    Map<String, Map<String, Integer>> counts = new HashMap<String, Map<String, Integer>>();
+	    for (Map<String,FacetAccessible> subMap : subMaps)
+	    {
+	      for(Map.Entry<String, FacetAccessible> entry : subMap.entrySet())
+	      {
+	        Map<String, Integer> count = counts.get(entry.getKey());
+	        if(count == null)
+	        {
+	          count = new HashMap<String, Integer>();
+	          counts.put(entry.getKey(), count);
+	        }
+	        for(BrowseFacet facet : entry.getValue().getFacets())
+	        {
+	          String val = facet.getValue();
+	          int oldValue = count.containsKey(val) ? count.get(val) : 0;
+	          count.put(val, oldValue + facet.getHitCount());
+	        }
+	      }
+	    }
+
+	    Map<String, FacetAccessible> mergedFacetMap = new HashMap<String, FacetAccessible>();
+	    for(String facet : counts.keySet())
+	    {
+	      Map<String, Integer> facetValueCounts = counts.get(facet);
+	      List<BrowseFacet> facets = new ArrayList<BrowseFacet>(facetValueCounts.size());
+	      for(Entry<String, Integer> entry : facetValueCounts.entrySet())
+	      {
+	        facets.add(new BrowseFacet(entry.getKey(), entry.getValue()));
+	      }
+	      Collections.sort(facets, new Comparator<BrowseFacet>()
+	      {
+	        public int compare(BrowseFacet f1, BrowseFacet f2)
+	        {
+	          int h1 = f1.getHitCount();
+	          int h2 = f2.getHitCount();
+
+	          int val = h2 - h1;
+
+	          if (val == 0)
+	          {
+	            val = f1.getValue().compareTo(f2.getValue());
+	          }
+	          return val;
+	        }
+	      });
+	      if (req != null)
+	      {
+	        FacetSpec fspec = req.getFacetSpec(facet);
+	        if (fspec!=null){
+	          int maxCount = fspec.getMaxCount();
+	          facets = facets.subList(0, Math.min(maxCount, facets.size()));
+	        }
+	      }
+	      MappedFacetAccessible mergedFacetAccessible = new MappedFacetAccessible(facets.toArray(new BrowseFacet[facets.size()]));
+	      mergedFacetMap.put(facet, mergedFacetAccessible);
+	    }
+	    return mergedFacetMap;
+	  }
+	
 	public static BrowseResult broadcast(ExecutorService threadPool,BoboSolrParams boboSolrParams,BrowseRequest req,String[] baseURL,int maxRetry){
 		long start = System.currentTimeMillis();
 		Future<BrowseResult>[] futureList = (Future<BrowseResult>[]) new Future[baseURL.length];
@@ -104,7 +176,7 @@ public class DispatchUtil {
           futureList[i] = threadPool.submit(callable);
 		}
         
-	//	List<BrowseResult> resultList=new ArrayList<BrowseResult>(clientInfos.length);
+		List<Map<String,FacetAccessible>> facetList=new ArrayList<Map<String,FacetAccessible>>(baseURL.length);
 		
 		ArrayList<Iterator<BrowseHit>> iteratorList = new ArrayList<Iterator<BrowseHit>>(baseURL.length);
 		int numHits = 0;
@@ -120,6 +192,11 @@ public class DispatchUtil {
 				  }
 				}
 				iteratorList.add(Arrays.asList(res.getHits()).iterator());
+				
+				Map<String,FacetAccessible> facetMap = res.getFacetMap();
+				if (facetMap!=null){
+					facetList.add(facetMap);
+				}
 				//resultList.add(res); 
 				numHits += res.getNumHits();
 				totalDocs += res.getTotalDocs();
@@ -128,6 +205,7 @@ public class DispatchUtil {
 			catch (ExecutionException e) { logger.error(e.getMessage(),e); }
 		}
         
+        Map<String,FacetAccessible> mergedFacetMap = mergeFacetContainer(facetList,req);
         Comparator<BrowseHit> comparator = new SortedFieldBrowseHitComparator(req.getSort());
         
         ArrayList<BrowseHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList.toArray(new Iterator[iteratorList.size()]), comparator);
@@ -139,8 +217,7 @@ public class DispatchUtil {
         merged.setNumHits(numHits);
         merged.setTotalDocs(totalDocs);
         merged.setTime(end-start);
-        
-        // TODO: merged facets
+        merged.addAll(mergedFacetMap);
         return merged;
 	}
 	
@@ -154,7 +231,6 @@ public class DispatchUtil {
 		String path = "/select";
 		GetMethod method = null;
 		try{
-			System.out.println("arg line: "+ClientUtils.toQueryString( boboSolrParams._params, false ));
 			method = new GetMethod("http://"+baseURL + path + ClientUtils.toQueryString( boboSolrParams._params, false ) );
 			String charset = method.getResponseCharSet();
 			InputStream responseStream = null;

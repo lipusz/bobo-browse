@@ -12,14 +12,16 @@ public class BrowseFacetConverter implements Converter {
 	public void marshal(Object obj, HierarchicalStreamWriter writer,
 			MarshallingContext ctx) {
 		BrowseFacet facet = (BrowseFacet)obj;
+		writer.startNode("facet-value");
 		writer.addAttribute("value", String.valueOf(facet.getValue()));
 		writer.addAttribute("count", String.valueOf(facet.getHitCount()));
+		writer.endNode();
 	}
 
 	public Object unmarshal(HierarchicalStreamReader reader,
 			UnmarshallingContext ctx) {
 		BrowseFacet facet=new BrowseFacet();
-		
+		reader.moveDown();
 		String valueString=reader.getAttribute("value");
 		facet.setValue(valueString);
 		
@@ -27,7 +29,7 @@ public class BrowseFacetConverter implements Converter {
 		if (countString!=null){
 			facet.setHitCount(Integer.parseInt(countString));
 		}
-		
+		reader.moveUp();
 		return facet;
 	}
 
