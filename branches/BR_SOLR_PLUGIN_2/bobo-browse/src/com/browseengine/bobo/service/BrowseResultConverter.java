@@ -79,10 +79,11 @@ public class BrowseResultConverter implements Converter {
 			res.setTime(Long.parseLong(timeString));
 		}
 		
-		Map<String,FacetAccessible> facetMap = new HashMap<String,FacetAccessible>();
 		while (reader.hasMoreChildren()){
 			reader.moveDown();
 			if ("facets".equals(reader.getNodeName())){
+				Map<String,FacetAccessible> facetMap = new HashMap<String,FacetAccessible>();
+				res.addAll(facetMap);
 				String facetCountString = reader.getAttribute("count");
 				if (facetCountString!=null){
 					int count = Integer.parseInt(facetCountString);
