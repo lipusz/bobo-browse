@@ -83,7 +83,6 @@ public class BrowseResultConverter implements Converter {
 			reader.moveDown();
 			if ("facets".equals(reader.getNodeName())){
 				Map<String,FacetAccessible> facetMap = new HashMap<String,FacetAccessible>();
-				res.addAll(facetMap);
 				String facetCountString = reader.getAttribute("count");
 				if (facetCountString!=null){
 					int count = Integer.parseInt(facetCountString);
@@ -91,18 +90,19 @@ public class BrowseResultConverter implements Converter {
 						for (int i=0;i<count;++i){
 							reader.moveDown();
 							String name = reader.getAttribute("name");
-							String countStr = reader.getAttribute("count");
+							String countStr = reader.getAttribute("facetcount");
 							int fcount = 0;
 							if (countStr!=null){
 								fcount = Integer.parseInt(countStr);
 							}
 							BrowseFacet[] facets = new BrowseFacet[fcount];
 							for (int k=0;k<fcount;++k){
-								facets[i] = (BrowseFacet)ctx.convertAnother(res,BrowseFacet.class);
+								facets[k] = (BrowseFacet)ctx.convertAnother(res,BrowseFacet.class);
 							}
 							facetMap.put(name,new MappedFacetAccessible(facets));
 							reader.moveUp();
 						}
+						res.addAll(facetMap);
 					}
 				}
 			}
