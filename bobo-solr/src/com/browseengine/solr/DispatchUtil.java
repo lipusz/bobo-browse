@@ -157,7 +157,11 @@ public class DispatchUtil {
 	        FacetSpec fspec = req.getFacetSpec(facet);
 	        if (fspec!=null){
 	          int maxCount = fspec.getMaxCount();
-	          facets = facets.subList(0, Math.min(maxCount, facets.size()));
+	          int numToShow = facets.size();
+	          if (maxCount>0){
+	        	  numToShow = Math.min(maxCount,numToShow);
+	          }
+	          facets = facets.subList(0, numToShow);
 	        }
 	      }
 	      MappedFacetAccessible mergedFacetAccessible = new MappedFacetAccessible(facets.toArray(new BrowseFacet[facets.size()]));
