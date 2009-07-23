@@ -17,6 +17,7 @@ import java.util.concurrent.Future;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
@@ -36,17 +37,29 @@ public class DispatchUtil {
 
 	private static Logger logger=Logger.getLogger(DispatchUtil.class);
 
-	private static class ClientInfo{
-		HttpClient client;
-		String  baseURL;
+	 static HttpClient client;
+	 
+	  static int soTimeout = 0; //current default values
+	  static int connectionTimeout = 0; //current default values
+
+	  // these values can be made configurable
+	static {
+	    MultiThreadedHttpConnectionManager mgr = new MultiThreadedHttpConnectionManager();
+	    mgr.getParams().setDefaultMaxConnectionsPerHost(20);
+	    mgr.getParams().setMaxTotalConnections(10000);
+	    mgr.getParams().setConnectionTimeout(connectionTimeout);
+	    mgr.getParams().setSoTimeout(soTimeout);
+	    // mgr.getParams().setStaleCheckingEnabled(false);
+	    client = new HttpClient(mgr);    
 	}
 	
-	private static class DispatchSolrParams extends BoboSolrParams{
+	private static class DispatchSolrParams extends SolrParams{
 		private int offset;
 		private int count;
+		private SolrParams _params;
 		
 		DispatchSolrParams(SolrParams params){
-			super(params);
+			_params = params;
 			offset = params.getInt(BoboRequestBuilder.START, 0);
 			count = params.getInt(BoboRequestBuilder.COUNT, 0);
 		}
@@ -59,30 +72,53 @@ public class DispatchUtil {
 			else if (BoboRequestBuilder.COUNT.equals(name)){
 				return String.valueOf(offset+count);
 			}
+			else if (BoboRequestHandler.SHARD_PARAM.equals(name)){
+				return null;
+			}
 			else{
 			  return _params.get(name);
 			}
 		}
+
+		@Override
+		public Iterator<String> getParameterNamesIterator() {
+			return _params.getParameterNamesIterator();
+		}
+
+		@Override
+		public String[] getParams(String name) {
+			if (BoboRequestHandler.SHARD_PARAM.equals(name)){
+				return null;
+			}
+			return _params.getParams(name);
+		}
 	}
 	
-	public static BrowseResult broadcast(ExecutorService threadPool,BoboSolrParams boboSolrParams,BrowseRequest req,ClientInfo[] clientInfos,int maxRetry){
+	public static BrowseResult broadcast(ExecutorService threadPool,BoboSolrParams boboSolrParams,BrowseRequest req,String[] baseURL,int maxRetry){
 		long start = System.currentTimeMillis();
-		Future<BrowseResult>[] futureList = (Future<BrowseResult>[]) new Future[clientInfos.length];
-        for (int i = 0; i < clientInfos.length; i++)
+		Future<BrowseResult>[] futureList = (Future<BrowseResult>[]) new Future[baseURL.length];
+        for (int i = 0; i < baseURL.length; i++)
 		{
-          Callable<BrowseResult> callable = newCallable(new DispatchSolrParams(boboSolrParams._params),clientInfos[i].baseURL,clientInfos[i].client,maxRetry);
+          SolrParams dispatchParams = new DispatchSolrParams(boboSolrParams._params);
+          Callable<BrowseResult> callable = newCallable(new BoboSolrParams(dispatchParams),baseURL[i],maxRetry);
           futureList[i] = threadPool.submit(callable);
 		}
         
 	//	List<BrowseResult> resultList=new ArrayList<BrowseResult>(clientInfos.length);
 		
-		ArrayList<Iterator<BrowseHit>> iteratorList = new ArrayList<Iterator<BrowseHit>>(clientInfos.length);
+		ArrayList<Iterator<BrowseHit>> iteratorList = new ArrayList<Iterator<BrowseHit>>(baseURL.length);
 		int numHits = 0;
 		int totalDocs = 0;
         for (int i = 0; i < futureList.length; i++)
 		{
 			try { 
 				BrowseResult res = futureList[i].get();
+				BrowseHit[] hits = res.getHits();
+				if (hits!=null){
+				  for (BrowseHit hit : hits){
+					hit.setDocid(hit.getDocid()+totalDocs);
+				  }
+				}
 				iteratorList.add(Arrays.asList(res.getHits()).iterator());
 				//resultList.add(res); 
 				numHits += res.getNumHits();
@@ -114,11 +150,12 @@ public class DispatchUtil {
 		return (BrowseResult)(parser.fromXML(r));
 	}
 	
-	private static BrowseResult doShardCall(BoboSolrParams boboSolrParams,String baseURL,HttpClient client,int maxRetry) throws HttpException, IOException{
+	private static BrowseResult doShardCall(BoboSolrParams boboSolrParams,String baseURL,int maxRetry) throws HttpException, IOException{
 		String path = "/select";
 		GetMethod method = null;
 		try{
-			method = new GetMethod( baseURL + path + ClientUtils.toQueryString( boboSolrParams._params, false ) );
+			System.out.println("arg line: "+ClientUtils.toQueryString( boboSolrParams._params, false ));
+			method = new GetMethod("http://"+baseURL + path + ClientUtils.toQueryString( boboSolrParams._params, false ) );
 			String charset = method.getResponseCharSet();
 			InputStream responseStream = null;
 			while(maxRetry-- > 0){
@@ -130,7 +167,7 @@ public class DispatchUtil {
 					  continue;
 				  }
 				  responseStream = method.getResponseBodyAsStream();
-				  
+				  break;
 				}
 				catch(Exception e){
 				  logger.error(e.getMessage()+" retry #: "+maxRetry,e);
@@ -143,6 +180,14 @@ public class DispatchUtil {
 			// Read the contents
 		    return parseResponse(responseStream, charset);
 		}
+		catch(IOException ioe ){
+			ioe.printStackTrace();
+			throw ioe;
+		}
+		catch(RuntimeException e){
+			e.printStackTrace();
+			throw e;
+		}
 		finally{
 			if (method!=null){
 				method.releaseConnection();
@@ -150,11 +195,11 @@ public class DispatchUtil {
 		}
 	}
 	
-	private static Callable<BrowseResult> newCallable(final BoboSolrParams boboSolrParams,final String baseURL,final HttpClient client,final int maxRetry){
+	private static Callable<BrowseResult> newCallable(final BoboSolrParams boboSolrParams,final String baseURL,final int maxRetry){
 		return new Callable<BrowseResult>(){
 
 			public BrowseResult call() throws Exception {
-				return doShardCall(boboSolrParams, baseURL, client, maxRetry);
+				return doShardCall(boboSolrParams, baseURL, maxRetry);
 			}
 			
 		};
