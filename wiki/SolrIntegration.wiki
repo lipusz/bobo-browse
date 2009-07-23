@@ -101,8 +101,21 @@ GROUPING ON
 category,color,price
 
 {{{
-http://localhost:8983/solr/select?wt=bobo&qt=bobo&bobo.sel.category.val=suv&bobo.sel.color.val=green&bobo.groupby.color&bobo.groupby.category&bobo.groupby.price
+http://localhost:8983/solr/select?wt=bobo&qt=bobo&bobo.sel.category.val=suv&bobo.sel.color.val=green&bobo.groupby.color&bobo.groupby.category&bobo.groupby.tags
 }}}
 
 Screenshot of the results:
-[http://john.wang.googlepages.com/bobo-solr-results.png]
+[http://john.wang.googlepages.com/bobo-solr.png]
+
+== Shards ==
+
+Bobo-Solr request handler also supports sharding using the same request format as Solr, e.g.:
+
+{{{
+http://localhost:8983/solr/select?wt=bobo&qt=bobo&bobo.sel.category.val=suv&bobo.sel.color.val=green&bobo.groupby.color&bobo.groupby.category&bobo.groupby.tags&shards=localhost:8983/solr,jwang-md:8983/solr,jwang-md:8983/solr
+}}}
+
+Screenshot of the results:
+[http://john.wang.googlepages.com/bobo-solr-shard.png]
+
+ 
