@@ -19,7 +19,7 @@ public class BrowseHitConverter implements Converter {
 
 	public void marshal(Object obj, HierarchicalStreamWriter writer,
 			MarshallingContext ctx) {
-		
+		writer.startNode("hit");
 		BrowseHit hit=(BrowseHit)obj;
 		writer.addAttribute("score", String.valueOf(hit.getScore()));
 		writer.addAttribute("docid", String.valueOf(hit.getDocid()));
@@ -39,6 +39,7 @@ public class BrowseHitConverter implements Converter {
 				writer.endNode();
 			}
 		}
+		writer.endNode();
 	}
 
 	public Object unmarshal(HierarchicalStreamReader reader,
@@ -55,7 +56,7 @@ public class BrowseHitConverter implements Converter {
 		}
 		
 		int numFields=0;
-		String fieldCountString=reader.getAttribute("numFields");
+		String fieldCountString=reader.getAttribute("numfields");
 		if (fieldCountString!=null){
 			numFields=Integer.parseInt(fieldCountString);
 		}
@@ -64,14 +65,11 @@ public class BrowseHitConverter implements Converter {
 		hit.setFieldValues(fieldVals);
 		for (int i=0;i<numFields;++i){
 			reader.moveDown();
-			String nodeName=reader.getNodeName();
-			if ("field".equals(nodeName)){
-				String fieldname=reader.getAttribute("name");
-				String fieldval=reader.getValue();
-				String s2=fieldval.substring(1,fieldval.length()-1);
-				String[] parts=s2.split(", ");
-				fieldVals.put(fieldname, parts);
-			}
+			String fieldname=reader.getNodeName();
+			String fieldval = reader.getValue();
+			String s2=fieldval.substring(1,fieldval.length()-1);
+			String[] parts=s2.split(", ");
+			fieldVals.put(fieldname, parts);
 			reader.moveUp();
 		}
 		return hit;

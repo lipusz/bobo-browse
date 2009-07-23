@@ -44,8 +44,7 @@ public class BrowseResultConverter implements Converter {
 			
 			for (BrowseFacet facet : facetList){
 				writer.startNode("facet");
-				writer.addAttribute("value", String.valueOf(facet.getValue()));
-				writer.addAttribute("count", String.valueOf(facet.getHitCount()));
+				ctx.convertAnother(facet);
 				writer.endNode();
 			}
 			writer.endNode();
@@ -53,7 +52,13 @@ public class BrowseResultConverter implements Converter {
 		writer.endNode();
 		writer.startNode("hits");
 		BrowseHit[] hits=result.getHits();
-		ctx.convertAnother(hits);
+
+		writer.addAttribute("length", String.valueOf(hits==null ? 0 : hits.length));
+		
+		for (BrowseHit hit : hits){
+			ctx.convertAnother(hit);
+		}
+		
 		writer.endNode();
 	}
 
@@ -61,7 +66,7 @@ public class BrowseResultConverter implements Converter {
 			UnmarshallingContext ctx) {		
 		BrowseResult res=new BrowseResult();
 		
-		String numHitsString=reader.getAttribute("numHits");
+		String numHitsString=reader.getAttribute("numhits");
 		if (numHitsString!=null){
 			res.setNumHits(Integer.parseInt(numHitsString));
 		}
@@ -77,7 +82,7 @@ public class BrowseResultConverter implements Converter {
 		}
 		
 		Map<String,FacetAccessible> facetMap = new HashMap<String,FacetAccessible>();
-		if (reader.hasMoreChildren()){
+		while (reader.hasMoreChildren()){
 			reader.moveDown();
 			if ("facets".equals(reader.getNodeName())){
 				String facetCountString = reader.getAttribute("count");
@@ -94,11 +99,19 @@ public class BrowseResultConverter implements Converter {
 					}
 				}
 			}
+			else if ("hits".equals(reader.getNodeName())){
+				String countStr = reader.getAttribute("length");
+				int hitLen = Integer.parseInt(countStr);
+				BrowseHit[] hits = new BrowseHit[hitLen];
+				for (int i = 0; i< hitLen; ++i){
+					reader.moveDown();
+					hits[i]=(BrowseHit)ctx.convertAnother(res, BrowseHit.class);
+					reader.moveUp();
+				}
+				res.setHits(hits);
+			}
 			reader.moveUp();
 		}
-		
-		BrowseHit[] hits=(BrowseHit[])ctx.convertAnother(res,BrowseHit[].class);
-		res.setHits(hits);
 		return res;
 	}
 

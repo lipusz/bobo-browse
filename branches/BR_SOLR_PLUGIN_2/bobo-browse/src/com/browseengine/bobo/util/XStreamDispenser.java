@@ -19,6 +19,7 @@ import com.browseengine.bobo.service.BrowseResultConverter;
 import com.browseengine.bobo.service.FieldConfConverter;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.collections.ArrayConverter;
 import com.thoughtworks.xstream.io.HierarchicalStreamDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
