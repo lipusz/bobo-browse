@@ -81,7 +81,7 @@ public class TermDateList extends TermValueList {
 	}
 
 	@Override
-	protected String format(Object o) {
+	public String format(Object o) {
 		Long val=(Long)o;
 		if (_formatter == null)
 		{

@@ -46,9 +46,11 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   {
       BrowseFacet facet = null;
       int index=_dataCache.valArray.indexOf(value);
-      if (index >=0 )
-      {
+      if (index >=0 ){
           facet = new BrowseFacet(_dataCache.valArray.get(index),_count[index]);
+      }
+      else{
+    	facet = new BrowseFacet(_dataCache.valArray.format(value),0);  
       }
       return facet; 
   }

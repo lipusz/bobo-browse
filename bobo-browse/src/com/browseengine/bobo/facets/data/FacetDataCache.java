@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.List;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
@@ -24,12 +23,12 @@ public class FacetDataCache implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	public BigIntArray orderArray;
-	public List<String> valArray;
+	public TermValueList valArray;
 	public int[] freqs;
 	public int[] minIDs;
 	public int[] maxIDs;
 	
-	public FacetDataCache(BigIntArray orderArray,List<String> valArray,int[] freqs,int[] minIDs,int[] maxIDs)
+	public FacetDataCache(BigIntArray orderArray,TermValueList valArray,int[] freqs,int[] minIDs,int[] maxIDs)
 	{
 		this.orderArray=orderArray;
 		this.valArray=valArray;

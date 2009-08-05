@@ -43,7 +43,7 @@ public class TermCharList extends TermValueList {
 	}
 
 	@Override
-	protected String format(Object o) {
+	public String format(Object o) {
 		return String.valueOf(o);
 	}
 }
