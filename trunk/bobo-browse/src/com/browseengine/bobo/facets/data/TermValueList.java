@@ -19,7 +19,7 @@ import java.util.ListIterator;
 public abstract class TermValueList implements List<String> {
 	
 	protected abstract List<?> buildPrimitiveList(int capacity);
-	protected abstract String format(Object o);
+	public abstract String format(Object o);
 	public abstract void seal();
 	
 	protected List<?> _innerList;

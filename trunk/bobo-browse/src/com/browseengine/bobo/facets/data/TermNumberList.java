@@ -47,7 +47,7 @@ public abstract class TermNumberList extends TermValueList {
 	}
 
 	@Override
-	protected String format(Object o) {
+	public String format(Object o) {
 		if (_formatter == null)
 		{
 			return String.valueOf(o);

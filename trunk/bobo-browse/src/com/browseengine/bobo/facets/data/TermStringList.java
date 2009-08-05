@@ -28,7 +28,7 @@ public class TermStringList extends TermValueList {
 	}
 
 	@Override
-	protected String format(Object o) {
+	public String format(Object o) {
 		return (String)o;
 	}
 
