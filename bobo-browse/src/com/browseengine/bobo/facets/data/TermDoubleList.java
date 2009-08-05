@@ -53,4 +53,9 @@ public class TermDoubleList extends TermNumberList {
 		((DoubleArrayList)_innerList).trim();
 	}
 
+	@Override
+	protected Object parseString(String o) {
+		return parse(o);
+	}
+
 }

@@ -52,5 +52,10 @@ public class TermFloatList extends TermNumberList {
 	public void seal() {
 		((FloatArrayList)_innerList).trim();
 	}
+	
+	@Override
+	protected Object parseString(String o) {
+		return parse(o);
+	}
 
 }

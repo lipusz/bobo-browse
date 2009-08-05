@@ -45,9 +45,15 @@ public abstract class TermNumberList extends TermValueList {
 	{
 		return _formatString;
 	}
+	
+	protected abstract Object parseString(String o);
 
 	@Override
 	public String format(Object o) {
+		if (o == null) return null;
+		if (o instanceof String){
+			o = parseString((String)o);
+		}
 		if (_formatter == null)
 		{
 			return String.valueOf(o);

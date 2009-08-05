@@ -82,7 +82,13 @@ public class TermDateList extends TermValueList {
 
 	@Override
 	public String format(Object o) {
-		Long val=(Long)o;
+		Long val;
+		if (o instanceof String){
+			val = parse((String)o);
+		}
+		else{
+			val = (Long)o;
+		}
 		if (_formatter == null)
 		{
 			return String.valueOf(o);
