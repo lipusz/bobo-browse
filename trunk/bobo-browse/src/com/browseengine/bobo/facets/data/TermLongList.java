@@ -51,5 +51,10 @@ public class TermLongList extends TermNumberList {
 	public void seal() {
 		((LongArrayList)_innerList).trim();
 	}
+	
+	@Override
+	protected Object parseString(String o) {
+		return parse(o);
+	}
 
 }

@@ -52,4 +52,8 @@ public class TermIntList extends TermNumberList {
 		((IntArrayList)_innerList).trim();
 	}
 
+	@Override
+	protected Object parseString(String o) {
+		return parse(o);
+	}
 }
