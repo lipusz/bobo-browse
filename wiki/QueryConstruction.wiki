@@ -2,6 +2,8 @@
 
 = Introduction =
 
+*currently only available on the BR_DEV_2_1_0 branch*
+
 For the following type of boolean queries, we can leverage facet handlers' data structure to build highly performing Query objects with enhanced scoring flexibilities:
 
   * f1:v1^b1^ OR f1:v2^b2^ OR f1:v3^b3^ OR ...
