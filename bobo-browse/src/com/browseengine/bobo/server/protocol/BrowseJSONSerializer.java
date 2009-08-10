@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -61,8 +62,9 @@ public class BrowseJSONSerializer {
 	 * TODO: need to add support for multiple values.
 	 * @param doc
 	 * @return
+	 * @throws JSONException 
 	 */
-	public static JSONObject serializeValues(Map<String,String[]> values){
+	public static JSONObject serializeValues(Map<String,String[]> values) throws JSONException{
 		JSONObject obj=new JSONObject();
 		Iterator<String> iter=values.keySet().iterator();
 		while(iter.hasNext())
@@ -77,7 +79,7 @@ public class BrowseJSONSerializer {
 		return obj;
 	}
 	
-	public static JSONObject serializeHits(BrowseHit hit){
+	public static JSONObject serializeHits(BrowseHit hit) throws JSONException{
 		JSONObject obj=new JSONObject();
 		obj.put("doc",serializeValues(hit.getFieldValues()));
 		obj.put("docid", hit.getDocid());
@@ -85,7 +87,7 @@ public class BrowseJSONSerializer {
 		return obj;
 	}
 	
-	public static String serialize(BrowseResult result){
+	public static String serialize(BrowseResult result) throws JSONException{
 		JSONObject obj=new JSONObject();
 		if (result!=null){
 			obj.put("time",((double)result.getTime())/1000.0);			

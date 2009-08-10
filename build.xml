@@ -1,10 +1,11 @@
-<project name="browse-engine" default="dist" basedir=".">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="browse-engine" default="dist" basedir=".">
 	<property name="bobo.root" location="." />
 	<property name="dist" location="${bobo.root}/dist" />
 	
 	<property name="doc" location="${bobo.root}/doc"/>
 	
 	<property name="lib" location="lib" />
+	<property name="lib.master" location="${lib}/master" />
 	
 	<property name="bobo-browse" value="bobo-browse"/>
 	<property name="bobo-service" value="bobo-service"/>
@@ -23,7 +24,8 @@
 	<property name="test" value="test"/>
 	<property name="build.test" value="build-test"/>
 	
-	<property name="jetty.home" location="jetty" />
+	<property name="jetty.home" location="${lib}/jetty" />
+	<property name="lib.test" location="${lib}/test" />
 	
 	<property name="test.report.dir" location="${dist}/junit-reports" />
 	
@@ -33,9 +35,13 @@
 	<property name="carindex" value="${cardata}/cartag"/>
 	
 	<property file="${bobo.root}/version.properties" />
-
+	
+	 <property name="ivy.install.version" value="2.0.0-beta1"/>
+	 <property name="ivy.jar.dir" value="${basedir}/ivy"/>
+	 <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
+	 
 		
-	<target name="init">
+	<target name="init" depends="resolve">
 		<mkdir dir="${dist}" />
 		<mkdir dir="${build.test}" />
 	</target>
@@ -54,9 +60,28 @@
 					 dir="${bobo-perf}" target="clean"/>
     </target>
 	
+	
+	
+	<target name="download-ivy" unless="skip.download">
+		<mkdir dir="${ivy.jar.dir}"/>
+        <echo message="installing ivy..."/>
+        <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true"/>
+    </target>
+
+    <target name="install-ivy" depends="download-ivy" description="--> install ivy">
+        <path id="ivy.lib.path">
+            <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
+        </path>
+        <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+    </target>
+
 	<target name="perf" depends="jars">
-		<ant antfile="build.xml"
-					 dir="${bobo-perf}" target="perf"/>
+			<ant antfile="build.xml"
+			dir="${bobo-perf}" target="perf"/>
+		</target>
+
+	<target name="resolve" description="--> retrieve dependencies with ivy" depends="install-ivy">
+	    <ivy:retrieve pattern="${ivy.lib.dir}/[conf]/[artifact].[ext]" />
 	</target>
 
 	<target name="dist" depends="jars">
@@ -79,7 +104,7 @@
 	</target>		
 	
 	<path id="tools.class.path">
-	            <fileset dir="${lib}">
+	            <fileset dir="${lib.master}">
 	                <include name="*.jar"/>
 				</fileset>
 				<fileset dir="${dist}">
@@ -108,7 +133,7 @@
 			    <include name="bobo-browse-${version}.jar"/>
 			  	<include name="bobo-server-${version}.jar"/>
 			  </lib>
-			  <lib dir="${lib}" excludes="servlet-api.jar">
+			  <lib dir="${lib.master}" excludes="servlet-api.jar">
 			    <include name="*.jar"/>
 			  </lib>
 			  <classes dir="${resource}" excludes="web.xml" />
@@ -147,7 +172,7 @@
 		<mkdir dir="${logs}" />
 		<java fork="true" jar="${bobo.root}/zoie-server.jar" failonerror="true" maxmemory="1000m">
 								<sysproperty key="log.home" value="${logs}" />
-								<sysproperty key="conf.dir" value="${jetty.home}" />
+								<sysproperty key="conf.dir" value="${resource}" />
 								<jvmarg value="-server" />
 								<jvmarg value="-Dcom.sun.management.jmxremote" />
 								<jvmarg value="-Dcom.sun.management.jmxremote.port=9999" />
@@ -166,7 +191,10 @@
 	</target>
 	
 	<path id="test.compile.class.path">
-			<fileset dir="${lib}">
+			<fileset dir="${lib.master}">
+				<include name="*.jar" />
+			</fileset>
+			<fileset dir="${lib.test}">
 				<include name="*.jar" />
 			</fileset>
 			<fileset dir="${dist}">

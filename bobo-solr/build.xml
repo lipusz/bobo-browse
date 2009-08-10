@@ -1,7 +1,7 @@
 <project name="bobo-solr" default="dist">
 		<property name="bobo.root" location="../" />
 		<property name="src" value="src"/>
-        <property name="lib" value="${bobo.root}/lib"/>
+        <property name="lib.master" value="${bobo.root}/lib/master"/>
 	    <property name="solr-lib" value="lib"/>
         <property name="dist" value="${bobo.root}/dist"/>
 
@@ -10,7 +10,7 @@
         <property name="build" value="build"/>
     
         <path id="project.class.path">
-            <fileset dir="${lib}">
+            <fileset dir="${lib.master}">
                 <include name="*.jar"/>
 			</fileset>
         	<fileset dir="${solr-lib}">

@@ -51,7 +51,7 @@ public class BrowseJSONHandler extends ProtocolHandler {
 		else if (result instanceof JSONSerializable){
 			try {
 				resultString=JSONSerializer.serializeJSONObject((JSONSerializable)result).toString();
-			} catch (JSONSerializationException e) {
+			} catch (Exception e) {
 				throw new IOException(e.getMessage());
 			}
 		}

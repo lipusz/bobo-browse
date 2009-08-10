@@ -1,6 +1,6 @@
 <project name="bobo-perf" default="perf">
 		<property name="bobo.root" location="../" />
-        <property name="lib" value="${bobo.root}/lib"/>
+        <property name="lib.master" value="${bobo.root}/lib/master"/>
     	<property name="dist" value="${bobo.root}/dist"/>
 	    <property name="resource" value="${bobo.root}/resource"/>
 
@@ -11,7 +11,7 @@
 	  
 		
         <path id="project.class.path">
-        	<fileset dir="${lib}">
+        	<fileset dir="${lib.master}">
                 <include name="*.jar"/>
 			</fileset>
         	<fileset dir="${perf-lib}">
@@ -40,7 +40,7 @@
         <target name="perf" depends="compile">
         	<java fork="true" classname="com.browseengine.bobo.perf.BoboPerf" failonerror="true" maxmemory="5000m">
         		<classpath>
-        			<fileset dir="${lib}">
+        			<fileset dir="${lib.master}">
 				      <include name="**/*.jar"/>
 				    </fileset>
         			<fileset dir="${dist}">
