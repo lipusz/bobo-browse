@@ -33,6 +33,7 @@ import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.serialize.JSONSerializable.JSONSerializationException;
@@ -40,7 +41,7 @@ import com.browseengine.bobo.serialize.JSONSerializable.JSONSerializationExcepti
 public class JSONSerializer {
 	private static Logger logger=Logger.getLogger(JSONSerializer.class);
 	
-	private static void loadObject(Object array,Class type,int index,JSONArray jsonArray) throws JSONSerializationException{
+	private static void loadObject(Object array,Class type,int index,JSONArray jsonArray) throws JSONSerializationException,JSONException{
 		if (type.isPrimitive()){
 			if (type == Integer.TYPE){
 				Array.setInt(array, index, jsonArray.getInt(index));
@@ -139,7 +140,7 @@ public class JSONSerializer {
 		}
 	}
 	
-	public static JSONSerializable deSerialize(Class clz,JSONObject jsonObj) throws JSONSerializationException{
+	public static JSONSerializable deSerialize(Class clz,JSONObject jsonObj) throws JSONSerializationException,JSONException{
 		Iterator iter=jsonObj.keys();
 		
 		if (!JSONSerializable.class.isAssignableFrom(clz)){
@@ -192,7 +193,7 @@ public class JSONSerializer {
 		return retObj;
 	}
 	
-	private static void dumpObject(JSONObject jsonObj,Field f,JSONSerializable srcObj) throws JSONSerializationException{
+	private static void dumpObject(JSONObject jsonObj,Field f,JSONSerializable srcObj) throws JSONSerializationException,JSONException{
 		Object value;
 		try {
 			value = f.get(srcObj);
@@ -217,7 +218,7 @@ public class JSONSerializer {
 		}
 	}
 	
-	private static void dumpObject(JSONArray jsonArray,Class type,Object array,int index) throws JSONSerializationException{
+	private static void dumpObject(JSONArray jsonArray,Class type,Object array,int index) throws JSONSerializationException,JSONException{
 		if (type.isPrimitive()){
 			jsonArray.put(String.valueOf(Array.get(array, index)));
 		}
@@ -244,7 +245,7 @@ public class JSONSerializer {
 		}
 	}
 	
-	public static JSONObject serializeJSONObject(JSONSerializable obj) throws JSONSerializationException{
+	public static JSONObject serializeJSONObject(JSONSerializable obj) throws JSONSerializationException,JSONException{
 		if (obj instanceof JSONExternalizable){
 			return ((JSONExternalizable)obj).toJSON();
 		}
@@ -298,7 +299,7 @@ public class JSONSerializer {
 			
 			
 			
-			public void fromJSON(JSONObject obj) throws JSONSerializationException {
+			public void fromJSON(JSONObject obj) throws JSONSerializationException,JSONException {
 				map.clear();
 				Iterator iter=obj.keys();
 				while(iter.hasNext()){
@@ -308,7 +309,7 @@ public class JSONSerializer {
 				}
 			}
 
-			public JSONObject toJSON() throws JSONSerializationException {
+			public JSONObject toJSON() throws JSONSerializationException,JSONException {
 				JSONObject retVal=new JSONObject();
 				Iterator<String> iter=map.keySet().iterator();
 				while(iter.hasNext()){

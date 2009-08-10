@@ -1,14 +1,14 @@
 <project name="bobo-browse" default="dist">
 	    <property name="bobo.root" location="../"/>
 		<property name="src" value="src"/>
-        <property name="lib" value="${bobo.root}/lib"/>
+        <property name="lib.master" value="${bobo.root}/lib/master"/>
 	    <property name="dist" value="${bobo.root}/dist"/>
         <property name="build" value="build"/>
 	
 	    <property file="${bobo.root}/version.properties" />
 	
         <path id="project.class.path">
-            <fileset dir="${lib}">
+            <fileset dir="${lib.master}">
                 <include name="*.jar"/>
 			</fileset>
         </path>
