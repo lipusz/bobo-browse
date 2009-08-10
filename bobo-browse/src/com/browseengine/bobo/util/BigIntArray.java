@@ -16,6 +16,7 @@ public final class BigIntArray implements Serializable
 	
   private int[][] _array;
   private int _numrows;
+  private final int _size;
   /* Remember that 2^SHIFT_SIZE = BLOCK_SIZE */
   final private static int BLOCK_SIZE = 1024;
   final private static int SHIFT_SIZE = 10; 
@@ -29,6 +30,11 @@ public final class BigIntArray implements Serializable
     {
       _array[i]=new int[BLOCK_SIZE];
     }
+    _size = size;
+  }
+  
+  public int size(){
+	  return _size;
   }
   
   public void add(int docId, int val)

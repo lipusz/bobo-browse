@@ -3,11 +3,16 @@
  */
 package com.browseengine.bobo.util;
 
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.floats.FloatList;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
 import org.apache.lucene.util.OpenBitSet;
+
+import com.browseengine.bobo.query.scoring.FacetTermScoringFunction;
 
 /**
  * write-once big nested int array
@@ -28,6 +33,7 @@ public final class BigNestedIntArray
 
   private int _maxItems = MAX_ITEMS;
   private int[][] _list;
+  private int _size;
   
   static final private String[] EMPTY = new String[0];
 
@@ -312,6 +318,7 @@ public final class BigNestedIntArray
    */
   public final void load(int size, Loader loader) throws Exception
   {
+     _size = size;
     loader.initialize(size, _list);
     if(size > 0)
     {
@@ -320,6 +327,9 @@ public final class BigNestedIntArray
     _list = loader.finish();    
   }
   
+  public int size(){
+	  return _size;
+  }
   /**
    * gets an int data at [id][idx]
    * @param id
@@ -388,7 +398,7 @@ public final class BigNestedIntArray
    * @return
    */
   @SuppressWarnings("unchecked")
-  public String[] getTranslatedData(int id, List<String> valarray)
+  public final String[] getTranslatedData(int id, List<String> valarray)
   {
     final int[] page = (int[])_list[id >> PAGEID_SHIFT];
     
@@ -423,6 +433,29 @@ public final class BigNestedIntArray
         return ret;
       }
     }
+  }
+  
+  public final float getScores(int id,int[] freqs,float[] boosts,FacetTermScoringFunction function){
+	  function.clearScores();
+	  final int[] page = (int[])_list[id >> PAGEID_SHIFT];
+	  int val = page[id & SLOTID_MASK];
+	    
+      if(val >= 0)
+      {
+    	return function.score(freqs[val], boosts[val]);
+      }
+      else
+      {
+        final int num = (val & COUNT_MASK);
+        val >>= VALIDX_SHIFT; // signed shift, remember this is a negative number
+        int idx;
+        for(int i = 0; i < num; i++)
+        {
+          idx = page[i-val];
+          function.scoreAndCollect(freqs[idx],boosts[idx]);
+        }
+        return function.getCurrentScore();
+      }
   }
   
   public final int compare(int i,int j){

@@ -1,12 +1,17 @@
 package com.browseengine.bobo.facets.impl;
 
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.floats.FloatList;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.ScoreDocComparator;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -25,9 +30,12 @@ import com.browseengine.bobo.facets.filter.MultiValueORFacetFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
+import com.browseengine.bobo.query.scoring.BoboDocScorer;
+import com.browseengine.bobo.query.scoring.FacetScoreable;
+import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
 import com.browseengine.bobo.util.BigNestedIntArray;
 
-public class MultiValueFacetHandler extends FacetHandler implements FacetHandlerFactory 
+public class MultiValueFacetHandler extends FacetHandler implements FacetHandlerFactory,FacetScoreable 
 {
   private static Logger logger = Logger.getLogger(MultiValueFacetHandler.class);
 
@@ -204,8 +212,49 @@ public class MultiValueFacetHandler extends FacetHandler implements FacetHandler
     }
     return filter;
   }
+  
+  public BoboDocScorer getDocScorer(FacetTermScoringFunctionFactory scoringFunctionFactory,Map<String,Float> boostMap){
+		float[] boostList = BoboDocScorer.buildBoostList(_dataCache.valArray, boostMap);
+		return new MultiValueDocScorer(_dataCache,scoringFunctionFactory,boostList);
+  }
 
-
+  private static final class MultiValueDocScorer extends BoboDocScorer{
+		private final MultiValueFacetDataCache _dataCache;
+		private final BigNestedIntArray _array;
+		
+		MultiValueDocScorer(MultiValueFacetDataCache dataCache,FacetTermScoringFunctionFactory scoreFunctionFactory,float[] boostList){
+			super(scoreFunctionFactory.getFacetTermScoringFunction(dataCache.valArray.size(), dataCache._nestedArray.size()),boostList);
+			_dataCache = dataCache;
+			_array = _dataCache._nestedArray;
+		}
+		
+		@Override
+		public Explanation explain(int doc){
+			String[] vals = _array.getTranslatedData(doc, _dataCache.valArray);
+			
+			FloatList scoreList = new FloatArrayList(_dataCache.valArray.size());
+			ArrayList<Explanation> explList = new ArrayList<Explanation>(scoreList.size());
+			for (String val : vals)
+			{
+				int idx = _dataCache.valArray.indexOf(val);
+				if (idx>=0){
+				  scoreList.add(_function.score(_dataCache.freqs[idx], _boostList[idx]));
+				  explList.add(_function.explain(_dataCache.freqs[idx], _boostList[idx]));
+				}
+			}
+			Explanation topLevel = _function.explain(scoreList.toFloatArray());
+			for (Explanation sub : explList){
+				topLevel.addDetail(sub);
+			}
+			return topLevel;
+		}
+		
+		@Override
+		public final float score(int docid) {
+			return _array.getScores(docid, _dataCache.freqs, _boostList, _function);
+		}
+		
+	}
 
   private static final class MultiValueFacetCountCollector extends DefaultFacetCountCollector
   {
