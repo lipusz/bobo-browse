@@ -105,71 +105,6 @@ public class DispatchUtil {
 		}
 	}
 	
-	private static Map<String,FacetAccessible> mergeFacetContainer(Collection<Map<String,FacetAccessible>> subMaps,BrowseRequest req)
-	  {
-	    Map<String, Map<String, Integer>> counts = new HashMap<String, Map<String, Integer>>();
-	    for (Map<String,FacetAccessible> subMap : subMaps)
-	    {
-	      for(Map.Entry<String, FacetAccessible> entry : subMap.entrySet())
-	      {
-	        Map<String, Integer> count = counts.get(entry.getKey());
-	        if(count == null)
-	        {
-	          count = new HashMap<String, Integer>();
-	          counts.put(entry.getKey(), count);
-	        }
-	        for(BrowseFacet facet : entry.getValue().getFacets())
-	        {
-	          String val = facet.getValue();
-	          int oldValue = count.containsKey(val) ? count.get(val) : 0;
-	          count.put(val, oldValue + facet.getHitCount());
-	        }
-	      }
-	    }
-
-	    Map<String, FacetAccessible> mergedFacetMap = new HashMap<String, FacetAccessible>();
-	    for(String facet : counts.keySet())
-	    {
-	      Map<String, Integer> facetValueCounts = counts.get(facet);
-	      List<BrowseFacet> facets = new ArrayList<BrowseFacet>(facetValueCounts.size());
-	      for(Entry<String, Integer> entry : facetValueCounts.entrySet())
-	      {
-	        facets.add(new BrowseFacet(entry.getKey(), entry.getValue()));
-	      }
-	      Collections.sort(facets, new Comparator<BrowseFacet>()
-	      {
-	        public int compare(BrowseFacet f1, BrowseFacet f2)
-	        {
-	          int h1 = f1.getHitCount();
-	          int h2 = f2.getHitCount();
-
-	          int val = h2 - h1;
-
-	          if (val == 0)
-	          {
-	            val = f1.getValue().compareTo(f2.getValue());
-	          }
-	          return val;
-	        }
-	      });
-	      if (req != null)
-	      {
-	        FacetSpec fspec = req.getFacetSpec(facet);
-	        if (fspec!=null){
-	          int maxCount = fspec.getMaxCount();
-	          int numToShow = facets.size();
-	          if (maxCount>0){
-	        	  numToShow = Math.min(maxCount,numToShow);
-	          }
-	          facets = facets.subList(0, numToShow);
-	        }
-	      }
-	      MappedFacetAccessible mergedFacetAccessible = new MappedFacetAccessible(facets.toArray(new BrowseFacet[facets.size()]));
-	      mergedFacetMap.put(facet, mergedFacetAccessible);
-	    }
-	    return mergedFacetMap;
-	  }
-	
 	public static BrowseResult broadcast(ExecutorService threadPool,BoboSolrParams boboSolrParams,BrowseRequest req,String[] baseURL,int maxRetry){
 		long start = System.currentTimeMillis();
 		Future<BrowseResult>[] futureList = (Future<BrowseResult>[]) new Future[baseURL.length];
@@ -209,7 +144,7 @@ public class DispatchUtil {
 			catch (ExecutionException e) { logger.error(e.getMessage(),e); }
 		}
         
-        Map<String,FacetAccessible> mergedFacetMap = mergeFacetContainer(facetList,req);
+        Map<String,FacetAccessible> mergedFacetMap = ListMerger.mergeSimpleFacetContainers(facetList,req);
         Comparator<BrowseHit> comparator = new SortedFieldBrowseHitComparator(req.getSort());
         
         ArrayList<BrowseHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList.toArray(new Iterator[iteratorList.size()]), comparator);
