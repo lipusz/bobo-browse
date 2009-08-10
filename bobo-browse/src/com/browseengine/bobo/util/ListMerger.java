@@ -1,11 +1,22 @@
 package com.browseengine.bobo.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.lucene.util.PriorityQueue;
+
+import com.browseengine.bobo.api.BrowseFacet;
+import com.browseengine.bobo.api.BrowseRequest;
+import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.MappedFacetAccessible;
 
 /**
  * @author ymatsuda
@@ -144,5 +155,70 @@ public class ListMerger
     }
     
     return mergedList;
+  }
+  
+  public static Map<String,FacetAccessible> mergeSimpleFacetContainers(Collection<Map<String,FacetAccessible>> subMaps,BrowseRequest req)
+  {
+    Map<String, Map<String, Integer>> counts = new HashMap<String, Map<String, Integer>>();
+    for (Map<String,FacetAccessible> subMap : subMaps)
+    {
+      for(Map.Entry<String, FacetAccessible> entry : subMap.entrySet())
+      {
+        Map<String, Integer> count = counts.get(entry.getKey());
+        if(count == null)
+        {
+          count = new HashMap<String, Integer>();
+          counts.put(entry.getKey(), count);
+        }
+        for(BrowseFacet facet : entry.getValue().getFacets())
+        {
+          String val = facet.getValue();
+          int oldValue = count.containsKey(val) ? count.get(val) : 0;
+          count.put(val, oldValue + facet.getHitCount());
+        }
+      }
+    }
+
+    Map<String, FacetAccessible> mergedFacetMap = new HashMap<String, FacetAccessible>();
+    for(String facet : counts.keySet())
+    {
+      Map<String, Integer> facetValueCounts = counts.get(facet);
+      List<BrowseFacet> facets = new ArrayList<BrowseFacet>(facetValueCounts.size());
+      for(Entry<String, Integer> entry : facetValueCounts.entrySet())
+      {
+        facets.add(new BrowseFacet(entry.getKey(), entry.getValue()));
+      }
+      Collections.sort(facets, new Comparator<BrowseFacet>()
+      {
+        public int compare(BrowseFacet f1, BrowseFacet f2)
+        {
+          int h1 = f1.getHitCount();
+          int h2 = f2.getHitCount();
+
+          int val = h2 - h1;
+
+          if (val == 0)
+          {
+            val = f1.getValue().compareTo(f2.getValue());
+          }
+          return val;
+        }
+      });
+      if (req != null)
+      {
+        FacetSpec fspec = req.getFacetSpec(facet);
+        if (fspec!=null){
+          int maxCount = fspec.getMaxCount();
+          int numToShow = facets.size();
+          if (maxCount>0){
+        	  numToShow = Math.min(maxCount,numToShow);
+          }
+          facets = facets.subList(0, numToShow);
+        }
+      }
+      MappedFacetAccessible mergedFacetAccessible = new MappedFacetAccessible(facets.toArray(new BrowseFacet[facets.size()]));
+      mergedFacetMap.put(facet, mergedFacetAccessible);
+    }
+    return mergedFacetMap;
   }
 }
