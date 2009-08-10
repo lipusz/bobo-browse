@@ -41,6 +41,7 @@ import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.json.JSONException;
 
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseRequest;
@@ -175,8 +176,13 @@ public class BrowseServlet
 			
 			String outputFormat=req.getParameter("output");
 			if ("json".equals(outputFormat)){
-				String val=BrowseJSONSerializer.serialize(result);
-				writer.write(val);
+				try{
+				  String val=BrowseJSONSerializer.serialize(result);
+				  writer.write(val);
+				}
+				catch(JSONException je){
+					throw new IOException(je.getMessage());
+				}
 			}
 			else{
 				XStream xstream=XStreamDispenser.getXMLXStream();

@@ -38,7 +38,7 @@ public class JSONHandler extends ProtocolHandler {
 		try {
 			jsonObj = JSONSerializer.serializeJSONObject((JSONSerializable)result);
 			return jsonObj.toString().getBytes("UTF-8");
-		} catch (JSONSerializationException e) {
+		} catch (Exception e) {
 			throw new IOException(e.getMessage());
 		}
 		
