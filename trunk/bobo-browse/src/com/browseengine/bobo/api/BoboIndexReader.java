@@ -161,7 +161,11 @@ public class BoboIndexReader extends FilterIndexReader
       long start = System.currentTimeMillis();
       facetHandler.load(this, workArea);
       long end = System.currentTimeMillis();
-      logger.info("facetHandler loaded: " + name + ", took: " + (end - start) + " ms");
+      if (logger.isDebugEnabled()){
+    	StringBuffer buf = new StringBuffer();
+    	buf.append("facetHandler loaded: ").append(name).append(", took: ").append(end-start).append(" ms");
+        logger.debug(buf.toString());
+      }
       loaded.add(name);
     }
   }
@@ -184,7 +188,7 @@ public class BoboIndexReader extends FilterIndexReader
       catch (Exception ioe)
       {
         tobeRemoved.add(name);
-        logger.info("facet load failed: " + name + ": " + ioe.getMessage(), ioe);
+        logger.error("facet load failed: " + name + ": " + ioe.getMessage(), ioe);
       }
     }
 
