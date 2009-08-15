@@ -222,14 +222,12 @@ public class BrowseProtobufConverter {
 		}
 		return selBuilder.build();
 	}
-	
+
 	public static BrowseRequestBPO.Request convert(BrowseRequest req){
-		Query q = req.getQuery();
-		String qString = null;
-		if (q!=null){
-			qString = q.toString();
-		}
-		
+		return convert(req,null);
+	}
+	
+	public static BrowseRequestBPO.Request convert(BrowseRequest req,String qString){
 		BrowseRequestBPO.Request.Builder reqBuilder = BrowseRequestBPO.Request.newBuilder();
 		reqBuilder.setOffset(req.getOffset());
 		reqBuilder.setCount(req.getCount());
