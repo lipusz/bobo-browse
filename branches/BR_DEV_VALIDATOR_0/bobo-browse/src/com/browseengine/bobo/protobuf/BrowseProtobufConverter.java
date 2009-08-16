@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 
@@ -227,7 +228,10 @@ public class BrowseProtobufConverter {
 		Query q = req.getQuery();
 		String qString = null;
 		if (q!=null){
-			qString = q.toString();
+			if (q instanceof MatchAllDocsQuery)
+				qString = "*:*";
+			else
+				qString = q.toString();
 		}
 		
 		BrowseRequestBPO.Request.Builder reqBuilder = BrowseRequestBPO.Request.newBuilder();
