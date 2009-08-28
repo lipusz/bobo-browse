@@ -23,6 +23,15 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   protected final BrowseSelection _sel;
   protected final BigIntArray _array;
   
+  public static class FacetHitsComparator implements Comparator<BrowseFacet>{
+
+	public int compare(BrowseFacet o1, BrowseFacet o2) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	  
+  }
+  
   public DefaultFacetCountCollector(BrowseSelection sel,FacetDataCache dataCache,String name,FacetSpec ospec)
   {
       _sel = sel;
@@ -69,7 +78,8 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 
           List<BrowseFacet> facetColl;
           List<String> valList=_dataCache.valArray;
-          if (_ospec.getOrderBy() == FacetSortSpec.OrderValueAsc)
+          FacetSortSpec sortspec = _ospec.getOrderBy();
+          if (sortspec == FacetSortSpec.OrderValueAsc)
           {
               facetColl=new ArrayList<BrowseFacet>(max);
               for (int i = 1; i < _count.length;++i) // exclude zero
@@ -83,7 +93,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
                 if (facetColl.size()>=max) break;
               }
           }
-          else
+          else //if (sortspec == FacetSortSpec.OrderHitsDesc)
           {
               facetColl=new LinkedList<BrowseFacet>();    
               BoundedPriorityQueue<Integer> pq=new BoundedPriorityQueue<Integer>(new Comparator<Integer>(){

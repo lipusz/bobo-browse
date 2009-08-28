@@ -1,6 +1,7 @@
 package com.browseengine.bobo.api;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
 /**
  * specifies how facets are to be returned for a browse
@@ -26,13 +27,19 @@ public class FacetSpec implements Serializable {
 		/**
 		 * Order by the facet hit counts in descending order
 		 */
-		OrderHitsDesc
+		OrderHitsDesc,
+		
+		/**
+		 * custom order, must have a comparator
+		 */
+		OrderByCustom
 	}
 			
 	private FacetSortSpec orderBy;
 	private int max;
 	private boolean expandSelection;
 	private int minCount;
+	private Comparator<BrowseFacet> _comparator;
 
 	/**
 	 * Constructor.
@@ -42,7 +49,16 @@ public class FacetSpec implements Serializable {
 		orderBy=FacetSortSpec.OrderValueAsc;
 		minCount=1;
 		expandSelection = false;
+		_comparator = null;
 	}				
+	
+	public void setCustomComparator(Comparator<BrowseFacet> comparator){
+		_comparator = comparator;
+	}
+	
+	public Comparator<BrowseFacet> getCustomComparator(){
+		return _comparator;
+	}
 	
     /**
 	 * Sets the minimum number of hits a choice would need to have to be returned.
