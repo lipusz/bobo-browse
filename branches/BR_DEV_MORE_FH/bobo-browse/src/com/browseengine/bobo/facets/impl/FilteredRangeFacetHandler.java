@@ -44,7 +44,7 @@ public class FilteredRangeFacetHandler extends FacetHandler implements FacetHand
 	@Override
 	public RandomAccessFilter buildRandomAccessOrFilter(String[] vals,
 			Properties prop, boolean isNot) throws IOException {
-		return buildRandomAccessOrFilter(vals, prop, isNot);
+		return _innerHandler.buildRandomAccessOrFilter(vals, prop, isNot);
 	}
 
 	@Override
