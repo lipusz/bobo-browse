@@ -34,6 +34,10 @@ public abstract class TermValueList implements List<String> {
 		_innerList=buildPrimitiveList(capacity);
 	}
 	
+	public List<?> getInnerList(){
+		return _innerList;
+	}
+	
 	abstract public boolean add(String o);
 
 	public void add(int index, String element)
@@ -153,5 +157,20 @@ public abstract class TermValueList implements List<String> {
 	public <T> T[] toArray(T[] a) {
 		List<String> l = subList(0,size());
 		return l.toArray(a);
+	}
+	
+	public static void main(String[] args) {
+		int numIter = 5000000;
+		TermIntList list = new TermIntList();
+		for (int i=0;i<numIter;++i){
+			list.add(String.valueOf(i));
+		}
+		long start = System.currentTimeMillis();
+		List<?> rawList = list.getInnerList();
+		for (int i=0;i<numIter;++i){
+			rawList.get(i);
+		}
+		long end = System.currentTimeMillis();
+		System.out.println("took: "+(end-start));
 	}
 }

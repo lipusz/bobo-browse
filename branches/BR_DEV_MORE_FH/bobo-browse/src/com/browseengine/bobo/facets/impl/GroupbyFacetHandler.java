@@ -26,6 +26,7 @@ public class GroupbyFacetHandler extends FacetHandler implements FacetHandlerFac
 	private final LinkedHashSet<String> _fieldsSet;
 	private ArrayList<FacetHandler> _facetHandlers;
 	private Map<String,FacetHandler> _facetHandlerMap;
+	
 	public GroupbyFacetHandler(String name, LinkedHashSet<String> dependsOn) {
 		super(name, dependsOn);
 		_fieldsSet = dependsOn;
@@ -37,8 +38,14 @@ public class GroupbyFacetHandler extends FacetHandler implements FacetHandlerFac
 	public RandomAccessFilter buildRandomAccessFilter(String value,
 			Properties selectionProperty) throws IOException {
 		List<RandomAccessFilter> filterList = new ArrayList<RandomAccessFilter>();
-		//RandomAccessAndFilter andFilter = new RandomAccessAndFilter(filters)
-		return null;
+		String[] vals = value.split(",");
+		for (int i = 0;i<vals.length;++i){
+			if (vals[i].length()>0){
+				FacetHandler handler = _facetHandlers.get(i);
+				filterList.add(handler.buildRandomAccessFilter(vals[i], selectionProperty));
+			}
+		}
+		return new RandomAccessAndFilter(filterList);
 	}
 
 	@Override
@@ -169,6 +176,8 @@ public class GroupbyFacetHandler extends FacetHandler implements FacetHandlerFac
 		}
 
 		public BrowseFacet getFacet(String value) {
+			String[] vals = value.split(",");
+			
 			// TODO Auto-generated method stub
 			return null;
 		}

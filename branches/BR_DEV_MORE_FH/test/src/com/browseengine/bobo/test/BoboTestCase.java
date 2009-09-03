@@ -77,6 +77,7 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
+import com.browseengine.bobo.facets.impl.FilteredRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
@@ -126,29 +127,11 @@ public class BoboTestCase extends TestCase {
         throw ioe;
       }
 	}
-	
-	private BoboIndexReader newIndexReader2() throws IOException{
-      IndexReader srcReader=IndexReader.open(_indexDir);
-      try{
-        BoboIndexReader reader= BoboIndexReader.getInstance(srcReader,_fconf);
-        return reader;
-      }
-      catch(IOException ioe){
-        if (srcReader!=null){
-          srcReader.close();
-        }
-        throw ioe;
-      }
-    }
-	
+
 	private BoboBrowser newBrowser() throws IOException{
 	  return new BoboBrowser(newIndexReader());
 	}
-	
-	private BoboBrowser newBrowser2() throws IOException{
-      return new BoboBrowser(newIndexReader2());
-    }
-	
+		
 	public static Field buildMetaField(String name,String val)
 	{
 	  Field f = new Field(name,val,Field.Store.NO,Index.NOT_ANALYZED_NO_NORMS);
@@ -1549,10 +1532,24 @@ public class BoboTestCase extends TestCase {
 		
 	}
 	
+	public void testRuntimeFilteredDateRanage() throws Exception{
+		BoboBrowser browser = newBrowser();
+		String[] ranges = new String[]{"[2001/01/01 TO 2001/12/30]","[2007/01/01 TO 2007/12/30]"};
+		FilteredRangeFacetHandler handler = new FilteredRangeFacetHandler("filtered_date", "date",Arrays.asList(ranges));
+		browser.setFacetHandler(handler);
+		
+		BrowseRequest req = new BrowseRequest();
+		req.setFacetSpec("filtered_date", new FacetSpec());
+		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+	    answer.put("filtered_date", Arrays.asList(new BrowseFacet[]{new BrowseFacet("[2001/01/01 TO 2001/12/30]",1),new BrowseFacet("[2007/01/01 TO 2007/12/30]",1)}));
+	      
+		doTest(browser,req,7,answer,null);
+	}
+	
 	public static void main(String[] args)throws Exception {
-		BoboTestCase test=new BoboTestCase("testDate");
+		BoboTestCase test=new BoboTestCase("testRuntimeFilteredDateRanage");
 		test.setUp();
-		test.testDefaultBrowse();
+		test.testRuntimeFilteredDateRanage();
 		test.tearDown();
 	}
 }
