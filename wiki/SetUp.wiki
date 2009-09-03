@@ -16,7 +16,7 @@ Assuming checked out to ~/bobo-trunk:
 ==Run cardemo app:==
 
  * In ~/bobo-trunk, do ant run-cardemo
- * cardemo should be deployed at: http://localhost:8080/cars/
+ * cardemo should be deployed at: http://localhost:8888/cars/
 
 cars.war is generated under cardemo/
 
