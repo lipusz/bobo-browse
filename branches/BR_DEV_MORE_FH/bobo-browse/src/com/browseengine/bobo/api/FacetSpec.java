@@ -39,7 +39,7 @@ public class FacetSpec implements Serializable {
 	private int max;
 	private boolean expandSelection;
 	private int minCount;
-	private Comparator<BrowseFacet> _comparator;
+	private ComparatorFactory _comparatorFactory;
 
 	/**
 	 * Constructor.
@@ -49,15 +49,15 @@ public class FacetSpec implements Serializable {
 		orderBy=FacetSortSpec.OrderValueAsc;
 		minCount=1;
 		expandSelection = false;
-		_comparator = null;
+		_comparatorFactory = null;
 	}				
 	
-	public void setCustomComparator(Comparator<BrowseFacet> comparator){
-		_comparator = comparator;
+	public void setCustomComparatorFactory(ComparatorFactory comparatorFactory){
+		_comparatorFactory = comparatorFactory;
 	}
 	
-	public Comparator<BrowseFacet> getCustomComparator(){
-		return _comparator;
+	public ComparatorFactory getCustomComparatorFactory(){
+		return _comparatorFactory;
 	}
 	
     /**

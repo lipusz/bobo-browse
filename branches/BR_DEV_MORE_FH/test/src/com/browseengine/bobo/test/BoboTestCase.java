@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -68,6 +69,7 @@ import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.MultiBoboBrowser;
@@ -76,6 +78,7 @@ import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
+import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.FilteredRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
@@ -1546,10 +1549,64 @@ public class BoboTestCase extends TestCase {
 		doTest(browser,req,7,answer,null);
 	}
 	
+	public void testCustomFacetSort() throws Exception{
+		BrowseRequest req = new BrowseRequest();
+		FacetSpec numberSpec = new FacetSpec();
+		numberSpec.setCustomComparatorFactory(new ComparatorFactory() {
+			
+			public Comparator<Integer> newComparator(final TermValueList valueList,
+					final int[] counts) {
+				final List<?> rawList = valueList.getInnerList();
+				
+				return new Comparator<Integer>(){
+
+					public int compare(Integer v1, Integer v2) {
+						Integer size1 = (Integer)rawList.get(v1);
+						Integer size2 = (Integer)rawList.get(v2);
+						
+						int val = size1-size2;
+						if (val == 0){
+							val = counts[v1]-counts[v2];
+						}
+						return val;
+					}
+					
+				};
+			}
+
+			public Comparator<BrowseFacet> newComparator() {
+				return new Comparator<BrowseFacet>(){
+					public int compare(BrowseFacet o1, BrowseFacet o2) {
+						int v1 = Integer.parseInt(o1.getValue());
+						int v2 = Integer.parseInt(o2.getValue());
+						int val = v1-v2;
+						if (val == 0){
+							val = o1.getHitCount()-o2.getHitCount();
+						}
+						return val;
+					}
+				};
+			}
+		});
+		numberSpec.setOrderBy(FacetSortSpec.OrderByCustom);
+		numberSpec.setMaxCount(3);
+		req.setFacetSpec("number", numberSpec);
+		
+		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+	    answer.put("number", Arrays.asList(new BrowseFacet[]{new BrowseFacet("2130",1),new BrowseFacet("1013",1),new BrowseFacet("0913",1)})); 
+	    
+		doTest(req,7,answer,null);
+		
+		numberSpec.setOrderBy(FacetSortSpec.OrderValueAsc);
+		answer.put("number", Arrays.asList(new BrowseFacet[]{new BrowseFacet("0005",1),new BrowseFacet("0010",1),new BrowseFacet("0011",1)})); 
+	    
+		doTest(req,7,answer,null);
+	}
+	
 	public static void main(String[] args)throws Exception {
-		BoboTestCase test=new BoboTestCase("testRuntimeFilteredDateRanage");
+		BoboTestCase test=new BoboTestCase("testCustomFacetSort");
 		test.setUp();
-		test.testRuntimeFilteredDateRanage();
+		test.testCustomFacetSort();
 		test.tearDown();
 	}
 }
