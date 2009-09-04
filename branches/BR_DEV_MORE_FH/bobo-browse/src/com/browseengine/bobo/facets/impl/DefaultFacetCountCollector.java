@@ -25,15 +25,6 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   protected final BrowseSelection _sel;
   protected final BigIntArray _array;
   
-  public static class FacetHitsComparator implements Comparator<BrowseFacet>{
-
-	public int compare(BrowseFacet o1, BrowseFacet o2) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-	  
-  }
-  
   public DefaultFacetCountCollector(BrowseSelection sel,FacetDataCache dataCache,String name,FacetSpec ospec)
   {
       _sel = sel;
