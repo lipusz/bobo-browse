@@ -4,10 +4,10 @@ import java.util.Comparator;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.ComparatorFactory;
-import com.browseengine.bobo.facets.data.TermValueList;
+import com.browseengine.bobo.api.FieldValueAccessor;
 
 public class FacetHitcountComparatorFactory implements ComparatorFactory {
-	public Comparator<Integer> newComparator(TermValueList valueList,
+	public Comparator<Integer> newComparator(FieldValueAccessor valueList,
 			final int[] counts) {
 		return new Comparator<Integer>(){
 

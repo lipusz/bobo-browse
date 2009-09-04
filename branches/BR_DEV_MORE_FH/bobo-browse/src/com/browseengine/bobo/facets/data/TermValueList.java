@@ -16,7 +16,7 @@ import java.util.ListIterator;
  *   <li> {@link #seal()} is introduce to trim the List size, similar to {@link ArrayList#trimToSize()}, once it is called, no add should be performed.</li>
  *   </u>
  */
-public abstract class TermValueList implements List<String> {
+public abstract class TermValueList implements List<String>{
 	
 	protected abstract List<?> buildPrimitiveList(int capacity);
 	public abstract String format(Object o);
@@ -160,7 +160,7 @@ public abstract class TermValueList implements List<String> {
 	}
 	
 	public static void main(String[] args) {
-		int numIter = 5000000;
+		int numIter = 20000;
 		TermIntList list = new TermIntList();
 		for (int i=0;i<numIter;++i){
 			list.add(String.valueOf(i));

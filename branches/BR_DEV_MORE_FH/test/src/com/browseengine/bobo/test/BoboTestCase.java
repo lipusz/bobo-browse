@@ -72,6 +72,7 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
@@ -1554,15 +1555,14 @@ public class BoboTestCase extends TestCase {
 		FacetSpec numberSpec = new FacetSpec();
 		numberSpec.setCustomComparatorFactory(new ComparatorFactory() {
 			
-			public Comparator<Integer> newComparator(final TermValueList valueList,
+			public Comparator<Integer> newComparator(final FieldValueAccessor fieldValueAccessor,
 					final int[] counts) {
-				final List<?> rawList = valueList.getInnerList();
 				
 				return new Comparator<Integer>(){
 
 					public int compare(Integer v1, Integer v2) {
-						Integer size1 = (Integer)rawList.get(v1);
-						Integer size2 = (Integer)rawList.get(v2);
+						Integer size1 = (Integer)fieldValueAccessor.getRawValue(v1);
+						Integer size2 = (Integer)fieldValueAccessor.getRawValue(v2);
 						
 						int val = size1-size2;
 						if (val == 0){
