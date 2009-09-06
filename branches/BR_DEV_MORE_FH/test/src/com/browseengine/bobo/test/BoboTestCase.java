@@ -33,6 +33,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -79,20 +80,19 @@ import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
-import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.FilteredRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
+import com.browseengine.bobo.facets.impl.SimpleGroupbyFacetHandler;
 import com.browseengine.bobo.index.BoboIndexer;
 import com.browseengine.bobo.index.digest.DataDigester;
 import com.browseengine.bobo.query.scoring.FacetTermQuery;
 
 public class BoboTestCase extends TestCase {
 	private Directory _indexDir;
-	private Directory _indexDir2;
 	private List<FacetHandler> _fconf;
 	static final private Term tagSizePayloadTerm = new Term("tagSizePayload", "size");
 	
@@ -351,170 +351,7 @@ public class BoboTestCase extends TestCase {
 		
 		return dataList.toArray(new Document[dataList.size()]);
 	}
-	/**
-	public static Document[] buildData2(){
-      ArrayList<Document> dataList=new ArrayList<Document>();
-      
-      Document d1=new Document();
-      d1.add(buildMetaField("id","1001"));
-      d1.add(buildMetaField("shape","square"));
-      d1.add(buildMetaField("color","blue"));
-      d1.add(buildMetaField("size","1"));
-      d1.add(buildMetaField("location","toy/lego/block/"));
-      d1.add(buildMetaField("tag","cat"));
-      d1.add(buildMetaField("tag","dog"));
-      d1.add(buildMetaField("tag","giraffe"));  
-      d1.add(buildMetaSizePayloadField(tagSizePayloadTerm,3));
-      d1.add(buildMetaField("number","0100"));
-      d1.add(buildMetaField("date","2004/03/16"));
-      d1.add(buildMetaField("name","arnold"));
-      d1.add(buildMetaField("char","k"));
-      d1.add(buildMetaField("date_range_start","200001"));
-      d1.add(buildMetaField("date_range_end","200003"));
-      d1.add(buildMetaField("multinum","001"));
-      d1.add(buildMetaField("multinum","003"));
-      d1.add(buildMetaField("compactnum","001"));
-      d1.add(buildMetaField("compactnum","003"));
-      
-      Document d2=new Document();
-      d2.add(buildMetaField("id","1002"));
-      d2.add(buildMetaField("shape","circle"));
-      d2.add(buildMetaField("color","purple"));
-      d2.add(buildMetaField("size","9"));
-      d2.add(buildMetaField("location","toy/lego/block/"));
-      d2.add(buildMetaField("tag","giraffe"));
-      d2.add(buildMetaField("tag","rhino"));
-      d2.add(buildMetaSizePayloadField(tagSizePayloadTerm,2));
-      d2.add(buildMetaField("number","0011"));
-      d2.add(buildMetaField("date","2003/02/14"));
-      d2.add(buildMetaField("name","jimmy"));
-      d2.add(buildMetaField("char","i"));
-      d2.add(buildMetaField("date_range_start","200008"));
-      d2.add(buildMetaField("date_range_end","200102"));
-      d2.add(buildMetaField("multinum","009"));
-      d2.add(buildMetaField("multinum","004"));
-      d2.add(buildMetaField("compactnum","002"));
-      d2.add(buildMetaField("compactnum","006"));
-      
-      Document d3=new Document();
-      d3.add(buildMetaField("id","1003"));
-      d3.add(buildMetaField("shape","circle"));
-      d3.add(buildMetaField("color","green"));
-      d3.add(buildMetaField("size","6"));
-      d3.add(buildMetaField("location","toy/lego/"));
-      d3.add(buildMetaField("tag","rabbit"));
-      d3.add(buildMetaField("tag","cartoon"));
-      d3.add(buildMetaField("tag","funny"));   
-      d3.add(buildMetaSizePayloadField(tagSizePayloadTerm,3));
-      d3.add(buildMetaField("number","0230"));
-      d3.add(buildMetaField("date","2001/12/25"));
-      d3.add(buildMetaField("name","dean"));
-      d3.add(buildMetaField("char","j"));
-      d3.add(buildMetaField("date_range_start","200101"));
-      d3.add(buildMetaField("date_range_end","200112"));
-      d3.add(buildMetaField("multinum","007"));
-      d3.add(buildMetaField("multinum","012"));
-      d3.add(buildMetaField("compactnum","007"));
-      d3.add(buildMetaField("compactnum","012"));
-      
-      Document d4=new Document();
-      d4.add(buildMetaField("id","1004"));
-      d4.add(buildMetaField("shape","circle"));
-      d4.add(buildMetaField("color","blue"));
-      d4.add(buildMetaField("size","1"));
-      d4.add(buildMetaField("location","toy/"));
-      d4.add(buildMetaField("tag","store"));
-      d4.add(buildMetaField("tag","pet"));
-      d4.add(buildMetaField("tag","animal"));      
-      d4.add(buildMetaSizePayloadField(tagSizePayloadTerm,3));
-      d4.add(buildMetaField("number","0913"));
-      d4.add(buildMetaField("date","2004/11/24"));
-      d4.add(buildMetaField("name","cathy"));
-      d4.add(buildMetaField("char","c"));
-      d4.add(buildMetaField("date_range_start","200105"));
-      d4.add(buildMetaField("date_range_end","200205"));
-      d4.add(buildMetaField("multinum","007"));
-      d4.add(buildMetaField("date_range_end","200205"));
-      d4.add(buildMetaField("multinum","007"));
-      d4.add(buildMetaField("compactnum","007"));
-      
-      Document d5=new Document();
-      d5.add(buildMetaField("id","1005"));
-      d5.add(buildMetaField("shape","square"));
-      d5.add(buildMetaField("color","blue"));
-      d5.add(buildMetaField("size","9"));
-      d5.add(buildMetaField("location","toy/lego/"));
-      d5.add(buildMetaField("tag","cartoon"));
-      d5.add(buildMetaField("tag","elegant"));
-      d5.add(buildMetaField("tag","mouse"));  
-      d5.add(buildMetaSizePayloadField(tagSizePayloadTerm,3));
-      d5.add(buildMetaField("number","1013"));
-      d5.add(buildMetaField("date","2002/03/08"));
-      d5.add(buildMetaField("name","mike"));
-      d5.add(buildMetaField("char","m"));
-      d5.add(buildMetaField("date_range_start","200212"));
-      d5.add(buildMetaField("date_range_end","200312"));
-      d5.add(buildMetaField("multinum","001"));
-      d5.add(buildMetaField("multinum","001"));
-      d5.add(buildMetaField("compactnum","001"));
-      d5.add(buildMetaField("compactnum","001"));
-      
-      Document d6=new Document();
-      d6.add(buildMetaField("id","1006"));
-      d6.add(buildMetaField("shape","rectangle"));
-      d6.add(buildMetaField("color","green"));
-      d6.add(buildMetaField("size","1"));
-      d6.add(buildMetaField("location","toy/lego/block/"));
-      d6.add(buildMetaField("tag","funny"));
-      d6.add(buildMetaField("tag","humor"));
-      d6.add(buildMetaField("tag","joke"));        
-      d6.add(buildMetaSizePayloadField(tagSizePayloadTerm,3));
-      d6.add(buildMetaField("number","2130"));
-      d6.add(buildMetaField("date","2007/08/08"));
-      d6.add(buildMetaField("name","david"));
-      d6.add(buildMetaField("char","t"));
-      d6.add(buildMetaField("date_range_start","200106"));
-      d6.add(buildMetaField("date_range_end","200301"));
-      d6.add(buildMetaField("multinum","001"));
-      d6.add(buildMetaField("multinum","002"));
-      d6.add(buildMetaField("multinum","003"));
-      d6.add(buildMetaField("compactnum","001"));
-      d6.add(buildMetaField("compactnum","002"));
-      d6.add(buildMetaField("compactnum","003"));
-      
-      Document d7=new Document();
-      d7.add(buildMetaField("id","1007"));
-      d7.add(buildMetaField("shape","square"));
-      d7.add(buildMetaField("color","red"));
-      d7.add(buildMetaField("size","8"));
-      d7.add(buildMetaField("location","toy/lego/"));
-      d7.add(buildMetaField("tag","humane"));
-      d7.add(buildMetaField("tag","dog"));
-      d7.add(buildMetaField("tag","rabbit"));  
-      d7.add(buildMetaSizePayloadField(tagSizePayloadTerm,3));
-      d7.add(buildMetaField("number","0005"));
-      d7.add(buildMetaField("date","2004/09/02"));
-      d7.add(buildMetaField("name","stewart"));
-      d7.add(buildMetaField("char","m"));
-      d7.add(buildMetaField("date_range_start","200011"));
-      d7.add(buildMetaField("date_range_end","200212"));
-      d7.add(buildMetaField("multinum","008"));
-      d7.add(buildMetaField("multinum","003"));
-      d7.add(buildMetaField("compactnum","008"));
-      d7.add(buildMetaField("compactnum","003"));
-      
-      dataList.add(d1);
-      dataList.add(d2);
-      dataList.add(d3);
-      dataList.add(d4);
-      dataList.add(d5);
-      dataList.add(d6);
-      dataList.add(d7);
-      
-      
-      return dataList.toArray(new Document[dataList.size()]);
-  }
-	**/
+	
 	private Directory createIndex(){
 		RAMDirectory idxDir=new RAMDirectory();
 		
@@ -537,26 +374,7 @@ public class BoboTestCase extends TestCase {
 		return idxDir;
 		
 	}
-	/**
-	private Directory createIndex2(){
-      RAMDirectory idxDir=new RAMDirectory();
-      
-      try {
-          Document[] data=buildData2();
-          
-          TestDataDigester testDigester=new TestDataDigester(_fconf,data);
-          BoboIndexer indexer=new BoboIndexer(testDigester,idxDir);
-          indexer.index();
-      } catch (UnsupportedEncodingException e) {
-          e.printStackTrace();
-      } catch (IOException e) {
-          e.printStackTrace();
-      }
-
-      return idxDir;
-      
-  }
-	**/
+	
 	public static List<FacetHandler> buildFieldConf(){
 		List<FacetHandler> facetHandlers = new ArrayList<FacetHandler>();
 		facetHandlers.add(new SimpleFacetHandler("id"));
@@ -579,7 +397,12 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(new MultiValueFacetHandler("multinum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new CompactMultiValueFacetHandler("compactnum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new SimpleFacetHandler("storenum", new PredefinedTermListFactory(Long.class, null)));
-		//multiProp.setProperty("display","000"); could not find a place for this
+		
+		LinkedHashSet<String> dependsNames=new LinkedHashSet<String>();
+		dependsNames.add("color");
+		dependsNames.add("shape");
+		dependsNames.add("number");
+		facetHandlers.add(new SimpleGroupbyFacetHandler("groupby", dependsNames));
 	    		
 		return facetHandlers;
 	}
@@ -1603,10 +1426,42 @@ public class BoboTestCase extends TestCase {
 		doTest(req,7,answer,null);
 	}
 	
+	public void testSimpleGroupbyFacetHandler() throws Exception{
+		BrowseRequest req = new BrowseRequest();
+		FacetSpec fspec = new FacetSpec();
+		req.setFacetSpec("groupby", fspec);
+		
+		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+	    answer.put("groupby", Arrays.asList(new BrowseFacet[]{new BrowseFacet("red,rectangle,0011",1),new BrowseFacet("red,square,0005",1),new BrowseFacet("red,square,0010",1)})); 
+	    
+	    BrowseSelection sel=new BrowseSelection("groupby");
+	    sel.addValue("red");
+	    req.addSelection(sel);
+
+		doTest(req,3,answer,null);
+		
+	    sel.setValues(new String[]{"red,square"});
+	    answer.put("groupby", Arrays.asList(new BrowseFacet[]{new BrowseFacet("red,square,0005",1),new BrowseFacet("red,square,0010",1)})); 
+	    
+		doTest(req,2,answer,null);
+		
+		sel.setValues(new String[]{"red,square,0005"});
+	    answer.put("groupby", Arrays.asList(new BrowseFacet[]{new BrowseFacet("red,square,0005",1)})); 
+	    
+		doTest(req,1,answer,null);
+
+		req.removeSelection("groupby");
+		fspec.setMaxCount(2);
+		answer.put("groupby", Arrays.asList(new BrowseFacet[]{new BrowseFacet("blue,circle,0913",1),new BrowseFacet("blue,square,1013",1)})); 
+	    
+		doTest(req,7,answer,null);
+
+	}
+	
 	public static void main(String[] args)throws Exception {
-		BoboTestCase test=new BoboTestCase("testCustomFacetSort");
+		BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
 		test.setUp();
-		test.testCustomFacetSort();
+		test.testSimpleGroupbyFacetHandler();
 		test.tearDown();
 	}
 }

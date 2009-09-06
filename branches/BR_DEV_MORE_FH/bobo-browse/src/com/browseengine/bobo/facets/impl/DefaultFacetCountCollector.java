@@ -114,8 +114,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
               facetColl=new LinkedList<BrowseFacet>();    
               BoundedPriorityQueue<Integer> pq=new BoundedPriorityQueue<Integer>(comparator,max);
               
-              int size = valList.size();
-              for (int i=1;i<size;++i) // exclude zero
+              for (int i=1;i<_count.length;++i) // exclude zero
               {
                 int hits=_count[i];
                 if (hits>=minCount)
