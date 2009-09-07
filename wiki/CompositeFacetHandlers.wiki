@@ -24,7 +24,7 @@ public void load(BoboIndexReader reader) throws IOException {
 
 == !SimpleGroubyFacetHandler ==
 
-This is a composite facet handler that depend on a set of !SimpleFacetHandler instances and provides a SQL-GroupBy-like functionality/view on the resulting facets values, e.g.
+This is a composite facet handler that depend on a set of !SimpleFacetHandler instances and provides a SQL-!GroupBy-like functionality/view on the resulting facets values, e.g.
 
 {{{
 SELECT count(*) FROM ... GROUP BY color,shape,number;
