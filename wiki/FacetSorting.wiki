@@ -88,4 +88,4 @@ Second, set the instance on the FacetSpec and also, the the order by enum to !Or
    facetSpec.setCustomComparatorFactory(myComparatorFactory);
 }}}
 
-Please note that if custom comparator factory is not set, yet the order by enum is set to !OrderByCustom, an !IllegalArgumentException will be thrown during browse.
+Please note that if custom comparator factory is not set, yet the order by enum is set to !OrderByCustom, an *!IllegalArgumentException* will be thrown during browse.
