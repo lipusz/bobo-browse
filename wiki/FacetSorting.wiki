@@ -1,0 +1,54 @@
+#summary Facet value sort api
+
+= Introduction =
+
+When performing a browse on a set of documents with facets specified to be returned, it is desirable to be able to specify the order the facet values are to be returned.
+
+= Default Facet Sort Specs =
+
+The Bobo Browse api by default supports 2 common sort specs:
+
+Given the example for the *color* facet:
+
+Order by value in ascending order:
+
+{{{
+   faceSpec.setOrderBy(FacetSortSpec.OrderValueAsc);
+}}}
+
+  * blue (2)
+  * green (19)
+  * red (21)
+  * yellow (20)
+
+Order by hit count in descending order:
+
+{{{
+   faceSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
+}}}
+
+  * red (21)
+  * yellow (20)
+  * green (19)
+  * blue (2)
+
+= Custom Facet Sort spec =
+
+It is also possible to extend the api by providing your own Facet sort spec:
+
+First, implement the *!ComparatorFactory* interface:
+
+{{{
+public interface ComparatorFactory{
+   Comparator<Integer> newComparator(FieldValueAccessor fieldValueAccessor,int[] counts);
+   Comparator<BrowseFacet> newComparator();
+}
+}}}
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
