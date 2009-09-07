@@ -1359,7 +1359,7 @@ public class BoboTestCase extends TestCase {
 		
 	}
 	
-	public void testRuntimeFilteredDateRanage() throws Exception{
+	public void testRuntimeFilteredDateRange() throws Exception{
 		BoboBrowser browser = newBrowser();
 		String[] ranges = new String[]{"[2001/01/01 TO 2001/12/30]","[2007/01/01 TO 2007/12/30]"};
 		FilteredRangeFacetHandler handler = new FilteredRangeFacetHandler("filtered_date", "date",Arrays.asList(ranges));
