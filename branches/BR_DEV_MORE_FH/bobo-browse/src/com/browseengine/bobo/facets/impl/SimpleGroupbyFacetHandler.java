@@ -35,20 +35,26 @@ public class SimpleGroupbyFacetHandler extends FacetHandler implements FacetHand
 	
 	private static final String SEP=",";
 	private int _maxdoc;
+	private final String _sep;
 	
-	public SimpleGroupbyFacetHandler(String name, LinkedHashSet<String> dependsOn) {
+	public SimpleGroupbyFacetHandler(String name, LinkedHashSet<String> dependsOn,String separator) {
 		super(name, dependsOn);
 		_fieldsSet = dependsOn;
 		_facetHandlers = null;
 		_facetHandlerMap = null;
 		_maxdoc = 0;
+		_sep = separator;
+	}
+	
+	public SimpleGroupbyFacetHandler(String name, LinkedHashSet<String> dependsOn){
+		this(name,dependsOn,SEP);
 	}
 
 	@Override
 	public RandomAccessFilter buildRandomAccessFilter(String value,
 			Properties selectionProperty) throws IOException {
 		List<RandomAccessFilter> filterList = new ArrayList<RandomAccessFilter>();
-		String[] vals = value.split(SEP);
+		String[] vals = value.split(_sep);
 		for (int i = 0;i<vals.length;++i){
 			SimpleFacetHandler handler = _facetHandlers.get(i);
 			BrowseSelection sel = new BrowseSelection(handler.getName());
@@ -65,7 +71,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler implements FacetHand
 		for (SimpleFacetHandler facetHandler : _facetHandlers){
 			collectorList.add((DefaultFacetCountCollector)facetHandler.getFacetCountCollector(sel, fspec));
 		}
-		return new GroupbyFacetCountCollector(_name,fspec, collectorList.toArray(new DefaultFacetCountCollector[collectorList.size()]),_maxdoc);
+		return new GroupbyFacetCountCollector(_name,fspec, collectorList.toArray(new DefaultFacetCountCollector[collectorList.size()]),_maxdoc,_sep);
 	}
 
 	@Override
@@ -164,11 +170,13 @@ public class SimpleGroupbyFacetHandler extends FacetHandler implements FacetHand
 		private final int[] _count;
 		private final int[] _lens;
 		private final int _maxdoc;
+		private final String _sep;
 		
-		public GroupbyFacetCountCollector(String name,FacetSpec fspec,DefaultFacetCountCollector[] subcollectors,int maxdoc){
+		public GroupbyFacetCountCollector(String name,FacetSpec fspec,DefaultFacetCountCollector[] subcollectors,int maxdoc,String sep){
 			_name = name;
 			_fspec = fspec;
 			_subcollectors = subcollectors;
+			_sep = sep;
 			int totalLen=1;
 			_lens = new int[_subcollectors.length];
 			for (int i=0;i<_subcollectors.length;++i){
@@ -205,7 +213,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler implements FacetHand
 		}
 
 		public BrowseFacet getFacet(String value) {
-			String[] vals = value.split(SEP);
+			String[] vals = value.split(_sep);
 			if (vals.length == 0) return null;
 			StringBuffer buf = new StringBuffer();
 			int startIdx=0;
@@ -213,7 +221,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler implements FacetHand
 			
 			for (int i=0;i<vals.length;++i){
 				if (i>0){
-					buf.append(SEP);
+					buf.append(_sep);
 				}
 				int index=_subcollectors[i]._dataCache.valArray.indexOf(vals[i]);
 				String facetName = _subcollectors[i]._dataCache.valArray.get(index);
@@ -237,7 +245,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler implements FacetHand
 			int i=0;
 			for (int len : _lens){
 				if (i>0){
-					buf.append(SEP);
+					buf.append(_sep);
 				}
 				
 				int adjusted=idx*len;
