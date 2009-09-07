@@ -45,11 +45,47 @@ public interface ComparatorFactory{
 }
 }}}
 
-Second, set the instance on the FacetSpec and also, the the order by enum to OrderByCustom:
+As an example, sort by hit count in descending order is implemented using custom comparator factory:
+
+{{{
+public class FacetHitcountComparatorFactory implements ComparatorFactory {
+	public Comparator<Integer> newComparator(FieldValueAccessor valueList,
+			final int[] counts) {
+		return new Comparator<Integer>(){
+
+			public int compare(Integer f1, Integer f2) {
+				int val = counts[f1] - counts[f2];
+				if (val==0)
+		        {
+		            val=f2-f1;
+		        }
+		        return val;
+			}
+			
+		};
+	}
+	
+	public Comparator<BrowseFacet> newComparator() {
+		return new Comparator<BrowseFacet>(){
+
+		        public int compare(BrowseFacet f1, BrowseFacet f2) {
+			      int val = f1.getHitCount() - f2.getHitCount();
+			      if (val==0)
+	                      {
+	                        val=f1.getValue().compareTo(f2.getValue());
+	                      }
+	                      return val;
+		        }		
+	        };
+	}
+}
+}}}
+
+Second, set the instance on the FacetSpec and also, the the order by enum to !OrderByCustom:
 
 {{{
    facetSpec.setOrderBy(FacetSortSpec.OrderByCustom);
    facetSpec.setCustomComparatorFactory(myComparatorFactory);
 }}}
 
-Please note that if custom comparator factory is not set, yet the order by enum is set to OrderByCustom, an !IllegalArgumentException will be thrown during browse.
+Please note that if custom comparator factory is not set, yet the order by enum is set to !OrderByCustom, an !IllegalArgumentException will be thrown during browse.
