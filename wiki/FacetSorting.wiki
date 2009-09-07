@@ -81,7 +81,7 @@ public class FacetHitcountComparatorFactory implements ComparatorFactory {
 }
 }}}
 
-Second, set the instance on the FacetSpec and also, the the order by enum to !OrderByCustom:
+Second, set the instance on the !FacetSpec and also, the the order by enum to !OrderByCustom:
 
 {{{
    facetSpec.setOrderBy(FacetSortSpec.OrderByCustom);
