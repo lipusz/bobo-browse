@@ -4,7 +4,7 @@
 
 When performing a browse on a set of documents with facets specified to be returned, it is desirable to be able to specify the order the facet values are to be returned.
 
-= Default Facet Sort Specs =
+=== Default Facet Sort Specs ===
 
 The Bobo Browse api by default supports 2 common sort specs:
 
@@ -32,7 +32,7 @@ Order by hit count in descending order:
   * green (19)
   * blue (2)
 
-= Custom Facet Sort spec =
+=== Custom Facet Sort spec ===
 
 It is also possible to extend the api by providing your own Facet sort spec:
 
