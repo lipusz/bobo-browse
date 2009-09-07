@@ -45,10 +45,11 @@ public interface ComparatorFactory{
 }
 }}}
 
+Second, set the instance on the FacetSpec and also, the the order by enum to OrderByCustom:
 
-= Details =
+{{{
+   facetSpec.setOrderBy(FacetSortSpec.OrderByCustom);
+   facetSpec.setCustomComparatorFactory(myComparatorFactory);
+}}}
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+Please note that if custom comparator factory is not set, yet the order by enum is set to OrderByCustom, an !IllegalArgumentException will be thrown during browse.
