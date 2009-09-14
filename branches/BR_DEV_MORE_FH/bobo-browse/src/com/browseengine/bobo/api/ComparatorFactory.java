@@ -8,16 +8,16 @@ import java.util.Comparator;
  */
 public interface ComparatorFactory{
 	/**
-	 * Providers a {@link Comparator<Integer>} from field values and counts. This is called within a browse.
+	 * Providers a Comparator from field values and counts. This is called within a browse.
 	 * @param fieldValueAccessor accessor for field values
 	 * @param counts hit counts
-	 * @return {@link Comparator<Integer} instance
+	 * @return Comparator instance
 	 */
 	Comparator<Integer> newComparator(FieldValueAccessor fieldValueAccessor,int[] counts);
 	
 	/**
-	 * Providers a {@link Comparator<BrowseFacet>}. This is called when doing a merge across browses.
-	 * @return {@link Comparator<BrowseFacet} instance
+	 * Providers a Comparator. This is called when doing a merge across browses.
+	 * @return Comparator instance
 	 */
 	Comparator<BrowseFacet> newComparator();
 }

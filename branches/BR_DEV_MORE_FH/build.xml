@@ -20,6 +20,7 @@
 	<property name="bobo-tools" value="bobo-tools"/>
 	
 	<property name="resource" location="resource" />
+	<property name="spring-conf" location="spring-conf" />
 
 	<property name="test" value="test"/>
 	<property name="build.test" value="build-test"/>
@@ -125,7 +126,7 @@
 				 </classpath>
 		</typedef>
 		
-		<makeui name="${ui.name}" output="${ui.out}" indexDir="${ui.idx.dir}"/>
+		<makeui name="${ui.name}" url="/bobo/browse.form" output="${ui.out}" indexDir="${ui.idx.dir}"/>
 		
 		<war destfile="${ui.out}/${ui.name}.war" webxml="${resource}/web.xml">
 			  <fileset dir="${ui.out}/${ui.name}/"/>
@@ -137,6 +138,7 @@
 			    <include name="*.jar"/>
 			  </lib>
 			  <classes dir="${resource}" excludes="web.xml" />
+			  <classes dir="${spring-conf}"/>
 			  <webinf dir="dwr" />
 			<fileset dir="cardemo/webapp/" />
 		</war>
