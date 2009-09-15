@@ -19,16 +19,17 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 
 /**
  * @author ymatsuda
  *
  */
-public abstract class DynamicRangeFacetHandler extends FacetHandler
+public abstract class DynamicRangeFacetHandler extends FacetHandler implements FacetHandlerFactory
 {
-  private final String _dataFacetName;
-  private RangeFacetHandler _dataFacetHandler;
+  protected final String _dataFacetName;
+  protected RangeFacetHandler _dataFacetHandler;
   
   public DynamicRangeFacetHandler(String name, String dataFacetName)
   {
@@ -39,6 +40,7 @@ public abstract class DynamicRangeFacetHandler extends FacetHandler
   protected abstract String buildRangeString(String val);
   protected abstract List<String> buildAllRangeStrings();
   protected abstract String getValueFromRangeString(String rangeString);
+  public abstract FacetHandler newInstance();
   
   @Override
   public RandomAccessFilter buildRandomAccessFilter(String val, Properties props) throws IOException
@@ -93,7 +95,7 @@ public abstract class DynamicRangeFacetHandler extends FacetHandler
   {
     _dataFacetHandler = (RangeFacetHandler)getDependedFacetHandler(_dataFacetName);
   }
-
+  
   private class DynamicRangeFacetCountCollector extends RangeFacetCountCollector
   {
     DynamicRangeFacetCountCollector(String name, RangeFacetHandler handler, FacetSpec fspec, List<String> predefinedList)
