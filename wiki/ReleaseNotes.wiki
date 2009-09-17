@@ -30,4 +30,4 @@ Bug fix release
 ==2.0.2==
 Bug fix release
 
-  * Fixed an issue where ArrayIndexOutOfBoundsException is thrown when a term exists with no docs. This can happen to the index between merges.
+  * Fixed an issue where !ArrayIndexOutOfBoundsException is thrown when a term exists with no docs. This can happen to the index between merges.
