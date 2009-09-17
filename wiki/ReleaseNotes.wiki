@@ -1,6 +1,15 @@
 #labels Featured,Phase-Support
 =Release Notes=
 
+== 2.0.6 ==
+ * bug fix with default impl of FacetAccessible.getFacet with value formatting
+ * added dynamic and filter range facet handlers
+ * added simple grouby facet handler
+ * added custom facet sort api
+ * refactored/rewired cardemo
+ * added realtime facet demo support using car data with zoie integration
+ * started cmdline client for bobo
+
 ==2.0.5==
  * bug fix for custom lucene sort
 
