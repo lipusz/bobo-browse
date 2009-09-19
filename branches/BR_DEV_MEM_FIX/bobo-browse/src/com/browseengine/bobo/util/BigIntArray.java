@@ -31,7 +31,7 @@ public final class BigIntArray extends BigSegmentedArray implements Serializable
   }
   
   @Override
-  public void add(int docId, int val)
+  public final void add(int docId, int val)
   {
     _array[docId >> SHIFT_SIZE][docId & MASK] = val;
   }
@@ -69,12 +69,12 @@ public final class BigIntArray extends BigSegmentedArray implements Serializable
   }
 
   @Override
-  int getBlockSize() {
+  final int getBlockSize() {
 	return BLOCK_SIZE;
   }
 	
   @Override
-  int getShiftSize() {
+  final int getShiftSize() {
 	return SHIFT_SIZE;
   }
 }

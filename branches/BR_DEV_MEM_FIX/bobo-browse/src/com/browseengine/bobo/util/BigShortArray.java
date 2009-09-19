@@ -23,7 +23,7 @@ public class BigShortArray extends BigSegmentedArray {
 	  }
 
 	  @Override
-	  public void add(int docId, int val)
+	  public final void add(int docId, int val)
 	  {
 	    _array[docId >> SHIFT_SIZE][docId & MASK] = (byte)val;
 	  }
@@ -62,12 +62,12 @@ public class BigShortArray extends BigSegmentedArray {
 	  }
 	  
 	  @Override
-	  int getBlockSize() {
+	  final int getBlockSize() {
 		return BLOCK_SIZE;
 	  }
 		
 	  @Override
-	  int getShiftSize() {
+	  final int getShiftSize() {
 		return SHIFT_SIZE;
 	  }
 }
