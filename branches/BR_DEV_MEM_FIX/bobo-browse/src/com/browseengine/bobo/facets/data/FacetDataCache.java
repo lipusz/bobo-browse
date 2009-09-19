@@ -15,6 +15,7 @@ import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.util.BigIntArray;
+import com.browseengine.bobo.util.BigSegmentedArray;
 
 public class FacetDataCache implements Serializable {
 	/**
@@ -22,13 +23,13 @@ public class FacetDataCache implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	public BigIntArray orderArray;
+	public BigSegmentedArray orderArray;
 	public TermValueList valArray;
 	public int[] freqs;
 	public int[] minIDs;
 	public int[] maxIDs;
 	
-	public FacetDataCache(BigIntArray orderArray,TermValueList valArray,int[] freqs,int[] minIDs,int[] maxIDs)
+	public FacetDataCache(BigSegmentedArray orderArray,TermValueList valArray,int[] freqs,int[] minIDs,int[] maxIDs)
 	{
 		this.orderArray=orderArray;
 		this.valArray=valArray;
@@ -52,7 +53,7 @@ public class FacetDataCache implements Serializable {
       int maxDoc=reader.maxDoc();
       
 
-      BigIntArray order=this.orderArray;
+      BigSegmentedArray order=this.orderArray;
       if (order == null)                        // we want to reuse the memory
       {
         order = new BigIntArray(maxDoc);
@@ -159,7 +160,7 @@ public class FacetDataCache implements Serializable {
 	
 	public static class FacetScoreDocComparator implements ScoreDocComparator{
 		private FacetDataCache _dataCache;
-		private BigIntArray orderArray;
+		private BigSegmentedArray orderArray;
 		public FacetScoreDocComparator(FacetDataCache dataCache){
 			_dataCache=dataCache;
 			orderArray=_dataCache.orderArray;
@@ -176,6 +177,12 @@ public class FacetDataCache implements Serializable {
           int index = orderArray.get(i.doc);
           return _dataCache.valArray.get(index);
 		}
+	}
+	
+	public static void main(String[] args) {
+		System.out.println("byte: "+Byte.MAX_VALUE);
+		System.out.println("short: "+Short.MAX_VALUE);
+		System.out.println("int: "+Integer.MAX_VALUE);
 	}
 }
 
