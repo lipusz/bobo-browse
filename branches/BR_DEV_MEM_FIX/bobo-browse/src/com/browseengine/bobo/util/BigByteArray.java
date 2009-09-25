@@ -73,4 +73,9 @@ public class BigByteArray extends BigSegmentedArray implements Serializable
 	  final int getShiftSize() {
 		return SHIFT_SIZE;
 	  }
+
+	  @Override
+	  public int maxValue() {
+		return Byte.MAX_VALUE;
+	  }
 }

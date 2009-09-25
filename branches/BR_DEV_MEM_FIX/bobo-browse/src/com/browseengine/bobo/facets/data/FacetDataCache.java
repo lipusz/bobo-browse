@@ -14,8 +14,11 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortField;
 
+import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
+import com.browseengine.bobo.util.BigByteArray;
 import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigSegmentedArray;
+import com.browseengine.bobo.util.BigShortArray;
 
 public class FacetDataCache implements Serializable {
 	/**
@@ -28,14 +31,16 @@ public class FacetDataCache implements Serializable {
 	public int[] freqs;
 	public int[] minIDs;
 	public int[] maxIDs;
+	private final TermCountSize _termCountSize;
 	
-	public FacetDataCache(BigSegmentedArray orderArray,TermValueList valArray,int[] freqs,int[] minIDs,int[] maxIDs)
+	public FacetDataCache(BigSegmentedArray orderArray,TermValueList valArray,int[] freqs,int[] minIDs,int[] maxIDs,TermCountSize termCountSize)
 	{
 		this.orderArray=orderArray;
 		this.valArray=valArray;
 		this.freqs=freqs;
 		this.minIDs=minIDs;
 		this.maxIDs=maxIDs;
+		_termCountSize = termCountSize;
 	}
 	
 	public FacetDataCache()
@@ -45,6 +50,17 @@ public class FacetDataCache implements Serializable {
 	  this.maxIDs = null;
 	  this.minIDs = null;
 	  this.freqs = null;
+	  _termCountSize = TermCountSize.NumTermsLarge;
+	}
+	
+	private final static BigSegmentedArray newInstance(TermCountSize termCountSize,int maxDoc){
+		if (termCountSize == TermCountSize.NumTermsSmall){
+			return new BigByteArray(maxDoc);
+		}
+		else if (termCountSize == TermCountSize.NumTermsMedium){
+			return new BigShortArray(maxDoc);
+		}
+		else return new BigIntArray(maxDoc);
 	}
 	
 	public void load(String fieldName,IndexReader reader,TermListFactory listFactory) throws IOException
@@ -56,7 +72,7 @@ public class FacetDataCache implements Serializable {
       BigSegmentedArray order=this.orderArray;
       if (order == null)                        // we want to reuse the memory
       {
-        order = new BigIntArray(maxDoc);
+        order = newInstance(_termCountSize,maxDoc);
       }
       else
       {
@@ -74,17 +90,6 @@ public class FacetDataCache implements Serializable {
         TermEnum termEnum = reader.terms (new Term (field, ""));
         int t = 0;  // current term number
 
-        // an entry for documents that have no terms in this field
-        // should a document with no terms be at top or bottom?
-        // this puts them at the top - if it is changed, FieldDocSortedHitQueue
-        // needs to change as well.
-        /*if (String.class.equals(componentType)){
-          Array.set(mterms, t++, null);
-        }
-        else{
-          Array.set(mterms, t++, 0);
-        }*/
-        //valHandler.setDataValue(mterms, t++, null);
         list.add(null);
         minIDList.add(-1);
         maxIDList.add(-1);
@@ -96,6 +101,10 @@ public class FacetDataCache implements Serializable {
             Term term = termEnum.term();
             if (term==null || term.field() != field) break;
 
+            if (t > order.maxValue()) {
+				throw new IOException("maximum number of value cannot exceed: "
+						+ order.maxValue());
+			}
             // store term text
             // we expect that there is at most one term per document
             if (t >= length) throw new RuntimeException ("there are more terms than " +

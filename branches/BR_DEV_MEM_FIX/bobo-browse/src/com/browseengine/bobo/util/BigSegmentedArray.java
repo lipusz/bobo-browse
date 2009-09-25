@@ -37,4 +37,6 @@ public abstract class BigSegmentedArray {
 	abstract public void fill(int val);
 	  
 	abstract public void ensureCapacity(int size);
+	
+	abstract public int maxValue();
 }

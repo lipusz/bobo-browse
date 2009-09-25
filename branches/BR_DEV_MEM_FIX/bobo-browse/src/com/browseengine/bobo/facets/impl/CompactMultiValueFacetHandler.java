@@ -241,7 +241,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler implements Facet
 		
 		mterms.seal();
 
-		_dataCache=new FacetDataCache(order,mterms,freqList.toIntArray(),minIDList.toIntArray(),maxIDList.toIntArray());
+		_dataCache=new FacetDataCache(order,mterms,freqList.toIntArray(),minIDList.toIntArray(),maxIDList.toIntArray(),TermCountSize.NumTermsLarge);
 	}
 	
 	private class CompactMultiFacetScoreDocComparator implements ScoreDocComparator{

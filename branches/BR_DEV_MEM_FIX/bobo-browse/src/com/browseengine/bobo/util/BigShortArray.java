@@ -70,4 +70,9 @@ public class BigShortArray extends BigSegmentedArray {
 	  final int getShiftSize() {
 		return SHIFT_SIZE;
 	  }
+
+	  @Override
+	  public int maxValue() {
+		return Short.MAX_VALUE;
+	  }
 }

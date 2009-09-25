@@ -39,6 +39,17 @@ public abstract class FacetHandler implements Cloneable
 	protected final String _name;
 	private final Set<String> _dependsOn;
 	private final Map<String,FacetHandler> _dependedFacetHandlers;
+	private TermCountSize _termCountSize;
+	
+	public static enum TermCountSize{
+		NumTermsSmall,
+		NumTermsMedium,
+		NumTermsLarge
+	}
+	
+	public static void main(String[] args) {
+		System.out.println(TermCountSize.valueOf("NumTermsSmall"));
+	}
 	
 	/**
 	 * Constructor
@@ -54,6 +65,15 @@ public abstract class FacetHandler implements Cloneable
 			_dependsOn.addAll(dependsOn);
 		}
 		_dependedFacetHandlers = new HashMap<String,FacetHandler>();
+		_termCountSize = TermCountSize.NumTermsLarge;
+	}
+	
+	public void setTermCountSize(TermCountSize termCountSize){
+		_termCountSize = termCountSize;
+	}
+	
+	public TermCountSize getTermCountSize(){
+		return _termCountSize;
 	}
 	
 	/**
