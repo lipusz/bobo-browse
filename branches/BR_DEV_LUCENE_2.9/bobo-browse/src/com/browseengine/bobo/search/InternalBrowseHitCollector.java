@@ -6,8 +6,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.FieldDoc;
 import org.apache.lucene.search.ScoreDocComparator;
+import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboBrowser;
@@ -29,6 +31,8 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
   private final int _count;
   private final BoboBrowser _boboBrowser;
   private final boolean _fetchStoredFields;
+  private Scorer _scorer;
+  private int _docBase;
 
   public InternalBrowseHitCollector(BoboBrowser boboBrowser,
                                     SortField[] sort,
@@ -45,12 +49,15 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
     hitQueue = new SortedHitQueue(_boboBrowser, sortFields, offset+count);
     _totalHits = 0;
     _fetchStoredFields = fetchStoredFields;
+    _docBase = 0;
   }
 
   @Override
-  public void collect(int doc, float score)
+  public void collect(int doc) throws IOException
   {
       _totalHits++;
+      int docid = doc+_docBase;
+      float score = _scorer.score();
       if (reusableFD == null)
         reusableFD = new FieldDoc(doc, score);
       else
@@ -125,5 +132,20 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
     BrowseHit[] hits = hitList.toArray(new BrowseHit[hitList.size()]);
     fillInRuntimeFacetValues(hits);
     return hits;
+  }
+
+  @Override
+  public boolean acceptsDocsOutOfOrder() {
+	return false;
+  }
+
+  @Override
+  public void setNextReader(IndexReader reader, int docBase) throws IOException {
+	_docBase = docBase;
+  }
+
+  @Override
+  public void setScorer(Scorer scorer) throws IOException {
+	_scorer = scorer;
   }
 }

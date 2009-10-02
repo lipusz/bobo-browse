@@ -15,8 +15,8 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.document.FieldSelectorResult;
 import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Filter;
-import org.apache.lucene.search.HitCollector;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
@@ -151,7 +151,7 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
    * @param facetMap map to gather facet data
    */
   public void browse(BrowseRequest req,
-                     HitCollector hitCollector,
+                     Collector collector,
                      Map<String, FacetAccessible> facetMap) throws BrowseException
   {
     if (_reader == null)
@@ -273,7 +273,7 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
       
       try
       {
-        search(q, finalFilter, hitCollector);
+        search(q, finalFilter, collector);
       }
       finally
       {

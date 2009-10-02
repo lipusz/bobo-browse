@@ -139,7 +139,7 @@ public class BoboTestCase extends TestCase {
 	public static Field buildMetaField(String name,String val)
 	{
 	  Field f = new Field(name,val,Field.Store.NO,Index.NOT_ANALYZED_NO_NORMS);
-	  f.setOmitTf(true);
+	  f.setOmitTermFreqAndPositions(true);
 	  return f;
 	}
 	
@@ -688,6 +688,7 @@ public class BoboTestCase extends TestCase {
 	        doTest(result,req,numHits,choiceMap,ids);
 	        return result;
 	  	} catch (BrowseException e) {
+	  		e.printStackTrace();
 	  		fail(e.getMessage());
 	  	}
 	  	catch(IOException ioe){

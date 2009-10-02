@@ -2,29 +2,24 @@ package com.browseengine.bobo.api;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.search.FieldDoc;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.HitCollector;
 import org.apache.lucene.search.MultiSearcher;
-import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.impl.SortedFieldBrowseHitComparator;
 import com.browseengine.bobo.search.MultiTopDocsSortedHitCollector;
-import com.browseengine.bobo.util.ListMerger;
 
 
 /**
@@ -54,7 +49,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
    *          HitCollector for the hits generated during a search
    *          
    */
-  public void browse(BrowseRequest req,final HitCollector hitCollector,Map<String, FacetAccessible> facetMap) throws BrowseException
+  public void browse(BrowseRequest req,final Collector hitCollector,Map<String, FacetAccessible> facetMap) throws BrowseException
   {
     Browsable[] browsers = getSubBrowsers();
     int[] starts = getStarts();
@@ -67,15 +62,25 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 	    for (int i = 0; i < browsers.length; i++)
 	    {
 	      final int start = starts[i];
+	        
+	       final Collector hc = new Collector() {
+	          public void setScorer(Scorer scorer) throws IOException {
+	        	  hitCollector.setScorer(scorer);
+	          }
+	          public void collect(int doc) throws IOException {
+	        	  hitCollector.collect(doc);
+	          }
+	          public void setNextReader(IndexReader reader, int docBase) throws IOException {
+	        	  hitCollector.setNextReader(reader, start + docBase);
+	          }
+	          public boolean acceptsDocsOutOfOrder() {
+	            return hitCollector.acceptsDocsOutOfOrder();
+	          }
+	       };
+	        
 	      try
 	      {
-		      browsers[i].browse(req, new HitCollector()
-		      {
-		        public void collect(int doc, float score)
-		        {
-		          hitCollector.collect(doc + start, score);
-		        }
-		      },facetColMap);
+		      browsers[i].browse(req,hc,facetColMap);
 	      }
 	      finally
 	      {
