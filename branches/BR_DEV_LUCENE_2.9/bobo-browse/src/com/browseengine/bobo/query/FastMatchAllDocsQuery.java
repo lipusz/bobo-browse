@@ -113,7 +113,7 @@ public final class FastMatchAllDocsQuery extends Query
 
   }
 
-  private class FastMatchAllDocsWeight implements Weight
+  private class FastMatchAllDocsWeight extends Weight
   {
     private static final long serialVersionUID = 1L;
     private Similarity _similarity;
@@ -152,7 +152,8 @@ public final class FastMatchAllDocsQuery extends Query
       _queryWeight *= this._queryNorm;
     }
 
-    public Scorer scorer(IndexReader reader)
+    @Override
+    public Scorer scorer(IndexReader reader,boolean scoreDocsInOrder,boolean topScorer)
     {
       return new FastMatchAllScorer(reader.maxDoc(), _deletedDocs, _similarity, getValue());
     }
@@ -171,7 +172,7 @@ public final class FastMatchAllDocsQuery extends Query
     }
   }
 
-  protected Weight createWeight(Searcher searcher)
+  public Weight createWeight(Searcher searcher)
   {
     return new FastMatchAllDocsWeight(searcher);
   }

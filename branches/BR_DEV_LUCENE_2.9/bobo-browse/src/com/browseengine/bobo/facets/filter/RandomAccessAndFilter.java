@@ -56,7 +56,7 @@ public class RandomAccessAndFilter extends RandomAccessFilter
         }
 
         @Override
-        public DocIdSetIterator iterator()
+        public DocIdSetIterator iterator() throws IOException
         {
           return andDocIdSet.iterator();
         }

@@ -87,7 +87,7 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
     }
 
     @Override
-    public DocIdSetIterator iterator()
+    public DocIdSetIterator iterator() throws IOException
     {
       return empty.iterator();
     }         

@@ -26,7 +26,7 @@ public class DocsetQuery extends Query {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public DocsetQuery(DocIdSet docSet) {
+	public DocsetQuery(DocIdSet docSet) throws IOException{
 		this(docSet.iterator());
 	}
 	
@@ -44,11 +44,11 @@ public class DocsetQuery extends Query {
 	}
 	
 	@Override
-	protected Weight createWeight(Searcher searcher) throws IOException {
+	public Weight createWeight(Searcher searcher) throws IOException {
 	    return new DocSetIteratorWeight(this,searcher.getSimilarity(),_iter);
 	}
 	
-	private static class DocSetIteratorWeight implements Weight
+	private static class DocSetIteratorWeight extends Weight
 	{
 		/**
 		 * 
@@ -100,7 +100,9 @@ public class DocsetQuery extends Query {
 			//_queryWeight *= _queryNorm;
 		}
 
-		public Scorer scorer(IndexReader reader) throws IOException {
+		@Override
+		public Scorer scorer(IndexReader reader,boolean scoreDocsInOrder,
+			      boolean topScorer) throws IOException {
 			return new DocSetIteratorScorer(_similarity,_iter,this,reader);
 		}
 

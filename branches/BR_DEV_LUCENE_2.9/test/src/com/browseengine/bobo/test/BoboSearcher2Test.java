@@ -7,26 +7,22 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import junit.framework.TestCase;
+
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.ConstantScoreQuery;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Explanation;
-import org.apache.lucene.search.Filter;
-import org.apache.lucene.search.HitCollector;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.TopDocCollector;
 import org.apache.lucene.search.Weight;
-import org.apache.lucene.search.spans.SpanWeight;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.search.BoboSearcher2;
 import com.browseengine.bobo.search.FacetHitCollector;
-
-import junit.framework.TestCase;
 
 /**
  * @author xgu
@@ -35,7 +31,7 @@ import junit.framework.TestCase;
 public class BoboSearcher2Test extends TestCase
 {
 
-  private static class MyWeight implements Weight {
+  private static class MyWeight extends Weight {
 
     public Explanation explain(IndexReader arg0, int arg1) throws IOException
     {
@@ -120,7 +116,9 @@ public class BoboSearcher2Test extends TestCase
       }
       
     }
-    public Scorer scorer(IndexReader arg0) throws IOException
+    
+    @Override
+    public Scorer scorer(IndexReader reader,boolean scoreDocsInOrder,boolean topScorer) throws IOException
     {
       return new MyScorer(org.apache.lucene.search.DefaultSimilarity.getDefault());
     }

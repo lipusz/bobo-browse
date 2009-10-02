@@ -49,7 +49,7 @@ public class FacetTermQuery extends Query {
 	}
 	
 	@Override
-	protected Weight createWeight(Searcher searcher) throws IOException {
+	public Weight createWeight(Searcher searcher) throws IOException {
 		return new FacetTermWeight(searcher.getSimilarity());
 	}
 	
@@ -61,7 +61,7 @@ public class FacetTermQuery extends Query {
 		}
 	}
 
-	private class FacetTermWeight implements Weight{
+	private class FacetTermWeight extends Weight{
         Similarity _similarity;
         public FacetTermWeight(Similarity sim) {
         	_similarity = sim;
@@ -97,7 +97,8 @@ public class FacetTermQuery extends Query {
 			
 		}
 
-		public Scorer scorer(IndexReader reader) throws IOException {
+		@Override
+		public Scorer scorer(IndexReader reader,boolean scoreDocsInOrder,boolean topScorer) throws IOException {
 			if (reader instanceof BoboIndexReader){
 			  BoboIndexReader boboReader = (BoboIndexReader)reader;
 			  FacetHandler fhandler = boboReader.getFacetHandler(FacetTermQuery.this._name);

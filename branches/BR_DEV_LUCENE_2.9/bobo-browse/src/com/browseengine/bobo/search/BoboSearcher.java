@@ -1,25 +1,39 @@
 package com.browseengine.bobo.search;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Filter;
-import org.apache.lucene.search.HitCollector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
+import org.apache.lucene.util.ReaderUtil;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 
 public class BoboSearcher extends IndexSearcher{
 	protected List<FacetHitCollector> _facetCollectors;
+	protected IndexReader[] _subReaders;
+	protected int[] _docStarts;
+	
 	public BoboSearcher(BoboIndexReader reader)
 	{
 		super(reader);
 		_facetCollectors = new LinkedList<FacetHitCollector>();
+		List<IndexReader> readerList = new ArrayList<IndexReader>();
+		ReaderUtil.gatherSubReaders(readerList, reader);
+		_subReaders = (IndexReader[])readerList.toArray(new IndexReader[readerList.size()]);
+		_docStarts = new int[_subReaders.length];
+	    int maxDoc = 0;
+	    for (int i = 0; i < _subReaders.length; i++) {
+	      _docStarts[i] = maxDoc;
+	      maxDoc += _subReaders[i].maxDoc();
+	    }
 	}
 	
 	public void setFacetHitCollectorList(List<FacetHitCollector> facetHitCollectors)
@@ -92,7 +106,7 @@ public class BoboSearcher extends IndexSearcher{
 	}
 
 	@Override
-	public void search(Weight weight, Filter filter, HitCollector results)
+	public void search(Weight weight, Filter filter, Collector collector)
 			throws IOException {
 		IndexReader reader=getIndexReader();
 		
@@ -106,17 +120,25 @@ public class BoboSearcher extends IndexSearcher{
 				break;
 			}
 		}
-		
-		Scorer scorer = weight.scorer(reader);
+		/*
+		Scorer scorer = weight.scorer(reader,!collector.acceptsDocsOutOfOrder(), true);
 	    if (scorer == null)
 	      return;
-
+*/
 	    if (filter == null) {
+	      for (int i = 0; i < _subReaders.length; i++) { // search each subreader
+	            collector.setNextReader(_subReaders[i], _docStarts[i]);
+	            Scorer scorer = weight.scorer(_subReaders[i], !collector.acceptsDocsOutOfOrder(), true);
+	            if (scorer != null) {
+	              scorer.score(collector);
+	            }
+	      }
+	    	
 	      while (scorer.next()) {
 	    	int doc=scorer.doc();
 	    	if (validateAndIncrement(doc,facetCollectors,doValidate))
 	    	{
-	    	  results.collect(doc, scorer.score());
+	    	  collector.collect(doc, scorer.score());
 	    	}
 	      }
 	      return;
