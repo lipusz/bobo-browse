@@ -48,18 +48,26 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Payload;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortComparatorSource;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Version;
 
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -1266,6 +1274,63 @@ public class BoboTestCase extends TestCase {
 		doTest(br,2,answer,null);
 		
 	}
+	
+	public void testFastMatchAllDocs() throws Exception{
+		  RAMDirectory idxDir = new RAMDirectory();
+		  Document doc;
+		  Field f;
+		  IndexWriter writer = new IndexWriter(idxDir,new StandardAnalyzer(Version.LUCENE_CURRENT),MaxFieldLength.UNLIMITED);
+		  doc = new Document();
+		  f = new Field("id","1",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
+		  doc.add(f);
+		  writer.addDocument(doc);
+		  doc = new Document();
+		  f = new Field("id","2",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
+	      doc.add(f);
+	      writer.addDocument(doc);
+	      doc = new Document();
+	      f = new Field("id","3",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
+	      doc.add(f);
+	      writer.addDocument(doc);
+	      writer.commit();
+	      
+	      writer.deleteDocuments(new Term("id","1"));
+	      writer.deleteDocuments(new Term("id","2"));
+	      writer.deleteDocuments(new Term("id","3"));
+	      writer.commit();
+	      
+	      BoboIndexReader reader = BoboIndexReader.getInstance(IndexReader.open(idxDir));
+	      IndexSearcher searcher = new IndexSearcher(reader);
+	      
+	      TopDocs topDocs = searcher.search(reader.getFastMatchAllDocsQuery(), 100);
+	      assertEquals(0, topDocs.totalHits);
+	      reader.close();
+	      
+	      doc = new Document();
+	      f = new Field("id","1",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
+	      doc.add(f);
+	      writer.addDocument(doc);
+	      doc = new Document();
+	      f = new Field("id","2",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
+	      doc.add(f);
+	      writer.addDocument(doc);
+	      doc = new Document();
+	      f = new Field("id","3",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
+	      doc.add(f);
+	      writer.addDocument(doc);
+	      writer.commit();
+	      
+	      reader = BoboIndexReader.getInstance(IndexReader.open(idxDir));
+	      searcher = new IndexSearcher(reader);
+	      
+	      //Query q = new MatchAllDocsQuery();
+
+	      Query q = reader.getFastMatchAllDocsQuery();
+	      
+	      topDocs = searcher.search(q, 100);
+	      assertEquals(3, topDocs.totalHits);
+	      reader.close();
+		}
 	
 	/**
 	 * Tests the MultiBoboBrowser functionality by creating a BoboBrowser and 

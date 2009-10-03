@@ -27,36 +27,71 @@ public final class FastMatchAllDocsQuery extends Query
 {
 
   private static final long serialVersionUID = 1L;
+  int                 _doc;
   private final int[] _deletedDocs;
+  private int _deletedIndex;
   
   public FastMatchAllDocsQuery(int[] deletedDocs, int maxDoc)
   {
+    _doc = 0;
+    _deletedIndex = 0;
     _deletedDocs = deletedDocs;
+  }
+
+  public int getDoc()
+  {
+    return _doc;
+  }
+
+  public void setDoc(int doc)
+  {
+    _doc = doc;
+  }
+
+  public int getDeletedIndex()
+  {
+    return _deletedIndex;
+  }
+
+  public void setDeletedIndex(int deletedIndex)
+  {
+    _deletedIndex = deletedIndex;
   }
 
   public final static class FastMatchAllScorer extends Scorer
   {
     private int _deletedIndex;
     private boolean _moreDeletions;
+    int               _docBase;
     int               _doc;
     final float       _score;
     final int[] _deletedDocs;
     private final int _maxDoc;
     private final int _delLen;
 
+    private FastMatchAllDocsQuery      _context;
+
     public FastMatchAllScorer(int maxdoc, int[] delDocs, float score)
     {
-      this(maxdoc,delDocs,new DefaultSimilarity(),score);	
+      this(null, maxdoc,delDocs,new DefaultSimilarity(),score);	
     }
     
-    public FastMatchAllScorer(int maxdoc, int[] delDocs,Similarity similarity, float score)
+    public FastMatchAllScorer(FastMatchAllDocsQuery context, int maxdoc, int[] delDocs, Similarity similarity, float score)
     {
       super(similarity);
+      _context = context;
+      if (_context != null) {
+        _docBase = _context.getDoc();
+        _deletedIndex = _context.getDeletedIndex();
+      }
+      else {
+        _docBase = 0;
+        _deletedIndex = 0;
+      }
       _doc = -1;
       _deletedDocs = delDocs;
-      _deletedIndex = 0;
-      _moreDeletions = _deletedDocs != null && _deletedDocs.length > 0;
-      _delLen = _deletedDocs != null ? _deletedDocs.length : 0;
+      _moreDeletions = _deletedDocs != null && _deletedIndex < _deletedDocs.length;
+      _delLen = _deletedDocs != null ? _deletedDocs.length - _deletedIndex : 0;
       _score = score;
       _maxDoc = maxdoc;
     }
@@ -73,24 +108,30 @@ public final class FastMatchAllDocsQuery extends Query
 
     public final boolean next()
     {
+      int delDoc;
       while(++_doc < _maxDoc)
       {
-        if(!_moreDeletions || _doc < _deletedDocs[_deletedIndex]) 
+        delDoc = _docBase + _doc;
+        if(!_moreDeletions || delDoc < _deletedDocs[_deletedIndex]) 
         {
           return true;
         }
         else // _moreDeletions == true && _doc >= _deletedDocs[_deletedIndex]
         {
-          while(_moreDeletions && _doc > _deletedDocs[_deletedIndex]) // catch up _deletedIndex to _doc
+          while(_moreDeletions && delDoc > _deletedDocs[_deletedIndex]) // catch up _deletedIndex to _doc
           {
             _deletedIndex++;
             _moreDeletions = _deletedIndex < _delLen;
           }
-          if(!_moreDeletions || _doc < _deletedDocs[_deletedIndex])
+          if(!_moreDeletions || delDoc < _deletedDocs[_deletedIndex])
           { 
             return true;
           }
         }
+      }
+      if (_context != null) {
+        _context.setDoc(_docBase + _doc);
+        _context.setDeletedIndex(_deletedIndex);
       }
       return false;
     }
@@ -120,9 +161,12 @@ public final class FastMatchAllDocsQuery extends Query
     private float      _queryWeight;
     private float      _queryNorm;
 
-    public FastMatchAllDocsWeight(Searcher searcher)
+    private FastMatchAllDocsQuery      _context;
+
+    public FastMatchAllDocsWeight(FastMatchAllDocsQuery context, Searcher searcher)
     {
       this._similarity = searcher.getSimilarity();
+      this._context = context;
     }
 
     public String toString()
@@ -155,7 +199,7 @@ public final class FastMatchAllDocsQuery extends Query
     @Override
     public Scorer scorer(IndexReader reader,boolean scoreDocsInOrder,boolean topScorer)
     {
-      return new FastMatchAllScorer(reader.maxDoc(), _deletedDocs, _similarity, getValue());
+      return new FastMatchAllScorer(FastMatchAllDocsQuery.this,reader.maxDoc(), _deletedDocs, _similarity, getValue());
     }
 
     public Explanation explain(IndexReader reader, int doc)
@@ -174,7 +218,7 @@ public final class FastMatchAllDocsQuery extends Query
 
   public Weight createWeight(Searcher searcher)
   {
-    return new FastMatchAllDocsWeight(searcher);
+    return new FastMatchAllDocsWeight(this,searcher);
   }
 
   public void extractTerms(Set terms)
