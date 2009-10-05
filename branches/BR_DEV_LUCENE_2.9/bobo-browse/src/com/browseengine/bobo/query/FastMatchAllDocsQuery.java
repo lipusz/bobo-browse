@@ -3,6 +3,7 @@ package com.browseengine.bobo.query;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.Set;
 
@@ -101,12 +102,13 @@ public final class FastMatchAllDocsQuery extends Query
       return null; // not called... see MatchAllDocsWeight.explain()
     }
 
-    public final int doc()
+    @Override
+    public final int docID()
     {
       return _doc;
     }
 
-    public final boolean next()
+    public final int nextDoc()
     {
       int delDoc;
       while(++_doc < _maxDoc)
@@ -114,7 +116,7 @@ public final class FastMatchAllDocsQuery extends Query
         delDoc = _docBase + _doc;
         if(!_moreDeletions || delDoc < _deletedDocs[_deletedIndex]) 
         {
-          return true;
+          return _doc;
         }
         else // _moreDeletions == true && _doc >= _deletedDocs[_deletedIndex]
         {
@@ -125,7 +127,7 @@ public final class FastMatchAllDocsQuery extends Query
           }
           if(!_moreDeletions || delDoc < _deletedDocs[_deletedIndex])
           { 
-            return true;
+            return _doc;
           }
         }
       }
@@ -133,7 +135,7 @@ public final class FastMatchAllDocsQuery extends Query
         _context.setDoc(_docBase + _doc);
         _context.setDeletedIndex(_deletedIndex);
       }
-      return false;
+      return DocIdSetIterator.NO_MORE_DOCS;
     }
 
     public final float score()
@@ -141,15 +143,16 @@ public final class FastMatchAllDocsQuery extends Query
       return _score;
     }
     
-    public final boolean skipTo(int target)
+    @Override
+    public final int advance(int target) throws IOException
     {
       if(target > _doc)
       {
         _doc = target - 1;
-        return next();
+        return nextDoc();
       }
       
-      return (target == _doc) ? next() : false;
+      return (target == _doc) ? nextDoc() : DocIdSetIterator.NO_MORE_DOCS;
     }
 
   }
@@ -161,12 +164,10 @@ public final class FastMatchAllDocsQuery extends Query
     private float      _queryWeight;
     private float      _queryNorm;
 
-    private FastMatchAllDocsQuery      _context;
 
-    public FastMatchAllDocsWeight(FastMatchAllDocsQuery context, Searcher searcher)
+    public FastMatchAllDocsWeight(Searcher searcher)
     {
       this._similarity = searcher.getSimilarity();
-      this._context = context;
     }
 
     public String toString()
@@ -218,7 +219,7 @@ public final class FastMatchAllDocsQuery extends Query
 
   public Weight createWeight(Searcher searcher)
   {
-    return new FastMatchAllDocsWeight(this,searcher);
+    return new FastMatchAllDocsWeight(searcher);
   }
 
   public void extractTerms(Set terms)

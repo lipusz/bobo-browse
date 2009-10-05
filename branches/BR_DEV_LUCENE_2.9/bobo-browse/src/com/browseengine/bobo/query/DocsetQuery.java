@@ -1,6 +1,5 @@
 package com.browseengine.bobo.query;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.index.IndexReader;
@@ -13,11 +12,7 @@ import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.Weight;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.ToStringUtils;
-
-import com.browseengine.bobo.api.BoboIndexReader;
 
 public class DocsetQuery extends Query {
 	private final DocIdSetIterator _iter;
@@ -124,8 +119,8 @@ public class DocsetQuery extends Query {
 			}
 			
 			@Override
-			public int doc() {
-				return _iter.doc();
+			public int docID() {
+				return _iter.docID();
 			}
 
 			@Override
@@ -134,19 +129,19 @@ public class DocsetQuery extends Query {
 			}
 
 			@Override
-			public boolean next() throws IOException {
+			public int nextDoc() throws IOException {
 				while(true)
 				{
-					boolean hasNext=_iter.next();
-					if (!hasNext)
+					int docid = _iter.nextDoc();
+					if (docid==DocIdSetIterator.NO_MORE_DOCS)
 					{
-						return false;
+						return DocIdSetIterator.NO_MORE_DOCS;
 					}
 					else
 					{
-						if (!_reader.isDeleted(_iter.doc()))
+						if (!_reader.isDeleted(docid))
 						{
-							return true;
+							return docid;
 						}
 					}
 				}
@@ -158,22 +153,22 @@ public class DocsetQuery extends Query {
 			}
 
 			@Override
-			public boolean skipTo(int target) throws IOException {
-				boolean flag = _iter.skipTo(target);
-				if (flag)
+			public int advance(int target) throws IOException {
+				int docid = _iter.advance(target);
+				if (docid!=DocIdSetIterator.NO_MORE_DOCS)
 				{
-					if (_reader.isDeleted(_iter.doc()))
+					if (_reader.isDeleted(docid))
 					{
-						return next();
+						return nextDoc();
 					}
 					else
 					{
-						return true;
+						return docid;
 					}
 				}
 				else
 				{
-					return false;
+					return docid;
 				}
 			}
 			
