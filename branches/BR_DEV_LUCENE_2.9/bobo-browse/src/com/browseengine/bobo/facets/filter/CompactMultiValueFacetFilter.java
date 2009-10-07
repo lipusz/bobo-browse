@@ -65,24 +65,24 @@ public class CompactMultiValueFacetFilter extends RandomAccessFilter {
 		}
 		
 		@Override
-		public final int doc()
+		public final int docID()
 		{
 		  return _doc;
 		}
 
 		@Override
-        public final boolean next() throws IOException {
+        public final int nextDoc() throws IOException {
 		    while(_doc < _maxID) // not yet reached end
             {
                 if ((_orderArray.get(++_doc) & _bits) != 0x0){
-                    return true;
+                    return _doc;
                 }
             }
-            return false;
+            return DocIdSetIterator.NO_MORE_DOCS;
         }
 
         @Override
-        public final boolean skipTo(int id) throws IOException {
+        public final int advance(int id) throws IOException {
           if (_doc < id)
           {
             _doc=id-1;
@@ -91,10 +91,10 @@ public class CompactMultiValueFacetFilter extends RandomAccessFilter {
           while(_doc < _maxID) // not yet reached end
           {
             if ((_orderArray.get(++_doc) & _bits) != 0x0){
-              return true;
+              return _doc;
             }
           }
-          return false;
+          return DocIdSetIterator.NO_MORE_DOCS;
         }
 	}
 	
