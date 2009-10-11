@@ -396,8 +396,15 @@ public class BoboIndexReader extends FilterIndexReader
   {
     return _facetHandlerMap.get(fieldname);
   }
+  
+  
 
-  /**
+  @Override
+  public IndexReader[] getSequentialSubReaders() {
+	return in.getSequentialSubReaders();
+  }
+
+/**
    * Gets the facet handler map
    * 
    * @return facet handler map
