@@ -27,47 +27,58 @@ Here are some of the basic concepts or objects to understand:
 ==Example:==
 
 {{{
-// opening a lucene index
-Directory idx = FSDirectory.open(new File("myidx"));
-IndexReader reader = IndexReader.open(idx);
- 
-// decorate it with a bobo index reader
-BoboIndexReader boboReader = BoboIndexReader.getInstance(reader);
- 
-// creating a browse request
-BrowseRequest br=new BrowseRequest();
-br.setCount(10);
-br.setOffset(0);
- 
-// add a selection
-BrowseSelection sel=new BrowseSelection("color");
-sel.addValue("red");
-br.addSelection(sel);
- 
-// parse a query
-Query q=QueryParser.parse("cool car","contents",new StandardAnalyzer());
-br.setQuery(q);
- 
-// add the facet output specs
-FacetSpec colorSpec = new FacetSpec();
-colorSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
- 
-FacetSpec categorySpec = new FacetSpec();
-categorySpec.setMinHitCount(2);
-categorySpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
- 
-br.setFacetSpec("color",colorSpec);
-br.setFacetSpec("category",categorySpec);
- 
-// perform browse
-Browsable browser=new BoboBrowser(boboReader);
-BrowseResult result=browser.browse(br);
- 
-int totalHits = result.getNumHits();
-BrowseHit[] hits = result.getHits();
- 
-Map<String,FacetAccessible> facetMap = result.getFacetMap();
- 
-FacetAccessible colorFacets = facetMap.get("color");
-List<BrowseFacet> facetVals = colorFacets.getFacets();
+// define facet handlers
+	  
+	    // color facet handler
+	    SimpleFacetHandler colorHandler = new SimpleFacetHandler("color");
+	    
+	    // category facet handler
+	    SimpleFacetHandler categoryHandler = new SimpleFacetHandler("category");
+	    
+	    List<FacetHandler> handlerList = Arrays.asList(new FacetHandler[]{colorHandler,categoryHandler});
+	    
+		// opening a lucene index
+		  Directory idx = FSDirectory.open(new File("myidx"));
+		  IndexReader reader = IndexReader.open(idx,true);
+		   
+		  // decorate it with a bobo index reader
+		  BoboIndexReader boboReader = BoboIndexReader.getInstance(reader,handlerList);
+		   
+		  // creating a browse request
+		  BrowseRequest br=new BrowseRequest();
+		  br.setCount(10);
+		  br.setOffset(0);
+		   
+		  // add a selection
+		  BrowseSelection sel=new BrowseSelection("color");
+		  sel.addValue("red");
+		  br.addSelection(sel);
+		   
+		  // parse a query
+		  QueryParser parser = new QueryParser("contents",new StandardAnalyzer(Version.LUCENE_CURRENT));
+		  Query q=parser.parse("cool car");
+		  br.setQuery(q);
+		   
+		  // add the facet output specs
+		  FacetSpec colorSpec = new FacetSpec();
+		  colorSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
+		   
+		  FacetSpec categorySpec = new FacetSpec();
+		  categorySpec.setMinHitCount(2);
+		  categorySpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
+		   
+		  br.setFacetSpec("color",colorSpec);
+		  br.setFacetSpec("category",categorySpec);
+		   
+		  // perform browse
+		  Browsable browser=new BoboBrowser(boboReader);
+		  BrowseResult result=browser.browse(br);
+		   
+		  int totalHits = result.getNumHits();
+		  BrowseHit[] hits = result.getHits();
+		   
+		  Map<String,FacetAccessible> facetMap = result.getFacetMap();
+		   
+		  FacetAccessible colorFacets = facetMap.get("color");
+		  List<BrowseFacet> facetVals = colorFacets.getFacets();
 }}}
