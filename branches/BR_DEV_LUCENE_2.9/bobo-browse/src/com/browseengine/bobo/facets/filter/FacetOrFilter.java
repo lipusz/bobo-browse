@@ -118,7 +118,7 @@ public class FacetOrFilter extends RandomAccessFilter
       }
       
       @Override
-      final public int doc() {
+      final public int docID() {
           return _doc;
       }
       /*
@@ -127,18 +127,18 @@ public class FacetOrFilter extends RandomAccessFilter
       }
 */
       @Override
-      public boolean next() throws IOException {
+      public int nextDoc() throws IOException {
           while(_doc < _maxID) // not yet reached end
           {
               if (_bitset.fastGet(_orderArray.get(++_doc))){
-                  return true;
+                  return _doc;
               }
           }
-          return false;
+          return DocIdSetIterator.NO_MORE_DOCS;
       }
 
       @Override
-      public boolean skipTo(int id) throws IOException {
+      public int advance(int id) throws IOException {
         if (_doc < id)
         {
           _doc=id-1;
@@ -147,10 +147,10 @@ public class FacetOrFilter extends RandomAccessFilter
         while(_doc < _maxID) // not yet reached end
         {
           if (_bitset.fastGet(_orderArray.get(++_doc))){
-            return true;
+            return _doc;
           }
         }
-        return false;
+        return DocIdSetIterator.NO_MORE_DOCS;
       }
 
   }
