@@ -380,11 +380,11 @@ public class BoboTestCase extends TestCase {
 		List<FacetHandler> facetHandlers = new ArrayList<FacetHandler>();
 		facetHandlers.add(new SimpleFacetHandler("id"));
 		SimpleFacetHandler colorHandler = new SimpleFacetHandler("color");
-		colorHandler.setTermCountSize(TermCountSize.NumTermsSmall);
+		colorHandler.setTermCountSize(TermCountSize.small);
 		facetHandlers.add(colorHandler);
 
 		SimpleFacetHandler shapeHandler = new SimpleFacetHandler("shape");
-		colorHandler.setTermCountSize(TermCountSize.NumTermsMedium);
+		colorHandler.setTermCountSize(TermCountSize.medium);
 		facetHandlers.add(new SimpleFacetHandler("shape"));
 		facetHandlers.add(new RangeFacetHandler("size", true));
 		String[] ranges = new String[]{"[000000 TO 000005]", "[000006 TO 000010]", "[000011 TO 000020]"};

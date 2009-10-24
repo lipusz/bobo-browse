@@ -50,14 +50,14 @@ public class FacetDataCache implements Serializable {
 	  this.maxIDs = null;
 	  this.minIDs = null;
 	  this.freqs = null;
-	  _termCountSize = TermCountSize.NumTermsLarge;
+	  _termCountSize = TermCountSize.large;
 	}
 	
 	private final static BigSegmentedArray newInstance(TermCountSize termCountSize,int maxDoc){
-		if (termCountSize == TermCountSize.NumTermsSmall){
+		if (termCountSize == TermCountSize.small){
 			return new BigByteArray(maxDoc);
 		}
-		else if (termCountSize == TermCountSize.NumTermsMedium){
+		else if (termCountSize == TermCountSize.medium){
 			return new BigShortArray(maxDoc);
 		}
 		else return new BigIntArray(maxDoc);
