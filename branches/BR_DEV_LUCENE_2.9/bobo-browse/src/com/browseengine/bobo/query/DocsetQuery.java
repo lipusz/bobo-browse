@@ -3,6 +3,7 @@ package com.browseengine.bobo.query;
 import java.io.IOException;
 
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.search.ComplexExplanation;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
@@ -15,11 +16,12 @@ import org.apache.lucene.search.Weight;
 import org.apache.lucene.util.ToStringUtils;
 
 public class DocsetQuery extends Query {
-	private final DocIdSetIterator _iter;
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	private final DocIdSetIterator _iter;
 
 	public DocsetQuery(DocIdSet docSet) throws IOException{
 		this(docSet.iterator());
@@ -88,17 +90,15 @@ public class DocsetQuery extends Query {
 			return _queryWeight;
 		}
 
-		public void normalize(float norm) {
-			// we just take the boost, not going to normalize the score
-			
-			//_queryNorm = norm;
-			//_queryWeight *= _queryNorm;
+		public void normalize(float queryNorm) {
+			_queryNorm = queryNorm;
+		    _queryWeight *= _queryNorm;
 		}
 
 		@Override
 		public Scorer scorer(IndexReader reader,boolean scoreDocsInOrder,
 			      boolean topScorer) throws IOException {
-			return new DocSetIteratorScorer(_similarity,_iter,this,reader);
+			return new DocSetIteratorScorer(_similarity,_iter,this,reader.termDocs(null));
 		}
 
 		public float sumOfSquaredWeights() throws IOException {
@@ -109,13 +109,14 @@ public class DocsetQuery extends Query {
 		{
 			private final DocIdSetIterator _iter;
 			private final float _score;
-			private final IndexReader _reader;
-			DocSetIteratorScorer(Similarity similarity,DocIdSetIterator iter,Weight weight,IndexReader reader)
+			private final TermDocs _termDocs;
+			
+			DocSetIteratorScorer(Similarity similarity,DocIdSetIterator iter,Weight weight,TermDocs termDocs)
 			{
 				super(similarity);
 				_iter=iter;
 				_score=weight.getValue();
-				_reader=reader;
+				_termDocs = termDocs;
 			}
 			
 			@Override
@@ -139,8 +140,7 @@ public class DocsetQuery extends Query {
 					}
 					else
 					{
-						if (!_reader.isDeleted(docid))
-						{
+						if (_termDocs.skipTo(docid)){
 							return docid;
 						}
 					}
@@ -157,7 +157,7 @@ public class DocsetQuery extends Query {
 				int docid = _iter.advance(target);
 				if (docid!=DocIdSetIterator.NO_MORE_DOCS)
 				{
-					if (_reader.isDeleted(docid))
+					if (_termDocs.skipTo(docid))
 					{
 						return nextDoc();
 					}

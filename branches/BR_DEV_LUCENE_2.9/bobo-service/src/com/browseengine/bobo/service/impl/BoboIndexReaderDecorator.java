@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.index.IndexReader;
 
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.indexing.IndexReaderDecorator;
@@ -51,5 +52,12 @@ public class BoboIndexReaderDecorator implements IndexReaderDecorator<BoboIndexR
 	    {
 	      return null;
 	    }
+	}
+
+	public BoboIndexReader redecorate(IndexReader reader, ZoieIndexReader newReader)
+			throws IOException {
+		BoboIndexReader oldReader = (BoboIndexReader)reader;
+		oldReader.rewrap(newReader);
+		return oldReader;
 	}
 }

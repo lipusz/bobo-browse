@@ -70,7 +70,7 @@ public class RangeFacetHandler extends FacetHandler implements FacetHandlerFacto
 		_indexFieldName = indexFieldName;
 		_termListFactory = termListFactory;
 		_predefinedRanges = null;
-		_autoRange = true;
+		_autoRange = autoRange;
 	}
 	
 	public RangeFacetHandler(String name,TermListFactory termListFactory,boolean autoRange)

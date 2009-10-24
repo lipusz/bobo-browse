@@ -47,6 +47,7 @@ import org.apache.lucene.index.FilterIndexReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.SortComparatorSource;
@@ -78,8 +79,6 @@ public class BoboIndexReader extends FilterIndexReader
 
   private final Collection<FacetHandler>          _facetHandlers;
   private final WorkArea                          _workArea;
-  private final IntSet                            _deletedDocs;
-  private volatile int[]                          _deletedDocsArray;
 
   /**
    * Constructor
@@ -305,15 +304,6 @@ public class BoboIndexReader extends FilterIndexReader
     super(reader);
     _facetHandlers = facetHandlers;
     _workArea = workArea;
-    _deletedDocs = new IntRBTreeSet();
-    if(reader.hasDeletions())
-    {
-      int maxDoc = maxDoc();
-      for(int i=0; i < maxDoc; i++)
-      {
-        if(reader.isDeleted(i)) _deletedDocs.add(i); 
-      }
-    }
   }
 
   protected void facetInit() throws IOException
@@ -321,18 +311,13 @@ public class BoboIndexReader extends FilterIndexReader
     initialize(_facetHandlers, _workArea);
   }
   
+  /**
+   * @deprecated use {@link org.apache.lucene.search.MatchAllDocsQuery} instead.
+   * @return
+   */
   public Query getFastMatchAllDocsQuery()
   {
-    int[] deldocs = _deletedDocsArray;
-    if(deldocs == null)
-    {
-      synchronized(_deletedDocs)
-      {
-        deldocs = _deletedDocs.toIntArray();
-        _deletedDocsArray = deldocs;
-      }
-    }
-    return new FastMatchAllDocsQuery(deldocs, maxDoc());
+    return new MatchAllDocsQuery();
   }
 
   /**
@@ -413,6 +398,10 @@ public class BoboIndexReader extends FilterIndexReader
   {
     return _facetHandlerMap;
   }
+  
+  public void rewrap(IndexReader in){
+	  super.in = in;
+  }
 
   @Override
   public Document document(int docid) throws IOException
@@ -434,19 +423,6 @@ public class BoboIndexReader extends FilterIndexReader
       }
     }
     return doc;
-  }
-  
-  @Override
-  public void deleteDocument(int docid) throws IOException
-  {
-    super.deleteDocument(docid);
-    synchronized (_deletedDocs)
-    {
-      _deletedDocs.add(docid);
-      // remove the array but do not recreate the array at this point
-      // there may be more deleteDocument calls
-      _deletedDocsArray = null;
-    } 
   }
 
   /**
