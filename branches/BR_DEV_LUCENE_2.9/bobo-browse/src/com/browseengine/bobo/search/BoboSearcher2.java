@@ -234,14 +234,15 @@ public class BoboSearcher2 extends IndexSearcher{
         if (filter == null)
         {
           for (int i = 0; i < _subReaders.length; i++) { // search each subreader
-            collector.setNextReader(_subReaders[i], _docStarts[i]);
+        	int start = _docStarts[i];
+            collector.setNextReader(_subReaders[i], start);
             Scorer scorer = weight.scorer(_subReaders[i], !collector.acceptsDocsOutOfOrder(), true);
             if (scorer != null) {
             	collector.setScorer(scorer);
             	target = scorer.nextDoc();
                 while(target!=DocIdSetIterator.NO_MORE_DOCS)
                 {
-                  if(validator.validate(target))
+                  if(validator.validate(target+start))
                   {
                 	collector.collect(target);
                     target = scorer.nextDoc();
@@ -260,7 +261,8 @@ public class BoboSearcher2 extends IndexSearcher{
         for (int i = 0; i < _subReaders.length; i++) {
         	DocIdSet filterDocIdSet = filter.getDocIdSet(_subReaders[i]);
         	if (filterDocIdSet == null) return;
-        	collector.setNextReader(_subReaders[i], _docStarts[i]);
+        	int start = _docStarts[i];
+        	collector.setNextReader(_subReaders[i], start);
             Scorer scorer = weight.scorer(_subReaders[i], !collector.acceptsDocsOutOfOrder(), true);
             if (scorer!=null){
             	collector.setScorer(scorer);
@@ -280,7 +282,7 @@ public class BoboSearcher2 extends IndexSearcher{
 	              
 	              if(doc == target) // permitted by filter
 	              {
-	                if(validator.validate(doc))
+	                if(validator.validate(doc+start))
 	                {
 	                  collector.collect(doc);
 	                  
