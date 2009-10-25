@@ -25,9 +25,6 @@
 
 package com.browseengine.bobo.api;
 
-import it.unimi.dsi.fastutil.ints.IntRBTreeSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -54,12 +51,10 @@ import org.apache.lucene.search.SortComparatorSource;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.browseengine.bobo.config.impl.XMLFieldConfigurationBuilder;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.query.FastMatchAllDocsQuery;
 import com.browseengine.bobo.search.LuceneSortDocComparatorFactory;
 import com.browseengine.bobo.search.SortFieldEntry;
 

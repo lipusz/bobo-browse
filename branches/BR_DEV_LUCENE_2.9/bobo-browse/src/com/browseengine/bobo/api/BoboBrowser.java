@@ -26,7 +26,6 @@ import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.filter.AndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
-import com.browseengine.bobo.query.FastMatchAllDocsQuery;
 import com.browseengine.bobo.search.BoboSearcher2;
 import com.browseengine.bobo.search.FacetHitCollector;
 import com.browseengine.bobo.search.InternalBrowseHitCollector;
@@ -63,7 +62,7 @@ public class BoboBrowser extends BoboSearcher2 implements Browsable
   {
     Query q = req.getQuery();
     Filter filter = req.getFilter();
-    return ((q == null || q instanceof MatchAllDocsQuery || q instanceof FastMatchAllDocsQuery) && filter == null); 
+    return ((q == null || q instanceof MatchAllDocsQuery) && filter == null); 
   }
 
   /**
