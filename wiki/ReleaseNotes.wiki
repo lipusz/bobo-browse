@@ -8,7 +8,7 @@
  * some performance enhancements
 
 == 2.0.6 ==
- * bug fix with default impl of FacetAccessible.getFacet with value formatting
+ * bug fix with default impl of !FacetAccessible.getFacet with value formatting
  * added dynamic and filter range facet handlers
  * added simple grouby facet handler
  * added custom facet sort api
