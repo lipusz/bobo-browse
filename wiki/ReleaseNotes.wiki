@@ -4,8 +4,8 @@
 == 2.0.7 ==
  * bug fix: Issue 28 (Thanks tallpsmith)
  * fixed bug with facet result formatting (John Wang)
- * memory enhancements
- * some performance enhancements
+ * memory enhancements (John Wang)
+ * some performance enhancements (Yasuhiro)
 
 == 2.0.6 ==
  * bug fix with default impl of !FacetAccessible.getFacet with value formatting
