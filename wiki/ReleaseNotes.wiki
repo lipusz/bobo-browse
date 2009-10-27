@@ -2,7 +2,7 @@
 =Release Notes=
 
 == 2.0.7 ==
- * bug fix: Issue-28 (Thanks tallpsmith)
+ * bug fix: Issue 28 (Thanks tallpsmith)
  * fixed bug with facet result formatting (John Wang)
  * memory enhancements
  * some performance enhancements
