@@ -1,6 +1,9 @@
 #labels Featured,Phase-Support
 =Release Notes=
 
+== 2.0.8 ==
+  * added ability to fetch raw field data on top of string formated field data
+
 == 2.0.7 ==
  * bug fix: Issue 28 (Thanks tallpsmith)
  * fixed bug with facet result formatting (John Wang)
