@@ -68,7 +68,7 @@ public class OneSortCollector extends Collector {
 
   @Override
   public void setNextReader(IndexReader reader, int docBase) throws IOException {
-    _currentComparator = _compSource.getComparator(reader);
+    _currentComparator = _compSource.getComparator(reader,docBase);
     _currentQueue = new DocIDPriorityQueue(_currentComparator,
                                            _numHits, docBase);
     _pqList.add(_currentQueue);

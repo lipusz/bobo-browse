@@ -57,7 +57,7 @@ public class MultiSortCollector extends Collector {
 	@Override
 	public void setNextReader(IndexReader reader, int docBase) throws IOException {
 		for (int i=0;i<_currentComparators.length;++i){
-			_currentComparators[i]=_compSources[i].getComparator(reader);
+			_currentComparators[i]=_compSources[i].getComparator(reader,docBase);
 		}
 	    _queueFull = false;
 	}
