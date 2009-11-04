@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TopDocs;
@@ -16,7 +15,7 @@ import org.apache.lucene.search.TopDocs;
 import com.browseengine.bobo.sort.OneSortCollector.MyScoreDoc;
 import com.browseengine.bobo.util.ListMerger;
 
-public class MultiSortCollector extends Collector {
+public class MultiSortCollector extends SortCollector {
 
 	private final LinkedList<DocIDPriorityQueue> _pqList;
 	private final int _numHits;
@@ -32,9 +31,14 @@ public class MultiSortCollector extends Collector {
 	private final boolean _doScoring;
 	private float _maxScore;
 	private Scorer _scorer;
+	private final int _offset;
+	private final int _count;
 	  
-	public MultiSortCollector(DocComparatorSource[] compSources,boolean[] reverse,int numHits,boolean doScoring){
-		_numHits = numHits;
+	public MultiSortCollector(DocComparatorSource[] compSources,boolean[] reverse,int offset,int count,boolean doScoring){
+		assert (offset>=0 && count>0);
+		_offset = offset;
+		_count = count;
+		_numHits = _offset+_count;
 		_ascending = new boolean[reverse.length];
 		for (int i=0;i<reverse.length;++i){
 			_ascending[i]=!reverse[i];
@@ -101,7 +105,13 @@ public class MultiSortCollector extends Collector {
 			comparator.setScorer(scorer);
 		}
 	}
+	
+	@Override
+	public int getTotalHits(){
+	    return _totalHits;
+	}
 
+	@Override
 	public TopDocs topDocs(){
 	    ArrayList<Iterator<MyScoreDoc>> iterList = new ArrayList<Iterator<MyScoreDoc>>(_pqList.size());
 	    for (DocIDPriorityQueue pq : _pqList){
@@ -113,7 +123,7 @@ public class MultiSortCollector extends Collector {
 	      iterList.add(Arrays.asList(resList).iterator());
 	    }
 	    
-	    ArrayList<MyScoreDoc> resList = ListMerger.mergeLists(0, _numHits, iterList, new Comparator<MyScoreDoc>() {
+	    ArrayList<MyScoreDoc> resList = ListMerger.mergeLists(_offset, _count, iterList, new Comparator<MyScoreDoc>() {
 
 	        public int compare(MyScoreDoc o1, MyScoreDoc o2) {
 	          Comparable s1 = o1.getValue();
@@ -128,13 +138,14 @@ public class MultiSortCollector extends Collector {
 	          } else if (s2 == null) {
 	            r = 1;
 	          }
-	          int v = s1.compareTo(s2);
-	          if (v==0){
-	            r = o1.doc + o1.queue.base - o2.doc - o2.queue.base;
-	          } else {
-	            r = v;
+	          else{
+	            int v = s1.compareTo(s2);
+	            if (v==0){
+	              r = o1.doc + o1.queue.base - o2.doc - o2.queue.base;
+	            } else {
+	              r = v;
+	            }
 	          }
-	          
 	          return r;
 	        }
 	      });
