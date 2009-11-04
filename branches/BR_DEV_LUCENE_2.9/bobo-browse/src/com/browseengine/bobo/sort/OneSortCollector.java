@@ -11,6 +11,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.TopDocs;
 
 import com.browseengine.bobo.util.ListMerger;
 
@@ -18,31 +19,43 @@ public class OneSortCollector extends Collector {
   private final LinkedList<DocIDPriorityQueue> _pqList;
   private final int _numHits;
   private int _totalHits;
-  private int _bottom;
+  private MyScoreDoc _bottom;
   private final boolean _ascending;
   private boolean _queueFull;
   private DocComparator _currentComparator;
   private DocComparatorSource _compSource;
   private DocIDPriorityQueue _currentQueue;
+  private MyScoreDoc _tmpDoc;
+  
+  private final boolean _doScoring;
+  private float _maxScore;
+  private Scorer _scorer;
 	
-  static class NonScoreDoc extends ScoreDoc {
-    final DocIDPriorityQueue queue;
-    final Comparable value;
-
-    public NonScoreDoc(int docid, DocIDPriorityQueue queue) {
-      super(docid, 0.0f);
+  static class MyScoreDoc extends ScoreDoc {
+    DocIDPriorityQueue queue;
+    public MyScoreDoc(){
+    	this(0,0.0f,null);
+    }
+    public MyScoreDoc(int docid, float score, DocIDPriorityQueue queue) {
+      super(docid, score);
       this.queue = queue;
-      this.value = queue.sortValue(docid);
+    }
+    
+    Comparable getValue(){
+    	return queue.sortValue(this);
     }
   }
 	
-  public OneSortCollector(DocComparatorSource compSource,int numHits, boolean reverse) {
+  public OneSortCollector(DocComparatorSource compSource,int numHits, boolean reverse,boolean doScoring) {
     _compSource = compSource;
     _pqList = new LinkedList<DocIDPriorityQueue>();
     _numHits = numHits;
     _totalHits = 0;
     _queueFull = false;
     _ascending = !reverse;
+    _doScoring = doScoring;
+    _tmpDoc = new MyScoreDoc();
+    _maxScore = 0.0f;
   }
 
   @Override
@@ -53,15 +66,29 @@ public class OneSortCollector extends Collector {
   @Override
   public void collect(int doc) throws IOException {
     _totalHits++;
+    float score;
+    if (_doScoring){
+ 	   score = _scorer.score();
+ 	   _maxScore+=score;
+    }
+    else{
+ 	   score = 0.0f;
+    }
+    
     if (_queueFull){
-      int v = _currentComparator.compare(_bottom,doc);
+      _tmpDoc.doc = doc;
+      _tmpDoc.score = score;
+      _tmpDoc.queue=_currentQueue;
+      int v = _currentComparator.compare(_bottom,_tmpDoc);
       if (v==0 || ((v>0) && _ascending)){
         return;
       }
-      _bottom = _currentQueue.replace(doc);
+      MyScoreDoc tmp = _bottom;
+      _bottom = (MyScoreDoc)_currentQueue.replace(_tmpDoc);
+      _tmpDoc = tmp;
     }
-    else{
-      _bottom = _currentQueue.add(doc);
+    else{ 
+      _bottom = (MyScoreDoc)_currentQueue.add(new MyScoreDoc(doc,score,_currentQueue));
       _queueFull = (_currentQueue.size() >= _numHits);
     }
   }
@@ -77,6 +104,7 @@ public class OneSortCollector extends Collector {
 
   @Override
   public void setScorer(Scorer scorer) throws IOException {
+	  _scorer = scorer;
 	  _currentComparator.setScorer(scorer);
   }
 
@@ -84,24 +112,23 @@ public class OneSortCollector extends Collector {
     return _totalHits;
   }
 	
-  public ArrayList<NonScoreDoc> getTop(){
-    ArrayList<Iterator<NonScoreDoc>> iterList = new ArrayList<Iterator<NonScoreDoc>>(_pqList.size());
+  public TopDocs topDocs(){
+    ArrayList<Iterator<MyScoreDoc>> iterList = new ArrayList<Iterator<MyScoreDoc>>(_pqList.size());
     for (DocIDPriorityQueue pq : _pqList){
       int count = pq.size();
-      NonScoreDoc[] resList = new NonScoreDoc[count];
+      MyScoreDoc[] resList = new MyScoreDoc[count];
       for (int i = count - 1; i >= 0; i--) { 
-        final int docID = pq.pop();
-        resList[i] = new NonScoreDoc(docID, pq);
+    	  resList[i] = (MyScoreDoc)pq.pop();
       }
       iterList.add(Arrays.asList(resList).iterator());
     }
     
     final int revMult = _ascending ? 1 : -1;
-    ArrayList<NonScoreDoc> resList = ListMerger.mergeLists(0, _numHits, iterList, new Comparator<NonScoreDoc>() {
+    ArrayList<MyScoreDoc> resList = ListMerger.mergeLists(0, _numHits, iterList, new Comparator<MyScoreDoc>() {
 
-        public int compare(NonScoreDoc o1, NonScoreDoc o2) {
-          Comparable s1 = o1.value;
-          Comparable s2 = o2.value;
+        public int compare(MyScoreDoc o1, MyScoreDoc o2) {
+          Comparable s1 = o1.getValue();
+          Comparable s2 = o2.getValue();
           int r;
           if (s1 == null) {
             if (s2 == null) {
@@ -123,9 +150,9 @@ public class OneSortCollector extends Collector {
         }
       });
 		
-    for (NonScoreDoc doc : resList){
+    for (MyScoreDoc doc : resList){
       doc.doc += doc.queue.base;
     }
-    return resList;
+    return new TopDocs(_totalHits, resList.toArray(new ScoreDoc[resList.size()]), _maxScore);
   }
 }

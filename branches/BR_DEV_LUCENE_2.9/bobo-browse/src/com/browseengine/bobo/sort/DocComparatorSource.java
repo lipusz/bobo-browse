@@ -6,7 +6,7 @@ import java.util.Locale;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.FieldCache;
-import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.FieldCache.StringIndex;
 
 public abstract class DocComparatorSource {
@@ -26,9 +26,9 @@ public abstract class DocComparatorSource {
 			final int[] values = FieldCache.DEFAULT.getInts(reader, field);
 
 			return new DocComparator() {
-				public int compare(int doc1, int doc2) {
-					final int v1 = values[doc1];
-					final int v2 = values[doc2];
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					final int v1 = values[doc1.doc];
+					final int v2 = values[doc2.doc];
 					// cannot return v1-v2 because it could overflow
 					if (v1 < v2) {
 						return 1;
@@ -39,8 +39,8 @@ public abstract class DocComparatorSource {
 					}
 				}
 
-				public Integer value(int doc) {
-					return Integer.valueOf(values[doc]);
+				public Integer value(ScoreDoc doc) {
+					return Integer.valueOf(values[doc.doc]);
 				}
 			};
 		}
@@ -61,9 +61,9 @@ public abstract class DocComparatorSource {
 			final String[] values = FieldCache.DEFAULT.getStrings(reader, field);
 
 			return new DocComparator() {
-				public int compare(int doc1, int doc2) {
-					final String val1 = values[doc1];
-				    final String val2 = values[doc2];
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					final String val1 = values[doc1.doc];
+				    final String val2 = values[doc2.doc];
 				    if (val1 == null) {
 				      if (val2 == null) {
 				        return 0;
@@ -76,8 +76,8 @@ public abstract class DocComparatorSource {
 				    return _collator.compare(val1, val2);
 				}
 
-				public String value(int doc) {
-					return values[doc];
+				public String value(ScoreDoc doc) {
+					return values[doc.doc];
 				}
 			};
 		}
@@ -96,9 +96,9 @@ public abstract class DocComparatorSource {
 			final String[] values = FieldCache.DEFAULT.getStrings(reader, field);
 
 			return new DocComparator() {
-				public int compare(int doc1, int doc2) {
-					final String val1 = values[doc1];
-				    final String val2 = values[doc2];
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					final String val1 = values[doc1.doc];
+				    final String val2 = values[doc2.doc];
 				    if (val1 == null) {
 				      if (val2 == null) {
 				        return 0;
@@ -111,8 +111,8 @@ public abstract class DocComparatorSource {
 				    return val1.compareTo(val2);
 				}
 
-				public String value(int doc) {
-					return values[doc];
+				public String value(ScoreDoc doc) {
+					return values[doc.doc];
 				}
 			};
 		}
@@ -131,12 +131,12 @@ public abstract class DocComparatorSource {
 			final StringIndex values = FieldCache.DEFAULT.getStringIndex(reader, field);
 
 			return new DocComparator() {
-				public int compare(int doc1, int doc2) {
-					return values.order[doc1] -  values.order[doc2];
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					return values.order[doc1.doc] -  values.order[doc2.doc];
 				}
 
-				public String value(int doc) {
-					return String.valueOf(values.lookup[values.order[doc]]);
+				public String value(ScoreDoc doc) {
+					return String.valueOf(values.lookup[values.order[doc.doc]]);
 				}
 			};
 		}
@@ -155,12 +155,12 @@ public abstract class DocComparatorSource {
 			final short[] values = FieldCache.DEFAULT.getShorts(reader, field);
 
 			return new DocComparator() {
-				public int compare(int doc1, int doc2) {
-					return values[doc1] - values[doc2];
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					return values[doc1.doc] - values[doc2.doc];
 				}
 
-				public Short value(int doc) {
-					return Short.valueOf(values[doc]);
+				public Short value(ScoreDoc doc) {
+					return Short.valueOf(values[doc.doc]);
 				}
 			};
 		}
@@ -179,9 +179,9 @@ public abstract class DocComparatorSource {
 			final long[] values = FieldCache.DEFAULT.getLongs(reader, field);
 
 			return new DocComparator() {
-				public int compare(int doc1, int doc2) {
-					final long v1 = values[doc1];
-					final long v2 = values[doc2];
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					final long v1 = values[doc1.doc];
+					final long v2 = values[doc2.doc];
 					// cannot return v1-v2 because it could overflow
 					if (v1 < v2) {
 						return 1;
@@ -192,8 +192,8 @@ public abstract class DocComparatorSource {
 					}
 				}
 
-				public Long value(int doc) {
-					return Long.valueOf(values[doc]);
+				public Long value(ScoreDoc doc) {
+					return Long.valueOf(values[doc.doc]);
 				}
 			};
 		}
@@ -212,9 +212,9 @@ public abstract class DocComparatorSource {
 			final float[] values = FieldCache.DEFAULT.getFloats(reader, field);
 
 			return new DocComparator() {
-				public int compare(int doc1, int doc2) {
-					final float v1 = values[doc1];
-					final float v2 = values[doc2];
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					final float v1 = values[doc1.doc];
+					final float v2 = values[doc2.doc];
 					// cannot return v1-v2 because it could overflow
 					if (v1 < v2) {
 						return 1;
@@ -225,8 +225,8 @@ public abstract class DocComparatorSource {
 					}
 				}
 
-				public Float value(int doc) {
-					return Float.valueOf(values[doc]);
+				public Float value(ScoreDoc doc) {
+					return Float.valueOf(values[doc.doc]);
 				}
 			};
 		}
@@ -245,9 +245,9 @@ public abstract class DocComparatorSource {
 			final double[] values = FieldCache.DEFAULT.getDoubles(reader, field);
 
 			return new DocComparator() {
-				public int compare(int doc1, int doc2) {
-					final double v1 = values[doc1];
-					final double v2 = values[doc2];
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					final double v1 = values[doc1.doc];
+					final double v2 = values[doc2.doc];
 					// cannot return v1-v2 because it could overflow
 					if (v1 < v2) {
 						return 1;
@@ -258,8 +258,8 @@ public abstract class DocComparatorSource {
 					}
 				}
 
-				public Double value(int doc) {
-					return Double.valueOf(values[doc]);
+				public Double value(ScoreDoc doc) {
+					return Double.valueOf(values[doc.doc]);
 				}
 			};
 		}
@@ -273,20 +273,22 @@ public abstract class DocComparatorSource {
 				throws IOException {
 
 			return new DocComparator() {
-				Scorer _scorer = null;
-				public int compare(int doc1, int doc2) {
-					return -1;
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					final float v1 = doc1.score;
+					final double v2 = doc2.score;
+					// cannot return v1-v2 because it could overflow
+					if (v1 < v2) {
+						return 1;
+					} else if (v1 > v2) {
+						return -1;
+					} else {
+						return 0;
+					}
 				}
 
-				public Float value(int doc) {
-					return null;
+				public Float value(ScoreDoc doc) {
+					return Float.valueOf(doc.score);
 				}
-
-				@Override
-				public void setScorer(Scorer scorer) {
-					_scorer = scorer;
-				}
-				
 			};
 		}
 		
@@ -303,12 +305,12 @@ public abstract class DocComparatorSource {
 			final int _docbase = docbase;
 
 			return new DocComparator() {
-				public int compare(int doc1, int doc2) {
-					return doc1-doc2;
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					return doc1.doc-doc2.doc;
 				}
 
-				public Integer value(int doc) {
-					return Integer.valueOf(doc+_docbase);
+				public Integer value(ScoreDoc doc) {
+					return Integer.valueOf(doc.doc+_docbase);
 				}
 			};
 		}
@@ -327,12 +329,12 @@ public abstract class DocComparatorSource {
 			final byte[] values = FieldCache.DEFAULT.getBytes(reader, field);
 
 			return new DocComparator() {
-				public int compare(int doc1, int doc2) {
-					return values[doc1] - values[doc2];
+				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+					return values[doc1.doc] - values[doc2.doc];
 				}
 
-				public Byte value(int doc) {
-					return Byte.valueOf(values[doc]);
+				public Byte value(ScoreDoc doc) {
+					return Byte.valueOf(values[doc.doc]);
 				}
 			};
 		}
