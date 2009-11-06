@@ -12,8 +12,8 @@ import org.apache.lucene.search.ScoreDocComparator;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.SortField;
 
-import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSubBrowser;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.TopDocsSortedHitCollector;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -29,12 +29,12 @@ public class InternalBrowseHitCollector extends TopDocsSortedHitCollector
   private final BoboIndexReader _reader;
   private final int _offset;
   private final int _count;
-  private final BoboBrowser _boboBrowser;
+  private final BoboSubBrowser _boboBrowser;
   private final boolean _fetchStoredFields;
   private Scorer _scorer;
   private int _docBase;
 
-  public InternalBrowseHitCollector(BoboBrowser boboBrowser,
+  public InternalBrowseHitCollector(BoboSubBrowser boboBrowser,
                                     SortField[] sort,
                                     int offset,
                                     int count,

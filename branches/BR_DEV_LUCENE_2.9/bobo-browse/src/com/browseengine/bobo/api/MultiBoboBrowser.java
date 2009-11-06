@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 {
   private static Logger logger = Logger.getLogger(MultiBoboBrowser.class);
   
+  protected final Browsable[] _subBrowsers;
   /**
    * 
    * @param browsers
@@ -38,6 +40,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
   public MultiBoboBrowser(Browsable[] browsers) throws IOException
   {
     super(browsers);
+    _subBrowsers = browsers;
   }
 
   /**
@@ -191,7 +194,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
    */
   public Browsable[] getSubBrowsers()
   {
-    return (Browsable[])getSearchables();
+    return _subBrowsers;
   }
 
   /**
@@ -238,15 +241,26 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
     return count;
   }
 
+  public Set<String> getFacetNames()
+  {
+    Set<String> names = new HashSet<String>();
+    Browsable[] subBrowsers = getSubBrowsers();
+    for (Browsable subBrowser : subBrowsers)
+    {
+      names.addAll(subBrowser.getFacetNames());
+    }
+    return names;
+  }
+  
   public FacetHandler getFacetHandler(String name)
   {
-	  Browsable[] subBrowsers = getSubBrowsers();
-	  for (Browsable subBrowser : subBrowsers)
-	  {
-		FacetHandler subHandler = subBrowser.getFacetHandler(name);
-		if (subHandler!=null) return subHandler;
-	  }
-	  return null;
+    Browsable[] subBrowsers = getSubBrowsers();
+    for (Browsable subBrowser : subBrowsers)
+    {
+      FacetHandler subHandler = subBrowser.getFacetHandler(name);
+      if (subHandler!=null) return subHandler;
+    }
+    return null;
   }
 	
   

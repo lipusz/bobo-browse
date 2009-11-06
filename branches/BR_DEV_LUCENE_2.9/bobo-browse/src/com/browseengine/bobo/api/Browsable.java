@@ -2,6 +2,7 @@ package com.browseengine.bobo.api;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Explanation;
@@ -21,6 +22,8 @@ public interface Browsable extends Searchable
 
 	BrowseResult browse(BrowseRequest req) throws BrowseException;
 
+	Set<String> getFacetNames();
+	
 	void setFacetHandler(FacetHandler facetHandler) throws IOException;
 
 	FacetHandler getFacetHandler(String name);

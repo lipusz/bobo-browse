@@ -388,7 +388,7 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(new SimpleFacetHandler("id"));
 		facetHandlers.add(new SimpleFacetHandler("color"));
 		facetHandlers.add(new SimpleFacetHandler("shape"));
-		facetHandlers.add(new RangeFacetHandler("size", true));
+		facetHandlers.add(new RangeFacetHandler("size", Arrays.asList(new String[]{"[* TO 4]", "[5 TO 8]", "[9 TO *]"})));
 		String[] ranges = new String[]{"[000000 TO 000005]", "[000006 TO 000010]", "[000011 TO 000020]"};
 		facetHandlers.add(new RangeFacetHandler("numendorsers", new PredefinedTermListFactory(Integer.class, "000000"), Arrays.asList(ranges)));
 		
@@ -1267,7 +1267,7 @@ public class BoboTestCase extends TestCase {
 		
 		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
 		answer.put("color",  Arrays.asList(new BrowseFacet[]{new BrowseFacet("green",1),new BrowseFacet("red",2)}));
-		answer.put("size", Arrays.asList(new BrowseFacet[]{new BrowseFacet("[4 TO 4]",1),new BrowseFacet("[7 TO 7]",1)}));
+		answer.put("size", Arrays.asList(new BrowseFacet[]{new BrowseFacet("[* TO 4]",1),new BrowseFacet("[5 TO 8]",1)}));
 		answer.put("shape", Arrays.asList(new BrowseFacet[]{new BrowseFacet("square",2)}));
 		answer.put("location", Arrays.asList(new BrowseFacet[]{new BrowseFacet("toy/lego/",1),new BrowseFacet("toy/lego/block",1)}));
 		answer.put("tag", Arrays.asList(new BrowseFacet[]{new BrowseFacet("rabbit",2),new BrowseFacet("animal",1),new BrowseFacet("dog",1),new BrowseFacet("humane",1),new BrowseFacet("pet",1)}));
@@ -1453,7 +1453,7 @@ public class BoboTestCase extends TestCase {
 						Integer size1 = (Integer)fieldValueAccessor.getRawValue(v1);
 						Integer size2 = (Integer)fieldValueAccessor.getRawValue(v2);
 						
-						int val = size1-size2;
+						int val = size2-size1;
 						if (val == 0){
 							val = counts[v1]-counts[v2];
 						}
@@ -1468,7 +1468,7 @@ public class BoboTestCase extends TestCase {
 					public int compare(BrowseFacet o1, BrowseFacet o2) {
 						int v1 = Integer.parseInt(o1.getValue());
 						int v2 = Integer.parseInt(o2.getValue());
-						int val = v1-v2;
+						int val = v2-v1;
 						if (val == 0){
 							val = o1.getHitCount()-o2.getHitCount();
 						}
