@@ -41,11 +41,11 @@ public class BoboIndexReaderDecorator implements IndexReaderDecorator<BoboIndexR
     	      {
     	        handerList.add(factory.newInstance());
     	      }
-    	      return BoboIndexReader.getInstance(zoieReader,handerList);
+    	      return BoboIndexReader.getInstanceAsSubReader(zoieReader,handerList);
     		}
     		else
     		{
-    		   return BoboIndexReader.getInstance(zoieReader);
+    		  return BoboIndexReader.getInstanceAsSubReader(zoieReader);
     		}
 	    }
 	    else

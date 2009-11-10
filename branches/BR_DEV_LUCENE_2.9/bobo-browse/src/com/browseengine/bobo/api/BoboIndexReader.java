@@ -99,6 +99,49 @@ public class BoboIndexReader extends FilterIndexReader
     return BoboIndexReader.getInstance(reader, null, workArea);
   }
 
+  /**
+   * Constructor.
+   * 
+   * @param reader
+   *          index reader
+   * @param facetHandlers
+   *          List of facet handlers
+   * @throws IOException
+   */
+  public static BoboIndexReader getInstance(IndexReader reader,
+                                            Collection<FacetHandler> facetHandlers) throws IOException
+  {
+    return BoboIndexReader.getInstance(reader, facetHandlers, new WorkArea());
+  }
+
+  public static BoboIndexReader getInstance(IndexReader reader,
+                                            Collection<FacetHandler> facetHandlers,
+                                            WorkArea workArea) throws IOException
+  {
+    BoboIndexReader boboReader = new BoboIndexReader(reader, facetHandlers, workArea);
+    boboReader.facetInit();
+    return boboReader;
+  }
+
+  public static BoboIndexReader getInstanceAsSubReader(IndexReader reader) throws IOException
+  {
+    return getInstanceAsSubReader(reader, null, new WorkArea());
+  }
+
+  public static BoboIndexReader getInstanceAsSubReader(IndexReader reader,
+                                                       Collection<FacetHandler> facetHandlers) throws IOException
+  {
+    return getInstanceAsSubReader(reader, facetHandlers, new WorkArea());
+  }
+
+  public static BoboIndexReader getInstanceAsSubReader(IndexReader reader,
+                                                       Collection<FacetHandler> facetHandlers,
+                                                       WorkArea workArea) throws IOException
+  {
+    BoboIndexReader boboReader = new BoboIndexReader(reader, facetHandlers, workArea, false);
+    boboReader.facetInit();
+    return boboReader;
+  }
   private static Collection<FacetHandler> loadFromIndex(File file) throws IOException
   {
     File springFile = new File(file, SPRING_CONFIG);
@@ -298,30 +341,6 @@ public class BoboIndexReader extends FilterIndexReader
     {
       return comparator;
     }
-  }
-
-  /**
-   * Constructor.
-   * 
-   * @param reader
-   *          index reader
-   * @param facetHandlers
-   *          List of facet handlers
-   * @throws IOException
-   */
-  public static BoboIndexReader getInstance(IndexReader reader,
-                                            Collection<FacetHandler> facetHandlers) throws IOException
-  {
-    return BoboIndexReader.getInstance(reader, facetHandlers, new WorkArea());
-  }
-
-  public static BoboIndexReader getInstance(IndexReader reader,
-                                            Collection<FacetHandler> facetHandlers,
-                                            WorkArea workArea) throws IOException
-  {
-    BoboIndexReader boboReader = new BoboIndexReader(reader, facetHandlers, workArea);
-    boboReader.facetInit();
-    return boboReader;
   }
 
   protected BoboIndexReader(IndexReader reader,
