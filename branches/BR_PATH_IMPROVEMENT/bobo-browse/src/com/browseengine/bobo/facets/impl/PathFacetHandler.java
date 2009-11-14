@@ -20,6 +20,7 @@ import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.FacetOrFilter;
+import com.browseengine.bobo.facets.filter.MultiValueORFacetFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 
@@ -115,9 +116,14 @@ public class PathFacetHandler extends FacetHandler implements FacetHandlerFactor
 	@Override
 	public String[] getFieldValues(int id) 
 	{
-		return new String[]{_dataCache.valArray.get(_dataCache.orderArray.get(id))};
+		if (_multiValue){
+		  return ((MultiValueFacetDataCache)_dataCache)._nestedArray.getTranslatedData(id, _dataCache.valArray);	
+		}
+		else{
+		  return new String[]{_dataCache.valArray.get(_dataCache.orderArray.get(id))};
+		}
 	}
-	
+	 
 	@Override
 	public Object[] getRawFieldValues(int id){
 		return getFieldValues(id);
@@ -192,7 +198,7 @@ public class PathFacetHandler extends FacetHandler implements FacetHandlerFactor
     if (intSet.size()>0)
     {
       int[] indexes = intSet.toIntArray();
-      return new FacetOrFilter(_dataCache,indexes);
+      return _multiValue ? new MultiValueORFacetFilter((MultiValueFacetDataCache)_dataCache, indexes) : new FacetOrFilter(_dataCache,indexes);
     }
     else
     {
@@ -232,7 +238,7 @@ public class PathFacetHandler extends FacetHandler implements FacetHandlerFactor
       getFilters(intSet,vals,depth,strict);
       if (intSet.size()>0)
       {
-        return new FacetOrFilter(_dataCache,intSet.toIntArray(),isNot);
+    	return _multiValue ? new MultiValueORFacetFilter((MultiValueFacetDataCache)_dataCache, intSet.toIntArray(),isNot) : new FacetOrFilter(_dataCache,intSet.toIntArray(),isNot);
       }
       else
       {

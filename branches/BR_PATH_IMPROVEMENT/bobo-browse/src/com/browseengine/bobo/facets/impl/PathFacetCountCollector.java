@@ -1,6 +1,9 @@
 package com.browseengine.bobo.facets.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -14,6 +17,7 @@ import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.BoundedPriorityQueue;
+import com.browseengine.bobo.util.ListMerger;
 
 public class PathFacetCountCollector implements FacetCountCollector
 {
@@ -231,16 +235,23 @@ public class PathFacetCountCollector implements FacetCountCollector
 			return getFacetsForPath(null, depth, strict, _minHitCount,_maxCount);
 		}
 		
+		if (paths.length==1) return getFacetsForPath(paths[0],depth,strict,_minHitCount,_maxCount);
 
 		LinkedList<BrowseFacet> finalList=new LinkedList<BrowseFacet>();
+		ArrayList<Iterator<BrowseFacet>> iterList = new ArrayList<Iterator<BrowseFacet>>(paths.length);
 		for (String path : paths)
 		{
 			List<BrowseFacet> subList=getFacetsForPath(path, depth, strict,  _minHitCount,_maxCount);
 			if (subList.size() > 0)
 			{
-			  finalList.addAll(subList);
+				iterList.add(subList.iterator());
 			}
 		}
+		Iterator<BrowseFacet> finalIter = ListMerger.mergeLists(iterList.toArray((Iterator<BrowseFacet>[])new Iterator[iterList.size()]), _comparatorFactory==null ? new FacetValueComparatorFactory().newComparator(): _comparatorFactory.newComparator());
+		while (finalIter.hasNext())
+	    {
+			finalList.addFirst(finalIter.next());
+	    }
 		return finalList;
 	}
 	
