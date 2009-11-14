@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -13,7 +14,9 @@ import org.apache.lucene.search.ScoreDocComparator;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandlerFactory;
@@ -24,6 +27,7 @@ import com.browseengine.bobo.facets.filter.FacetOrFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 import com.browseengine.bobo.util.BigSegmentedArray;
+import com.browseengine.bobo.util.BoundedPriorityQueue;
 
 public class PathFacetHandler extends FacetHandler implements FacetHandlerFactory 
 {
@@ -277,6 +281,10 @@ public class PathFacetHandler extends FacetHandler implements FacetHandlerFactor
 		private final String _sep;
 		private final BigSegmentedArray _orderArray;
 		private final FacetDataCache _dataCache;
+		private final ComparatorFactory _comparatorFactory;
+		private final int _minHitCount;
+		private int _maxCount;
+		
 		
 		PathFacetCountCollector(String name,String sep,BrowseSelection sel,FacetSpec ospec,FacetDataCache dataCache)
 		{
@@ -287,6 +295,18 @@ public class PathFacetHandler extends FacetHandler implements FacetHandlerFactor
             _sep = sep;
 			_count=new int[_dataCache.freqs.length];
 			_orderArray = _dataCache.orderArray;
+			_minHitCount = ospec.getMinHitCount();
+			_maxCount = ospec.getMaxCount();
+			if (_maxCount<1){
+				_maxCount = _count.length;
+			}
+			FacetSortSpec sortOption = ospec.getOrderBy();
+			switch(sortOption){
+			case OrderHitsDesc: _comparatorFactory=new FacetHitcountComparatorFactory(); break;
+			case OrderValueAsc: _comparatorFactory=null; break;
+			case OrderByCustom: _comparatorFactory=ospec.getCustomComparatorFactory(); break;
+			default: throw new IllegalArgumentException("invalid sort option: "+sortOption);
+			}
 		}
 		
 		public int[] getCountDistribution()
@@ -307,15 +327,24 @@ public class PathFacetHandler extends FacetHandler implements FacetHandlerFactor
 		{
 		    _count = _dataCache.freqs; 
 		}
+		
 		public BrowseFacet getFacet(String value)
 		{
 		  return null;	
 		}
 		
-		private List<BrowseFacet> getFacetsForPath(String selectedPath,int depth,boolean strict,int minCount)
+		private List<BrowseFacet> getFacetsForPath(String selectedPath,int depth,boolean strict,int minCount,int maxCount)
 		{
 			LinkedList<BrowseFacet> list=new LinkedList<BrowseFacet>();
-			
+
+            BoundedPriorityQueue<BrowseFacet> pq=null;
+            
+            if (_comparatorFactory!=null){
+            	Comparator<BrowseFacet> comparator = _comparatorFactory.newComparator();
+            	
+            	pq=new BoundedPriorityQueue<BrowseFacet>(comparator,maxCount);
+            }
+            
 			String[] startParts=null;
 			int startDepth=0;
 			
@@ -387,7 +416,14 @@ public class PathFacetHandler extends FacetHandler implements FacetHandlerFactor
 									}
 									else{
 										BrowseFacet ch=new BrowseFacet(currentPath,currentCount);
-										list.add(ch);
+										if (pq!=null){
+											pq.add(ch);
+										}
+										else{
+											if (list.size()<maxCount){
+										      list.add(ch);
+											}
+										}
 										currentPath=wantedPath;
 										currentCount=subCount;
 									}
@@ -395,7 +431,14 @@ public class PathFacetHandler extends FacetHandler implements FacetHandlerFactor
 								else{
 									if (!directNode){
 										BrowseFacet ch=new BrowseFacet(currentPath,currentCount);
-										list.add(ch);
+										if (pq!=null){
+											pq.add(ch);
+										}
+										else{
+											if (list.size()<maxCount){
+											  list.add(ch);
+											}
+										}
 										currentPath=wantedPath;
 										currentCount=subCount;
 									}
@@ -412,15 +455,29 @@ public class PathFacetHandler extends FacetHandler implements FacetHandlerFactor
 			}
 			
 			if (currentPath!=null && currentCount>0){
-				list.add(new BrowseFacet(currentPath,currentCount));
+				BrowseFacet ch=new BrowseFacet(currentPath,currentCount);
+				if (pq!=null){
+				  pq.add(ch);
+				}
+				else{
+				  if (list.size()<maxCount){
+					  list.add(ch);
+				  }
+				}
+			}
+			
+			if (pq!=null){
+				BrowseFacet val;
+				while((val = pq.poll()) != null)
+	            {
+	              list.addFirst(val);
+	            }
 			}
 			
 			return list;
 		}
 
 		public List<BrowseFacet> getFacets() {
-			int minCount=_ospec.getMinHitCount();
-			
 			Properties props = _sel == null ? null : _sel.getSelectionProperties();
 			int depth = PathFacetHandler.getDepth(props);
 			boolean strict = PathFacetHandler.isStrict(props);
@@ -428,14 +485,14 @@ public class PathFacetHandler extends FacetHandler implements FacetHandlerFactor
 			String[] paths= _sel == null ? null : _sel.getValues();
 			if (paths==null || paths.length == 0)
 			{
-				return getFacetsForPath(null, depth, strict, minCount);
+				return getFacetsForPath(null, depth, strict, _minHitCount,_maxCount);
 			}
 			
 
 			LinkedList<BrowseFacet> finalList=new LinkedList<BrowseFacet>();
 			for (String path : paths)
 			{
-				List<BrowseFacet> subList=getFacetsForPath(path, depth, strict, minCount);
+				List<BrowseFacet> subList=getFacetsForPath(path, depth, strict,  _minHitCount,_maxCount);
 				if (subList.size() > 0)
 				{
 				  finalList.addAll(subList);
