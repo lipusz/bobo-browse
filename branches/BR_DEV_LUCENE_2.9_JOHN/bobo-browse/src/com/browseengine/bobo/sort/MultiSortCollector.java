@@ -56,7 +56,7 @@ public class MultiSortCollector extends SortCollector {
 	
 	@Override
 	public boolean acceptsDocsOutOfOrder() {
-		return true;
+		return _collector == null ? true : _collector.acceptsDocsOutOfOrder();
 	}
 
 	@Override
@@ -86,6 +86,8 @@ public class MultiSortCollector extends SortCollector {
 	      _bottom = (MyScoreDoc)_currentQueue.add(new MyScoreDoc(doc,score,_currentQueue));
 	      _queueFull = (_currentQueue.size() >= _numHits);
 	    }
+	    
+	    if (_collector!=null) _collector.collect(doc);
 	}
 
 	@Override

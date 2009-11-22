@@ -2,43 +2,36 @@ package com.browseengine.bobo.facets.filter;
 
 import java.io.IOException;
 
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.util.OpenBitSet;
+import org.apache.lucene.util.BitVector;
 
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.EmptyDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
+import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.filter.FacetOrFilter.FacetOrDocIdSetIterator;
+import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.util.BigNestedIntArray;
 
 public class MultiValueORFacetFilter extends RandomAccessFilter
 {
 
   private static final long serialVersionUID = 1L;
+  private final MultiValueFacetHandler _facetHandler;
+  private final String[] _vals;
   
-  private final MultiValueFacetDataCache _dataCache;
-  private final BigNestedIntArray _nestedArray;
-  private final OpenBitSet _bitset;
-  private final int[] _index;
-  
-  public MultiValueORFacetFilter(MultiValueFacetDataCache dataCache,int[] index)
+  public MultiValueORFacetFilter(MultiValueFacetHandler facetHandler,String[] vals)
   {
-    _dataCache = dataCache;
-    _nestedArray = dataCache._nestedArray;
-    _index = index;
-    _bitset = new OpenBitSet(_dataCache.valArray.size());
-    for (int i : _index)
-    {
-      _bitset.fastSet(i);
-    }  
+	_facetHandler = facetHandler;
+	_vals = vals;
   }
   
   private final static class MultiValueFacetDocIdSetIterator extends FacetOrDocIdSetIterator
   {
       private final BigNestedIntArray _nestedArray;
-      public MultiValueFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, int[] index,OpenBitSet bs) 
+      public MultiValueFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, int[] index,BitVector bs) 
       {
         super(dataCache,index,bs);
         _nestedArray = dataCache._nestedArray;
@@ -73,24 +66,33 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
   }
   
   @Override
-  public RandomAccessDocIdSet getRandomAccessDocIdSet(IndexReader reader) throws IOException
+  public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException
   {
-    if (_index.length == 0)
+	final MultiValueFacetDataCache dataCache = _facetHandler.getFacetData(reader);
+	final int[] index = FacetDataCache.convert(dataCache, _vals);
+	final BigNestedIntArray nestedArray = dataCache._nestedArray;
+	final BitVector bitset = new BitVector(dataCache.valArray.size());
+	
+	for (int i : index){
+		bitset.set(i);
+    } 
+	
+    if (index.length == 0)
     {
       final DocIdSet empty = EmptyDocIdSet.getInstance();
         return new RandomAccessDocIdSet()
         {
-    @Override
-    public boolean get(int docId)
-    {
-      return false;
-    }
-
-    @Override
-    public DocIdSetIterator iterator() throws IOException
-    {
-      return empty.iterator();
-    }         
+		    @Override
+		    public boolean get(int docId)
+		    {
+		      return false;
+		    }
+		
+		    @Override
+		    public DocIdSetIterator iterator() throws IOException
+		    {
+		      return empty.iterator();
+		    }         
         };
     }
     else
@@ -100,13 +102,13 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
             @Override
             public DocIdSetIterator iterator() 
             {
-                return new MultiValueFacetDocIdSetIterator(_dataCache,_index,_bitset);
+                return new MultiValueFacetDocIdSetIterator(dataCache,index,bitset);
             }
 
             @Override
             final public boolean get(int docId)
             {
-              return _nestedArray.contains(docId,_bitset);
+              return nestedArray.contains(docId,bitset);
             }
         };
     }

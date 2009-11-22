@@ -74,11 +74,11 @@ public class FacetTermQuery extends Query {
 		public Explanation explain(IndexReader reader, int docid)
 				throws IOException {
 			BoboIndexReader boboReader = (BoboIndexReader)reader;
-			FacetHandler fhandler = boboReader.getFacetHandler(FacetTermQuery.this._name);
+			FacetHandler<?> fhandler = boboReader.getFacetHandler(FacetTermQuery.this._name);
 			if (fhandler!=null){
 				 BoboDocScorer scorer = null;
 				 if (fhandler instanceof FacetScoreable){
-					 scorer = ((FacetScoreable)fhandler).getDocScorer(_scoringFactory, _boostMap);
+					 scorer = ((FacetScoreable)fhandler).getDocScorer(boboReader,_scoringFactory, _boostMap);
 					 return scorer.explain(docid);
 				 }
 				 else{
@@ -105,7 +105,7 @@ public class FacetTermQuery extends Query {
 		public Scorer scorer(IndexReader reader,boolean scoreDocsInOrder,boolean topScorer) throws IOException {
 			if (reader instanceof BoboIndexReader){
 			  BoboIndexReader boboReader = (BoboIndexReader)reader;
-			  FacetHandler fhandler = boboReader.getFacetHandler(FacetTermQuery.this._name);
+			  FacetHandler<?> fhandler = boboReader.getFacetHandler(FacetTermQuery.this._name);
 			  if (fhandler!=null){
 				 DocIdSetIterator dociter = null;
 				 RandomAccessFilter filter = fhandler.buildFilter(FacetTermQuery.this._sel);
@@ -120,7 +120,7 @@ public class FacetTermQuery extends Query {
 				 }
 				 BoboDocScorer scorer = null;
 				 if (fhandler instanceof FacetScoreable){
-					 scorer = ((FacetScoreable)fhandler).getDocScorer(_scoringFactory, _boostMap);
+					 scorer = ((FacetScoreable)fhandler).getDocScorer(boboReader,_scoringFactory, _boostMap);
 				 }
 				 return new FacetTermScorer(_similarity,dociter,scorer);
 			  }

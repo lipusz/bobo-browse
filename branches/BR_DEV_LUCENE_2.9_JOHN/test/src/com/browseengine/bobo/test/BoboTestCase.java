@@ -57,7 +57,6 @@ import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.ScoreDocComparator;
@@ -101,13 +100,13 @@ import com.browseengine.bobo.query.scoring.FacetTermQuery;
 
 public class BoboTestCase extends TestCase {
 	private Directory _indexDir;
-	private List<FacetHandler> _fconf;
+	private List<FacetHandler<?>> _fconf;
 	static final private Term tagSizePayloadTerm = new Term("tagSizePayload", "size");
 	
 	private static class TestDataDigester extends DataDigester {
-		private List<FacetHandler> _fconf;
+		private List<FacetHandler<?>> _fconf;
 		private Document[] _data;
-		TestDataDigester(List<FacetHandler> fConf,Document[] data){
+		TestDataDigester(List<FacetHandler<?>> fConf,Document[] data){
 			super();
 			_fconf=fConf;
 			_data=data;
@@ -369,7 +368,7 @@ public class BoboTestCase extends TestCase {
 			TestDataDigester testDigester=new TestDataDigester(_fconf,data);
 			BoboIndexer indexer=new BoboIndexer(testDigester,idxDir);
 			indexer.index();
-			IndexReader r = IndexReader.open(idxDir);
+			IndexReader r = IndexReader.open(idxDir,false);
 			r.deleteDocument(r.maxDoc() - 1);
 			//r.flush();
 			r.close();
@@ -383,8 +382,8 @@ public class BoboTestCase extends TestCase {
 		
 	}
 	
-	public static List<FacetHandler> buildFieldConf(){
-		List<FacetHandler> facetHandlers = new ArrayList<FacetHandler>();
+	public static List<FacetHandler<?>> buildFieldConf(){
+		List<FacetHandler<?>> facetHandlers = new ArrayList<FacetHandler<?>>();
 		facetHandlers.add(new SimpleFacetHandler("id"));
 		facetHandlers.add(new SimpleFacetHandler("color"));
 		facetHandlers.add(new SimpleFacetHandler("shape"));
@@ -717,9 +716,9 @@ public class BoboTestCase extends TestCase {
 	public void testLuceneSort() throws IOException
 	{
 	  
-	  IndexReader srcReader=IndexReader.open(_indexDir);
+	  IndexReader srcReader=IndexReader.open(_indexDir,true);
       try{
-        List<FacetHandler> facetHandlers = new ArrayList<FacetHandler>();
+        List<FacetHandler<?>> facetHandlers = new ArrayList<FacetHandler<?>>();
         facetHandlers.add(new SimpleFacetHandler("id"));
         
         BoboIndexReader reader= BoboIndexReader.getInstance(srcReader,facetHandlers);       // not facet handlers to help

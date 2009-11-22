@@ -13,21 +13,24 @@ import junit.framework.TestCase;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.search.ScoreDocComparator;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Version;
 
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.facets.FacetCountCollector;
+import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
+import com.browseengine.bobo.sort.DocComparatorSource;
 
 public class FacetHandlerTest extends TestCase {
 	private Directory _ramDir;
-	private static class NoopFacetHandler extends FacetHandler
+	private static class NoopFacetHandler extends FacetHandler<FacetDataNone>
 	{
 
 		public NoopFacetHandler(String name) {
@@ -47,24 +50,24 @@ public class FacetHandlerTest extends TestCase {
 		}
 
 		@Override
-		public FacetCountCollector getFacetCountCollector(BrowseSelection sel,
+		public FacetCountCollectorSource getFacetCountCollectorSource(BrowseSelection sel,
 				FacetSpec fspec) {
 			return null;
 		}
 
 		@Override
-		public String[] getFieldValues(int id) {
+		public String[] getFieldValues(BoboIndexReader reader,int id) {
 			return null;
 		}
 
 		@Override
-		public ScoreDocComparator getScoreDocComparator() {
+		public DocComparatorSource getDocComparatorSource() {
 			return null;
 		}
 
 		@Override
-		public void load(BoboIndexReader reader) throws IOException {
-			
+		public FacetDataNone load(BoboIndexReader reader) throws IOException {
+			return FacetDataNone.instance;
 		}
 		
 	}
@@ -75,7 +78,7 @@ public class FacetHandlerTest extends TestCase {
 		_ramDir = new RAMDirectory();
 		try
 		{
-			IndexWriter writer = new IndexWriter(_ramDir,new StandardAnalyzer());
+			IndexWriter writer = new IndexWriter(_ramDir,new StandardAnalyzer(Version.LUCENE_CURRENT),MaxFieldLength.UNLIMITED);
 			writer.close();
 		}
 		catch(Exception ioe)
@@ -86,9 +89,9 @@ public class FacetHandlerTest extends TestCase {
 	
 	public void testFacetHandlerLoad() throws Exception
 	{
-		IndexReader reader = IndexReader.open(_ramDir);
+		IndexReader reader = IndexReader.open(_ramDir,true);
 		
-		List<FacetHandler> list = new LinkedList<FacetHandler>();
+		List<FacetHandler<?>> list = new LinkedList<FacetHandler<?>>();
 		NoopFacetHandler h1 = new NoopFacetHandler("A");
 		list.add(h1);
 		
@@ -161,9 +164,9 @@ public class FacetHandlerTest extends TestCase {
 	
 	public void testNegativeLoadTest() throws Exception
 	{
-		IndexReader reader = IndexReader.open(_ramDir);
+		IndexReader reader = IndexReader.open(_ramDir,true);
 		
-		List<FacetHandler> list = new LinkedList<FacetHandler>();
+		List<FacetHandler<?>> list = new LinkedList<FacetHandler<?>>();
 		HashSet<String> s1 = new HashSet<String>();
 		s1.add("C");
 		NoopFacetHandler h1 = new NoopFacetHandler("A",s1);

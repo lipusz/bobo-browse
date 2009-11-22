@@ -276,12 +276,4 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 		}
 	}
   }
-
-  public TopDocsSortedHitCollector getSortedHitCollector(SortField[] sort,
-                                                         int offset,
-                                                         int count,
-                                                         boolean fetchStoredFields)
-  {
-    return new MultiTopDocsSortedHitCollector(this,sort,offset,count,fetchStoredFields);
-  }
 }
