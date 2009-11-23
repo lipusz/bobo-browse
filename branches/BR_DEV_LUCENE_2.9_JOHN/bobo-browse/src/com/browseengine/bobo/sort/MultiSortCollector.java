@@ -5,55 +5,90 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.LinkedList;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 
-import com.browseengine.bobo.sort.OneSortCollector.MyScoreDoc;
+import com.browseengine.bobo.api.Browsable;
+import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.MultiBoboBrowser;
+import com.browseengine.bobo.impl.SortedFieldBrowseHitComparator;
 import com.browseengine.bobo.util.ListMerger;
 
 public class MultiSortCollector extends SortCollector {
 
-	private final LinkedList<DocIDPriorityQueue> _pqList;
-	private final int _numHits;
-	private int _totalHits;
-	private MyScoreDoc _bottom;
-	private MyScoreDoc _tmpScoreDoc;
-	private final boolean[] _reverse;
-	private boolean _queueFull;
-	private DocComparator[] _currentComparators;
-	private DocComparatorSource[] _compSources;
-	private DocIDPriorityQueue _currentQueue;
-	private DocComparator _currentMultiComparator;
-	private final boolean _doScoring;
-	private float _maxScore;
-	private Scorer _scorer;
-	private final int _offset;
-	private final int _count;
-	  
-	public MultiSortCollector(DocComparatorSource[] compSources,int offset,int count,boolean doScoring){
-		assert (offset>=0 && count>0);
-		_offset = offset;
-		_count = count;
-		_numHits = _offset+_count;
-		_reverse = new boolean[compSources.length];
-		for (int i=0;i<compSources.length;++i){
-			_reverse[i]=compSources[i].isReverse();
-		}
-		_compSources = compSources;
-	    _pqList = new LinkedList<DocIDPriorityQueue>();
-	    _totalHits = 0;
-	    _maxScore = 0.0f;
-	    _queueFull = false;
-	    _doScoring = doScoring;
-	    _currentComparators = new DocComparator[_compSources.length];
-	    _currentMultiComparator = new MultiDocIdComparator(_currentComparators,_reverse);
-	    _tmpScoreDoc = new MyScoreDoc();
+	private static Logger logger = Logger.getLogger(MultiSortCollector.class);
+    private int _totalCount;
+    private final MultiBoboBrowser _multiBrowser;
+    private final SortCollector[] _subCollectors;
+    private final int[] _starts;
+    private final int _offset;
+    private final int _count;
+    private final SortField[] _sort;
+    private Scorer _scorer;
+    private int _docBase;
+    
+	public MultiSortCollector(MultiBoboBrowser multiBrowser,SortField[] sort,int offset,int count,boolean doScoring){
+		_sort = sort;
+	    _offset=offset;
+	    _count=count;
+	    _multiBrowser = multiBrowser;
+	    Browsable[] subBrowsers = _multiBrowser.getSubBrowsers();
+	    _subCollectors = new SortCollector[subBrowsers.length];
+	    for (int i=0;i<subBrowsers.length;++i)
+	    {
+	      _subCollectors[i] = subBrowsers[i].getSortCollector(sort, 0, _offset+_count,doScoring);
+	    }
+	    _starts = _multiBrowser.getStarts();
+	    _totalCount = 0; 
+	    _docBase = 0;
 	}
-	
+
+	@Override
+	public int getTotalHits() {
+		return _totalCount;
+	}
+
+	@Override
+	public TopDocs topDocs() {
+		ArrayList<Iterator<BrowseHit>> iteratorList = new ArrayList<Iterator<BrowseHit>>(_subCollectors.length);
+	    
+	    for (int i=0;i<_subCollectors.length;++i)
+	    {
+	      int base = _starts[i];
+	      try
+	      {
+	    	TopDocs subHits = _subCollectors[i].topDocs();
+	    	
+	    	ScoreDoc[] scoreDocs = subHits.scoreDocs;
+	        for (ScoreDoc hit : scoreDocs)
+	        {
+	          hit.doc += base;
+	          hit.setStoredFields(hit.getStoredFields());
+	        }
+	        iteratorList.add(Arrays.asList(subHits).iterator());
+	      }
+	      catch(IOException ioe)
+	      {
+	        logger.error(ioe.getMessage(),ioe);
+	      }
+	    }
+	    
+	    SortField[] sf = _sort;
+	    if (sf==null || sf.length == 0)
+	    {
+	      sf=new SortField[]{SortField.FIELD_SCORE};
+	    }
+	    Comparator<BrowseHit> comparator = new SortedFieldBrowseHitComparator(sf);
+	    
+	    ArrayList<BrowseHit> mergedList = ListMerger.mergeLists(_offset, _count, iteratorList.toArray(new Iterator[iteratorList.size()]), comparator);
+	    return mergedList.toArray(new BrowseHit[mergedList.size()]);
+	}
+
 	@Override
 	public boolean acceptsDocsOutOfOrder() {
 		return _collector == null ? true : _collector.acceptsDocsOutOfOrder();
@@ -61,100 +96,23 @@ public class MultiSortCollector extends SortCollector {
 
 	@Override
 	public void collect(int doc) throws IOException {
-		_totalHits++;
-		float score;
-	    if (_doScoring){
-	 	   score = _scorer.score();
-	 	   _maxScore+=score;
-	    }
-	    else{
-	 	   score = 0.0f;
-	    }
-	    if (_queueFull){
-	      _tmpScoreDoc.doc=doc;
-	      _tmpScoreDoc.score=score;
-	      _tmpScoreDoc.queue=_currentQueue;
-	      
-	      if (_currentMultiComparator.compare(_bottom,_tmpScoreDoc)>=0){
-	        return;
-	      }
-	      MyScoreDoc tmp=_bottom;
-	      _bottom = (MyScoreDoc)_currentQueue.replace(_tmpScoreDoc);
-	      _tmpScoreDoc = tmp;
-	    }
-	    else{
-	      _bottom = (MyScoreDoc)_currentQueue.add(new MyScoreDoc(doc,score,_currentQueue));
-	      _queueFull = (_currentQueue.size() >= _numHits);
-	    }
-	    
-	    if (_collector!=null) _collector.collect(doc);
+		int docid = doc+_docBase;
+	    int mapped = _multiBrowser.subDoc(docid);
+	    int index = _multiBrowser.subSearcher(docid);
+	    _subCollectors[index].setScorer(_scorer);
+	    _subCollectors[index].collect(mapped);
+	    _totalCount++;
 	}
 
 	@Override
 	public void setNextReader(IndexReader reader, int docBase) throws IOException {
-		for (int i=0;i<_currentComparators.length;++i){
-			_currentComparators[i]=_compSources[i].getComparator(reader,docBase);
-		}
-		_currentQueue = new DocIDPriorityQueue(_currentMultiComparator,_numHits, docBase);
-		_pqList.add(_currentQueue);
-	    _queueFull = false;
+		_docBase = docBase;
 	}
 
 	@Override
 	public void setScorer(Scorer scorer) throws IOException {
 		_scorer = scorer;
-		for (DocComparator comparator : _currentComparators){
-			comparator.setScorer(scorer);
-		}
 	}
 	
-	@Override
-	public int getTotalHits(){
-	    return _totalHits;
-	}
-
-	@Override
-	public TopDocs topDocs(){
-	    ArrayList<Iterator<MyScoreDoc>> iterList = new ArrayList<Iterator<MyScoreDoc>>(_pqList.size());
-	    for (DocIDPriorityQueue pq : _pqList){
-	      int count = pq.size();
-	      MyScoreDoc[] resList = new MyScoreDoc[count];
-	      for (int i = count - 1; i >= 0; i--) { 
-	    	  resList[i] = (MyScoreDoc)pq.pop();
-	      }
-	      iterList.add(Arrays.asList(resList).iterator());
-	    }
-	    
-	    ArrayList<MyScoreDoc> resList = ListMerger.mergeLists(_offset, _count, iterList, new Comparator<MyScoreDoc>() {
-
-	        public int compare(MyScoreDoc o1, MyScoreDoc o2) {
-	          Comparable s1 = o1.getValue();
-	          Comparable s2 = o2.getValue();
-	          int r;
-	          if (s1 == null) {
-	            if (s2 == null) {
-	              r = 0;
-	            } else {
-	              r = -1;
-	            }
-	          } else if (s2 == null) {
-	            r = 1;
-	          }
-	          else{
-	            int v = s1.compareTo(s2);
-	            if (v==0){
-	              r = o1.doc + o1.queue.base - o2.doc - o2.queue.base;
-	            } else {
-	              r = v;
-	            }
-	          }
-	          return r;
-	        }
-	      });
-			
-	    for (MyScoreDoc doc : resList){
-	      doc.doc += doc.queue.base;
-	    }
-	    return new TopDocs(_totalHits, resList.toArray(new ScoreDoc[resList.size()]), _maxScore);
-	  }
+	
 }

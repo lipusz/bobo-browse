@@ -61,7 +61,7 @@ public abstract class SortCollector extends Collector {
 			for (int i = 0; i<sort.length;++i){
 				compSources[i]=getComparatorSource(sort[i]);
 			}
-			collector = new MultiSortCollector(compSources, offset, count, doScoring);
+			collector = new MultiFieldSortCollector(compSources, offset, count, doScoring);
 		}
 		
 		collector._sortFields = sort;
@@ -90,9 +90,8 @@ public abstract class SortCollector extends Collector {
 	    }
 	  }
 	
-	public BrowseHit[] buildHits(TopDocs topDocs,BoboIndexReader reader,Map<String,FacetHandler<?>> runtimeFacetHandlerMap,boolean fetchStoredFields) throws IOException{
-		ScoreDoc[] scoreDocs = topDocs.scoreDocs;
-	    ArrayList<BrowseHit> hitList = new ArrayList<BrowseHit>(scoreDocs.length);
+	public BrowseHit[] buildHits(ScoreDoc[] scoreDocs,BoboIndexReader reader,Map<String,FacetHandler<?>> runtimeFacetHandlerMap,boolean fetchStoredFields) throws IOException{
+		ArrayList<BrowseHit> hitList = new ArrayList<BrowseHit>(scoreDocs.length);
 
 	    Collection<FacetHandler<?>> facetHandlers= reader.getFacetHandlerMap().values();
 	    for (ScoreDoc fdoc : scoreDocs)

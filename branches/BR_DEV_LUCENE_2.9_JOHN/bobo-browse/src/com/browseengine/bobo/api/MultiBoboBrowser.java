@@ -13,14 +13,15 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Collector;
-import org.apache.lucene.search.HitCollector;
 import org.apache.lucene.search.MultiSearcher;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TopDocs;
 
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.search.MultiTopDocsSortedHitCollector;
+import com.browseengine.bobo.sort.MultiSortCollector;
+import com.browseengine.bobo.sort.SortCollector;
 
 
 /**
@@ -137,37 +138,38 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
   public BrowseResult browse(BrowseRequest req) throws BrowseException
   {
 
+    final BrowseResult result = new BrowseResult();
+
     long start = System.currentTimeMillis();
-    
-    SortCollector hitCollector = getSortedHitCollector(req.getSort(), req.getOffset(), req.getCount(),req.isFetchStoredFields());
 
-    Map<String, FacetAccessible> mergedMap = new HashMap<String,FacetAccessible>();
-    browse(req, hitCollector, mergedMap);
+    SortCollector collector = getSortCollector(req.getSort(), req.getOffset(), req.getCount(), false);
     
-    BrowseResult finalResult = new BrowseResult();
+    Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
+    browse(req, collector, facetCollectors);
+    BrowseHit[] hits = null;
 
-    finalResult.setNumHits(hitCollector.getTotalHits());
-    finalResult.setTotalDocs(numDocs());
-    finalResult.addAll(mergedMap);
-    
-    BrowseHit[] hits;
     try
     {
-      hits = hitCollector.getTopDocs();
+      TopDocs topDocs = collector.topDocs();
+      if (topDocs==null || topDocs.scoreDocs==null || topDocs.scoreDocs.length==0){
+    	hits = new BrowseHit[0];
+      }
+      else{
+        hits = collector.buildHits(topDocs.scoreDocs, _reader, getRuntimeFacetHandlerMap(), req.isFetchStoredFields());
+      }
     }
     catch (IOException e)
     {
-      logger.error(e.getMessage(),e);
-      hits=new BrowseHit[0];
+      logger.error(e.getMessage(), e);
+      hits = new BrowseHit[0];
     }
-    
-    finalResult.setHits(hits);
-    
+    result.setHits(hits);
+    result.setNumHits(collector.getTotalHits());
+    result.setTotalDocs(numDocs());
+    result.addAll(facetCollectors);
     long end = System.currentTimeMillis();
-    
-    finalResult.setTime(end - start);
-    
-    return finalResult;
+    result.setTime(end - start);
+    return result;
   }
   
   /**
@@ -252,28 +254,33 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
     return names;
   }
   
-  public FacetHandler getFacetHandler(String name)
+  public FacetHandler<?> getFacetHandler(String name)
   {
     Browsable[] subBrowsers = getSubBrowsers();
     for (Browsable subBrowser : subBrowsers)
     {
-      FacetHandler subHandler = subBrowser.getFacetHandler(name);
+      FacetHandler<?> subHandler = subBrowser.getFacetHandler(name);
       if (subHandler!=null) return subHandler;
     }
     return null;
   }
 	
   
-  public void setFacetHandler(FacetHandler facetHandler) throws IOException
+  public void setFacetHandler(FacetHandler<?> facetHandler) throws IOException
   {
 	Browsable[] subBrowsers = getSubBrowsers();
 	for (Browsable subBrowser : subBrowsers)
 	{
 		try {
-			subBrowser.setFacetHandler((FacetHandler)facetHandler.clone());
+			subBrowser.setFacetHandler((FacetHandler<?>)facetHandler.clone());
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e.getMessage(),e);
 		}
 	}
+  }
+
+  public SortCollector getSortCollector(SortField[] sort, int offset, int count,
+		boolean forceScoring) {
+	return new MultiSortCollector(this, sort, offset, count, forceScoring);
   }
 }

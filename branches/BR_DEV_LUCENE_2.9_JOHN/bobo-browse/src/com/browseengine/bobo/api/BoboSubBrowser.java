@@ -21,6 +21,7 @@ import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TopDocs;
 
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -327,7 +328,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
 
     long start = System.currentTimeMillis();
 
-    SortCollector collector = SortCollector.buildSortCollector(req.getSort(), req.getOffset(), req.getCount(), false);
+    SortCollector collector = getSortCollector(req.getSort(), req.getOffset(), req.getCount(), false);
     
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors);
@@ -335,7 +336,13 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
 
     try
     {
-      hits = collector.buildHits(collector.topDocs(), _reader, getRuntimeFacetHandlerMap(), req.isFetchStoredFields());
+      TopDocs topDocs = collector.topDocs();
+      if (topDocs==null || topDocs.scoreDocs==null || topDocs.scoreDocs.length==0){
+    	hits = new BrowseHit[0];
+      }
+      else{
+        hits = collector.buildHits(topDocs.scoreDocs, _reader, getRuntimeFacetHandlerMap(), req.isFetchStoredFields());
+      }
     }
     catch (IOException e)
     {
