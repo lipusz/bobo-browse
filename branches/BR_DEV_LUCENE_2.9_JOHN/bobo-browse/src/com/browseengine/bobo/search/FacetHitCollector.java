@@ -16,10 +16,12 @@ import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 public final class FacetHitCollector{
 	
 	public FacetCountCollectorSource _facetCountCollectorSource;	
+	public FacetCountCollectorSource _collectAllSource = null;
 	public FacetHandler<?> facetHandler;
 	public RandomAccessFilter _filter;
 	public CurrentPointers _currentPointers = new CurrentPointers();
 	public LinkedList<FacetCountCollector> _countCollectorList = new LinkedList<FacetCountCollector>();
+	public LinkedList<FacetCountCollector> _collectAllCollectorList = new LinkedList<FacetCountCollector>();
 	
 	public void setNextReader(BoboIndexReader reader,int docBase) throws IOException{
 		if (_filter!=null){
@@ -27,8 +29,14 @@ public final class FacetHitCollector{
 			_currentPointers.postDocIDSetIterator = _currentPointers.docidSet.iterator();
 			_currentPointers.doc = _currentPointers.postDocIDSetIterator.nextDoc();
 		}
+		else if (_collectAllSource!=null){
+			FacetCountCollector collector = _collectAllSource.getFacetCountCollector(reader, docBase);
+			_collectAllCollectorList.add(collector);
+			collector.collectAll();
+		}
 		_currentPointers.facetCountCollector = _facetCountCollectorSource.getFacetCountCollector(reader, docBase);
 		_countCollectorList.add(_currentPointers.facetCountCollector);
+		
 	}
 	
 	public static class CurrentPointers{

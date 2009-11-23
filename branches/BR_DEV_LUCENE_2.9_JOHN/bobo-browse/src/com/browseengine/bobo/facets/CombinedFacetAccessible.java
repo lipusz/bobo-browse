@@ -19,7 +19,7 @@ public class CombinedFacetAccessible implements FacetAccessible {
 
 	private final List<FacetAccessible> _list;
 	private final FacetSpec _fspec;
-	CombinedFacetAccessible(FacetSpec fspec,List<FacetAccessible> list)
+	public CombinedFacetAccessible(FacetSpec fspec,List<FacetAccessible> list)
 	{
 		_list = list;
 		_fspec = fspec;

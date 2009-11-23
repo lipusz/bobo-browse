@@ -1,6 +1,7 @@
 package com.browseengine.bobo.api;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,10 +20,9 @@ import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.SortField;
 
+import com.browseengine.bobo.facets.CombinedFacetAccessible;
 import com.browseengine.bobo.facets.FacetCountCollector;
-import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.filter.AndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
@@ -160,7 +160,6 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
 
     LinkedList<Filter> preFilterList = new LinkedList<Filter>();
     List<FacetHitCollector> facetHitCollectorList = new LinkedList<FacetHitCollector>();
-    List<FacetCountCollectorSource> countAllCollectorList = new LinkedList<FacetCountCollectorSource>();
     
     Filter baseFilter = req.getFilter();
     if (baseFilter != null)
@@ -209,21 +208,22 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
           fspec.setMinHitCount(1);
           
           fspec.setExpandSelection(ospec.isExpandSelection());
+
+          facetHitCollector = new FacetHitCollector();
+          
           if (isDefaultSearch)
           {
-            countAllCollectorList.add(handler.getFacetCountCollectorSource(sel, fspec));
+        	facetHitCollector._collectAllSource=handler.getFacetCountCollectorSource(sel, fspec);
           }
           else
           {
-            facetHitCollector = new FacetHitCollector();
             facetHitCollector._facetCountCollectorSource = handler.getFacetCountCollectorSource(sel, fspec);
             facetHitCollector.facetHandler = handler;
             if (ospec.isExpandSelection())
             {
               if (isNoQueryNoFilter && sel!=null && selCount == 1)
               {
-                facetHitCollector = null; // don't post collect
-                countAllCollectorList.add(handler.getFacetCountCollectorSource(sel, fspec));
+            	facetHitCollector._collectAllSource=handler.getFacetCountCollectorSource(sel, fspec);
                 if (filter != null)
                 {
                   preFilterList.add(filter);
@@ -282,12 +282,21 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
         for (FacetHitCollector facetCollector : facetHitCollectorList)
         {
           String name = facetCollector.facetHandler.getName();
-          facetMap.put(name, facetCollector._countCollectorList);
-        }
-        for (FacetCountCollector facetCountCollector : countAllCollectorList)
-        {
-          facetCountCollector.collectAll();
-          facetMap.put(facetCountCollector.getName(), facetCountCollector);
+          LinkedList<FacetCountCollector> resultcollector=null;
+          resultcollector = facetCollector._countCollectorList;
+          if (resultcollector == null){
+        	  resultcollector = facetCollector._collectAllCollectorList;
+          }
+          if (resultcollector!=null){
+        	FacetSpec fspec = req.getFacetSpec(name);
+        	assert fspec != null;
+        	ArrayList<FacetAccessible> finalList = new ArrayList<FacetAccessible>(resultcollector.size());
+        	for (FacetCountCollector fc : resultcollector){
+        		finalList.add((FacetAccessible)fc);
+        	}
+        	CombinedFacetAccessible combinedCollector = new CombinedFacetAccessible(fspec, finalList);
+            facetMap.put(name, combinedCollector);
+          }
         }
       }
     }
