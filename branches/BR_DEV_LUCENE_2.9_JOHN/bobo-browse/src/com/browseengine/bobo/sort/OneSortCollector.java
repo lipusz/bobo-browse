@@ -19,7 +19,7 @@ public class OneSortCollector extends SortCollector {
   private final int _numHits;
   private int _totalHits;
   private MyScoreDoc _bottom;
-  private final boolean _ascending;
+  private final boolean _reverse;
   private boolean _queueFull;
   private DocComparator _currentComparator;
   private DocComparatorSource _compSource;
@@ -47,7 +47,7 @@ public class OneSortCollector extends SortCollector {
     }
   }
 	
-  public OneSortCollector(DocComparatorSource compSource,int offset,int count, boolean reverse,boolean doScoring) {
+  public OneSortCollector(DocComparatorSource compSource,int offset,int count,boolean doScoring) {
     _compSource = compSource;
     _pqList = new LinkedList<DocIDPriorityQueue>();
     assert (offset>=0 && count>0);
@@ -56,7 +56,7 @@ public class OneSortCollector extends SortCollector {
     _count = count;
     _totalHits = 0;
     _queueFull = false;
-    _ascending = !reverse;
+    _reverse = compSource.isReverse();
     _doScoring = doScoring;
     _tmpDoc = new MyScoreDoc();
     _maxScore = 0.0f;
@@ -84,7 +84,7 @@ public class OneSortCollector extends SortCollector {
       _tmpDoc.score = score;
       _tmpDoc.queue=_currentQueue;
       int v = _currentComparator.compare(_bottom,_tmpDoc);
-      if (v==0 || ((v>0) && _ascending)){
+      if (v==0 || ((v>0) && !_reverse)){
         return;
       }
       MyScoreDoc tmp = _bottom;
@@ -131,7 +131,7 @@ public class OneSortCollector extends SortCollector {
       iterList.add(Arrays.asList(resList).iterator());
     }
     
-    final int revMult = _ascending ? 1 : -1;
+    final int revMult = _reverse ? -1 : 1;
     ArrayList<MyScoreDoc> resList = ListMerger.mergeLists(_offset, _count, iterList, new Comparator<MyScoreDoc>() {
 
         public int compare(MyScoreDoc o1, MyScoreDoc o2) {

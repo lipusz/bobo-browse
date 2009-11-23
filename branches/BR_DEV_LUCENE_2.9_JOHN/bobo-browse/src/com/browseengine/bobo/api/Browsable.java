@@ -1,21 +1,25 @@
 package com.browseengine.bobo.api;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Searchable;
 import org.apache.lucene.search.Similarity;
+import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.sort.SortCollector;
 
 public interface Browsable extends Searchable
 {
 	
-	/*void browse(BrowseRequest req, 
+	void browse(BrowseRequest req, 
 	            Collector hitCollector,
-	            Map<String,FacetAccessible> facets) throws BrowseException;*/
+	            Map<String,FacetAccessible> facets) throws BrowseException;
 
 	BrowseResult browse(BrowseRequest req) throws BrowseException;
 
@@ -32,6 +36,8 @@ public interface Browsable extends Searchable
 	String[] getFieldVal(int docid, final String fieldname) throws IOException;
 	
 	int numDocs();
+	
+	SortCollector getSortCollector(SortField[] sort,int offset,int count,boolean fetchStoredFields);
 	
 	Explanation explain(Query q, int docid) throws IOException;
 }

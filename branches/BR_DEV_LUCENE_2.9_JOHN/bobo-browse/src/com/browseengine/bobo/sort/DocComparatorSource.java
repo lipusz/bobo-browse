@@ -10,6 +10,17 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.FieldCache.StringIndex;
 
 public abstract class DocComparatorSource {
+	
+	private boolean _reverse = false;
+	
+	public void setReverse(boolean reverse){
+		_reverse = reverse;
+	}
+	
+	public boolean isReverse(){
+		return _reverse;
+	}
+	
 	public abstract DocComparator getComparator(IndexReader reader,int docbase)
 			throws IOException;
 

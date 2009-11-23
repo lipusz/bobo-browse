@@ -14,6 +14,8 @@ import org.apache.lucene.search.TopDocs;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.sort.DocComparatorSource.DocIdDocComparatorSource;
+import com.browseengine.bobo.sort.DocComparatorSource.RelevanceDocComparatorSource;
 
 public abstract class SortCollector extends Collector {
 	protected Collector _collector = null;
@@ -24,17 +26,46 @@ public abstract class SortCollector extends Collector {
 
 	abstract public int getTotalHits();
 	
+	private static DocComparatorSource getComparatorSource(SortField sf){
+		DocComparatorSource compSource = null;
+		if (SortField.FIELD_DOC.equals(sf)){
+			compSource = new DocIdDocComparatorSource();
+		}
+		else if (SortField.FIELD_SCORE.equals(sf)){
+			compSource = new RelevanceDocComparatorSource();
+		}
+		compSource.setReverse(sf.getReverse());
+		return compSource;
+	}
+	
 	public static SortCollector buildSortCollector(SortField[] sort,int offset,int count,boolean forceScoring){
 		boolean doScoring=forceScoring;
 		
 		for (SortField sf : sort){
 			if (sf.getType() == SortField.SCORE) {
 				doScoring= true;
-			}
-			
+			}	
+		}
+
+		if (sort==null || sort.length==0){
+			sort = new SortField[]{SortField.FIELD_DOC};
 		}
 		
-		return null;
+		SortCollector collector = null;
+		if (sort.length==1){
+			SortField sf = sort[0];
+			collector = new OneSortCollector(getComparatorSource(sf), offset, count, doScoring);
+		}
+		else{
+			DocComparatorSource[] compSources = new DocComparatorSource[sort.length];
+			for (int i = 0; i<sort.length;++i){
+				compSources[i]=getComparatorSource(sort[i]);
+			}
+			collector = new MultiSortCollector(compSources, offset, count, doScoring);
+		}
+		
+		collector._sortFields = sort;
+		return collector;
 	}
 	
 	public void setCollector(Collector collector){

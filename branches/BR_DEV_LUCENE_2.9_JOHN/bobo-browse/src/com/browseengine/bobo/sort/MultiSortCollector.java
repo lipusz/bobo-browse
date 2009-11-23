@@ -22,7 +22,7 @@ public class MultiSortCollector extends SortCollector {
 	private int _totalHits;
 	private MyScoreDoc _bottom;
 	private MyScoreDoc _tmpScoreDoc;
-	private final boolean[] _ascending;
+	private final boolean[] _reverse;
 	private boolean _queueFull;
 	private DocComparator[] _currentComparators;
 	private DocComparatorSource[] _compSources;
@@ -34,14 +34,14 @@ public class MultiSortCollector extends SortCollector {
 	private final int _offset;
 	private final int _count;
 	  
-	public MultiSortCollector(DocComparatorSource[] compSources,boolean[] reverse,int offset,int count,boolean doScoring){
+	public MultiSortCollector(DocComparatorSource[] compSources,int offset,int count,boolean doScoring){
 		assert (offset>=0 && count>0);
 		_offset = offset;
 		_count = count;
 		_numHits = _offset+_count;
-		_ascending = new boolean[reverse.length];
-		for (int i=0;i<reverse.length;++i){
-			_ascending[i]=!reverse[i];
+		_reverse = new boolean[compSources.length];
+		for (int i=0;i<compSources.length;++i){
+			_reverse[i]=compSources[i].isReverse();
 		}
 		_compSources = compSources;
 	    _pqList = new LinkedList<DocIDPriorityQueue>();
@@ -50,7 +50,7 @@ public class MultiSortCollector extends SortCollector {
 	    _queueFull = false;
 	    _doScoring = doScoring;
 	    _currentComparators = new DocComparator[_compSources.length];
-	    _currentMultiComparator = new MultiDocIdComparator(_currentComparators,reverse);
+	    _currentMultiComparator = new MultiDocIdComparator(_currentComparators,_reverse);
 	    _tmpScoreDoc = new MyScoreDoc();
 	}
 	

@@ -20,6 +20,7 @@ import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -304,6 +305,10 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     {
       throw new BrowseException(ioe.getMessage(), ioe);
     }
+  }
+  
+  public SortCollector getSortCollector(SortField[] sort,int offset,int count,boolean forceScoring){
+	  return SortCollector.buildSortCollector(sort, offset, count, forceScoring);
   }
 
   /**
