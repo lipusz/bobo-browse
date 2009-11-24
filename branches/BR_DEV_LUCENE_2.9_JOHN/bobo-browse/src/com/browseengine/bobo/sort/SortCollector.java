@@ -17,6 +17,7 @@ import org.apache.lucene.search.TopDocs;
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboCustomSortField;
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.DocComparatorSource.DocIdDocComparatorSource;
@@ -78,7 +79,7 @@ public abstract class SortCollector extends Collector {
 	    }
 	}
 	
-	private static DocComparatorSource getComparatorSource(BoboBrowser browser,SortField sf){
+	private static DocComparatorSource getComparatorSource(Browsable browser,SortField sf){
 		DocComparatorSource compSource = null;
 		if (SortField.FIELD_DOC.equals(sf)){
 			compSource = new DocIdDocComparatorSource();
@@ -108,7 +109,7 @@ public abstract class SortCollector extends Collector {
 		return compSource;
 	}
 	
-	public static SortCollector buildSortCollector(BoboBrowser browser,SortField[] sort,int offset,int count,boolean forceScoring){
+	public static SortCollector buildSortCollector(Browsable browser,SortField[] sort,int offset,int count,boolean forceScoring){
 		boolean doScoring=forceScoring;
 		
 		for (SortField sf : sort){

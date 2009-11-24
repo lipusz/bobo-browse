@@ -309,7 +309,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
   }
   
   public SortCollector getSortCollector(SortField[] sort,int offset,int count,boolean forceScoring){
-	  return SortCollector.buildSortCollector(sort, offset, count, forceScoring);
+	  return SortCollector.buildSortCollector(this,sort, offset, count, forceScoring);
   }
 
   /**
