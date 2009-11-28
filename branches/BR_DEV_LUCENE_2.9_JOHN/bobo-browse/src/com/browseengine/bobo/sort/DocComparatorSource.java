@@ -11,13 +11,13 @@ import org.apache.lucene.search.FieldCache.StringIndex;
 
 public abstract class DocComparatorSource {
 	
-	private boolean _reverse = false;
+    boolean _reverse = false;
 	
 	public void setReverse(boolean reverse){
 		_reverse = reverse;
 	}
 	
-	public boolean isReverse(){
+	public final boolean isReverse(){
 		return _reverse;
 	}
 	

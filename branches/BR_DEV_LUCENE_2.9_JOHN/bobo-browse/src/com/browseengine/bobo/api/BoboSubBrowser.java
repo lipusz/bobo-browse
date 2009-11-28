@@ -276,7 +276,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
           String name = facetCollector.facetHandler.getName();
           LinkedList<FacetCountCollector> resultcollector=null;
           resultcollector = facetCollector._countCollectorList;
-          if (resultcollector == null){
+          if (resultcollector == null || resultcollector.size() == 0){
         	  resultcollector = facetCollector._collectAllCollectorList;
           }
           if (resultcollector!=null){

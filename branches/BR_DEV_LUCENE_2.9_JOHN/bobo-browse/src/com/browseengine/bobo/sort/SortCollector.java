@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.FieldComparatorSource;
+import org.apache.lucene.search.SortComparatorSource;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboCustomSortField;
@@ -67,8 +68,18 @@ public abstract class SortCollector extends Collector {
 	
 	    case SortField.CUSTOM:
 	      FieldComparatorSource compSource = sf.getComparatorSource();
-	      assert compSource != null;
-	      return new LuceneCustomDocComparatorSource(fieldname, compSource, sf.getReverse());
+	      if (compSource!=null){
+	        return new LuceneCustomDocComparatorSource(fieldname, compSource);
+	      }
+	      else{
+	    	 SortComparatorSource oldCompSource = sf.getFactory();
+	    	 if (oldCompSource!=null){
+	    		 return new OldLuceneDocComparatorSource(fieldname, oldCompSource);
+	    	 }
+	    	 else{
+	    		 throw new IllegalArgumentException("custom sort with no comparator provided");
+	    	 }
+	      }
 	      
 	    case SortField.STRING:
 	      return new DocComparatorSource.StringOrdComparatorSource(fieldname);
@@ -113,7 +124,7 @@ public abstract class SortCollector extends Collector {
 	
 	private static SortField convert(BoboSubBrowser browser,SortField sort){
 		String field =sort.getField();
-		FacetHandler facetHandler = browser.getFacetHandler(field);
+		FacetHandler<?> facetHandler = browser.getFacetHandler(field);
 		if (facetHandler!=null){
 			browser.getFacetHandler(field);
 			BoboCustomSortField sortField = new BoboCustomSortField(field, sort.getReverse(), facetHandler.getDocComparatorSource());

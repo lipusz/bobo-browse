@@ -11,16 +11,15 @@ import org.apache.lucene.search.Scorer;
 public class LuceneCustomDocComparatorSource extends DocComparatorSource {
 	private final FieldComparatorSource _luceneComparatorSource;
 	private final String _fieldname;
-	private final boolean _reverse;
-	public LuceneCustomDocComparatorSource(String fieldname,FieldComparatorSource luceneComparatorSource,boolean reverse){
+	public LuceneCustomDocComparatorSource(String fieldname,FieldComparatorSource luceneComparatorSource){
 		_fieldname = fieldname;
 		_luceneComparatorSource = luceneComparatorSource;
-		_reverse = reverse;
 	}
+	
 	@Override
 	public DocComparator getComparator(IndexReader reader, int docbase)
 			throws IOException {
-		final FieldComparator compr = _luceneComparatorSource.newComparator(_fieldname, 10, 0, _reverse);
+		final FieldComparator compr = _luceneComparatorSource.newComparator(_fieldname, 10, 0, LuceneCustomDocComparatorSource.this.isReverse());
 		compr.setNextReader(reader, docbase);
 		return new DocComparator() {
 			

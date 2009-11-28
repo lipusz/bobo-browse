@@ -871,7 +871,7 @@ public class BoboTestCase extends TestCase {
 	
 	public void testDefaultBrowse(){
 	  BrowseRequest br=new BrowseRequest();
-      br.setCount(10);
+      br.setCount(3);
       br.setOffset(0);
       
       FacetSpec spec = new FacetSpec();
@@ -880,12 +880,12 @@ public class BoboTestCase extends TestCase {
       br.setFacetSpec("color", spec);
       
 
-      br.setSort(new SortField[]{new SortField("number",false)});
+      br.setSort(new SortField[]{new SortField("number",SortField.CUSTOM,false)});
       
       HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
       answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("red",3),new BrowseFacet("blue",2)}));
       
-      doTest(br,7,answer,new String[]{"7","1","2","3","4","5","6"});
+      doTest(br,7,answer,new String[]{"7","1","2"});
       
       
 	}
