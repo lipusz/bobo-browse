@@ -23,6 +23,7 @@ import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
+import com.browseengine.bobo.facets.filter.FacetRangeFilter.FacetRangeValueConverter;
 import com.browseengine.bobo.sort.DocComparatorSource;
 
 public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements FacetHandlerFactory<RangeFacetHandler>{
@@ -157,7 +158,7 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
   {
     if (vals.length > 1)
     {
-      return new FacetOrFilter(this,vals,isNot);
+      return new FacetOrFilter(this,vals,isNot,FacetRangeValueConverter.instance);
     }
     else
     {

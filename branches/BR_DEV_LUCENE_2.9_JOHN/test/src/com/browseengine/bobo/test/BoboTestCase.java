@@ -483,6 +483,7 @@ public class BoboTestCase extends TestCase {
 				buffer.append("expected: \n");
 				buffer.append(numHits).append(" hits\n");
 				buffer.append(choiceMap).append('\n');
+				buffer.append(Arrays.toString(ids)).append('\n');
 				buffer.append("gotten: \n");
 				buffer.append(result.getNumHits()).append(" hits\n");
 				
@@ -727,7 +728,7 @@ public class BoboTestCase extends TestCase {
         BrowseRequest browseRequest = new BrowseRequest();
         browseRequest.setCount(10);
         browseRequest.setOffset(0);
-        browseRequest.addSortField(new SortField("date"));
+        browseRequest.addSortField(new SortField("date",SortField.STRING));
         
 
         doTest(browser,browseRequest,7,null,new String[]{"1","3","5","2","4","7","6"});
@@ -775,7 +776,7 @@ public class BoboTestCase extends TestCase {
       sel.addValue("[2003/01/01 TO 2005/01/01]");
       br.addSelection(sel);
 
-      br.addSortField(new SortField("date",false));
+      br.addSortField(new SortField("date",SortField.CUSTOM,false));
 
       doTest(br,5,null,new String[]{"1","3","5","2","4"});
 	}

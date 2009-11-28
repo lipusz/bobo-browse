@@ -6,12 +6,17 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.SortField;
 
+import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSubBrowser;
+import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.util.ListMerger;
 
 public class OneSortCollector extends SortCollector {
@@ -24,6 +29,7 @@ public class OneSortCollector extends SortCollector {
   private DocComparator _currentComparator;
   private DocComparatorSource _compSource;
   private DocIDPriorityQueue _currentQueue;
+  private BoboIndexReader _currentReader=null;
   private MyScoreDoc _tmpDoc;
   
   private final boolean _doScoring;
@@ -31,15 +37,20 @@ public class OneSortCollector extends SortCollector {
   private Scorer _scorer;
   private int _offset;
   private int _count;
+  
+  private final Map<String,FacetHandler<?>> _facetHandlerMap;
 	
   static class MyScoreDoc extends ScoreDoc {
     DocIDPriorityQueue queue;
+    BoboIndexReader _srcReader;
     public MyScoreDoc(){
-    	this(0,0.0f,null);
+    	this(0,0.0f,null,null);
     }
-    public MyScoreDoc(int docid, float score, DocIDPriorityQueue queue) {
+    
+    public MyScoreDoc(int docid, float score, DocIDPriorityQueue queue,BoboIndexReader reader) {
       super(docid, score);
       this.queue = queue;
+      _srcReader = reader;
     }
     
     Comparable getValue(){
@@ -47,7 +58,9 @@ public class OneSortCollector extends SortCollector {
     }
   }
 	
-  public OneSortCollector(DocComparatorSource compSource,int offset,int count,boolean doScoring) {
+  public OneSortCollector(DocComparatorSource compSource,SortField[] sortFields,BoboSubBrowser boboBrowser,int offset,int count,boolean doScoring,boolean fetchStoredFields) {
+	super(sortFields,fetchStoredFields);
+	_facetHandlerMap = boboBrowser.getFacetHandlerMap();
     _compSource = compSource;
     _pqList = new LinkedList<DocIDPriorityQueue>();
     assert (offset>=0 && count>0);
@@ -82,7 +95,6 @@ public class OneSortCollector extends SortCollector {
     if (_queueFull){
       _tmpDoc.doc = doc;
       _tmpDoc.score = score;
-      _tmpDoc.queue=_currentQueue;
       int v = _currentComparator.compare(_bottom,_tmpDoc);
       if (v==0 || ((v>0) && !_reverse)){
         return;
@@ -92,7 +104,7 @@ public class OneSortCollector extends SortCollector {
       _tmpDoc = tmp;
     }
     else{ 
-      _bottom = (MyScoreDoc)_currentQueue.add(new MyScoreDoc(doc,score,_currentQueue));
+      _bottom = (MyScoreDoc)_currentQueue.add(new MyScoreDoc(doc,score,_currentQueue,_currentReader));
       _queueFull = (_currentQueue.size() >= _numHits);
     }
     
@@ -101,9 +113,14 @@ public class OneSortCollector extends SortCollector {
 
   @Override
   public void setNextReader(IndexReader reader, int docBase) throws IOException {
+	assert reader instanceof BoboIndexReader;
+	_currentReader = (BoboIndexReader)reader;
     _currentComparator = _compSource.getComparator(reader,docBase);
     _currentQueue = new DocIDPriorityQueue(_currentComparator,
                                            _numHits, docBase);
+
+    _tmpDoc.queue=_currentQueue;
+    _tmpDoc._srcReader = _currentReader;
     _pqList.add(_currentQueue);
     _queueFull = false;
   }
@@ -120,7 +137,7 @@ public class OneSortCollector extends SortCollector {
   }
 	
   @Override
-  public TopDocs topDocs(){
+  public BrowseHit[] topDocs() throws IOException{
     ArrayList<Iterator<MyScoreDoc>> iterList = new ArrayList<Iterator<MyScoreDoc>>(_pqList.size());
     for (DocIDPriorityQueue pq : _pqList){
       int count = pq.size();
@@ -163,6 +180,7 @@ public class OneSortCollector extends SortCollector {
     for (MyScoreDoc doc : resList){
       doc.doc += doc.queue.base;
     }
-    return new TopDocs(_totalHits, resList.toArray(new ScoreDoc[resList.size()]), _maxScore);
+    
+    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, _facetHandlerMap, _fetchStoredFields);
   }
 }

@@ -34,6 +34,8 @@ public class UnitTestSuite {
 
 	  public static Test suite(){
           TestSuite suite=new TestSuite();
+          //suite.addTest(new BoboTestCase("testDefaultBrowse"));
+          
           suite.addTestSuite(BoboTestCase.class);
           suite.addTestSuite(ProtoBufConvertTest.class);
           suite.addTestSuite(FacetHandlerTest.class);

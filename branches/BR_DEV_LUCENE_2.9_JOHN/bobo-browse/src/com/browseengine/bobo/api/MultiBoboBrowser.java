@@ -142,24 +142,15 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 
     long start = System.currentTimeMillis();
 
-    SortCollector collector = getSortCollector(req.getSort(), req.getOffset(), req.getCount(), false);
+    SortCollector collector = getSortCollector(req.getSort(), req.getOffset(), req.getCount(), req.isFetchStoredFields(),false);
     
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors);
     BrowseHit[] hits = null;
-
-    try
-    {
-      TopDocs topDocs = collector.topDocs();
-      if (topDocs==null || topDocs.scoreDocs==null || topDocs.scoreDocs.length==0){
-    	hits = new BrowseHit[0];
-      }
-      else{
-        hits = collector.buildHits(topDocs.scoreDocs, _reader, getRuntimeFacetHandlerMap(), req.isFetchStoredFields());
-      }
+    try{
+      hits = collector.topDocs();
     }
-    catch (IOException e)
-    {
+    catch (IOException e){
       logger.error(e.getMessage(), e);
       hits = new BrowseHit[0];
     }
@@ -279,8 +270,8 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 	}
   }
 
-  public SortCollector getSortCollector(SortField[] sort, int offset, int count,
+  public SortCollector getSortCollector(SortField[] sort, int offset, int count, boolean fetchStoredFields,
 		boolean forceScoring) {
-	return new MultiSortCollector(this, sort, offset, count, forceScoring);
+	return new MultiSortCollector(this, sort, offset, count, forceScoring,fetchStoredFields);
   }
 }

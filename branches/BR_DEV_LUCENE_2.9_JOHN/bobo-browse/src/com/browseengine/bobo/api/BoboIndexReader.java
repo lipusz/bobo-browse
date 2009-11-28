@@ -49,17 +49,12 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDocComparator;
-import org.apache.lucene.search.SortComparatorSource;
-import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.ReaderUtil;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.search.LuceneSortDocComparatorFactory;
-import com.browseengine.bobo.search.SortFieldEntry;
 
 /**
  * bobo browse index reader
@@ -72,7 +67,6 @@ public class BoboIndexReader extends FilterIndexReader
 
   protected Map<String, FacetHandler<?>>               _facetHandlerMap;
 
-  protected Map<SortFieldEntry, ScoreDocComparator> _defaultSortFieldCache;
   protected Collection<FacetHandler<?>>                _facetHandlers;
   protected WorkArea                                _workArea;
 
@@ -214,7 +208,8 @@ public class BoboIndexReader extends FilterIndexReader
       }
 
       long start = System.currentTimeMillis();
-      facetHandler.load(this, workArea);
+      Object facetdata = facetHandler.load(this, workArea);
+      _facetDataMap.put(name, facetdata);
       long end = System.currentTimeMillis();
       if (logger.isDebugEnabled()){
     	StringBuffer buf = new StringBuffer();
@@ -307,41 +302,6 @@ public class BoboIndexReader extends FilterIndexReader
     for (FacetHandler<?> facetHandler : facetHandlers)
     {
       _facetHandlerMap.put(facetHandler.getName(), facetHandler);
-    }
-    _defaultSortFieldCache = new HashMap<SortFieldEntry, ScoreDocComparator>();
-  }
-
-  public ScoreDocComparator getDefaultScoreDocComparator(SortField f) throws IOException
-  {
-    int type = f.getType();
-    if (type == SortField.DOC)
-      return ScoreDocComparator.INDEXORDER;
-    if (type == SortField.SCORE)
-      return ScoreDocComparator.RELEVANCE;
-
-    SortComparatorSource factory = f.getFactory();
-    SortFieldEntry entry = factory == null 
-                         ? new SortFieldEntry(f.getField(), type, f.getLocale())
-                         : new SortFieldEntry(f.getField(), factory);
-    ScoreDocComparator comparator = _defaultSortFieldCache.get(entry);
-    if (comparator == null)
-    {
-      synchronized (_defaultSortFieldCache)
-      {
-        comparator = _defaultSortFieldCache.get(entry);
-        if (comparator == null)
-        {
-          comparator = LuceneSortDocComparatorFactory.buildScoreDocComparator(this, entry);
-          if (comparator!=null){
-            _defaultSortFieldCache.put(entry, comparator);
-          }
-        }
-      }
-      return comparator;
-    }
-    else
-    {
-      return comparator;
     }
   }
 

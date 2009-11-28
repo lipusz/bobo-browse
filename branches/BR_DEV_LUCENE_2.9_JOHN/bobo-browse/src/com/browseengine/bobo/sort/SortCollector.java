@@ -4,31 +4,36 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.FieldComparatorSource;
-import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TopDocs;
 
-import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboCustomSortField;
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSubBrowser;
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.DocComparatorSource.DocIdDocComparatorSource;
 import com.browseengine.bobo.sort.DocComparatorSource.RelevanceDocComparatorSource;
+import com.browseengine.bobo.sort.OneSortCollector.MyScoreDoc;
 
 public abstract class SortCollector extends Collector {
 	protected Collector _collector = null;
-	protected Map<String,DocComparator> _comparatorMap = new HashMap<String,DocComparator>();
-	private SortField[] _sortFields;
+	protected final SortField[] _sortFields;
+	protected final boolean _fetchStoredFields;
 	
-	abstract public TopDocs topDocs();
+	protected SortCollector(SortField[] sortFields,boolean fetchStoredFields){
+		_sortFields = sortFields;
+		_fetchStoredFields = fetchStoredFields;
+	}
+	
+	abstract public BrowseHit[] topDocs() throws IOException;
 
 	abstract public int getTotalHits();
 	
@@ -36,9 +41,6 @@ public abstract class SortCollector extends Collector {
 		String fieldname = sf.getField();
 		Locale locale = sf.getLocale();
 		if (locale != null) {
-	      // TODO: it'd be nice to allow FieldCache.getStringIndex
-	      // to optionally accept a Locale so sorting could then use
-	      // the faster StringComparator impls
 	      return new DocComparatorSource.StringLocaleComparatorSource(fieldname, locale);
 		}
 		
@@ -109,9 +111,21 @@ public abstract class SortCollector extends Collector {
 		return compSource;
 	}
 	
-	public static SortCollector buildSortCollector(Browsable browser,SortField[] sort,int offset,int count,boolean forceScoring){
+	private static SortField convert(BoboSubBrowser browser,SortField sort){
+		String field =sort.getField();
+		FacetHandler facetHandler = browser.getFacetHandler(field);
+		if (facetHandler!=null){
+			browser.getFacetHandler(field);
+			BoboCustomSortField sortField = new BoboCustomSortField(field, sort.getReverse(), facetHandler.getDocComparatorSource());
+			return sortField;
+		}
+		else{
+			return sort;
+		}
+	}
+	public static SortCollector buildSortCollector(BoboSubBrowser browser,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields){
 		boolean doScoring=forceScoring;
-		
+		Set<String> facetNames = browser.getFacetNames();
 		for (SortField sf : sort){
 			if (sf.getType() == SortField.SCORE) {
 				doScoring= true;
@@ -124,18 +138,16 @@ public abstract class SortCollector extends Collector {
 		
 		SortCollector collector = null;
 		if (sort.length==1){
-			SortField sf = sort[0];
-			collector = new OneSortCollector(getComparatorSource(browser,sf), offset, count, doScoring);
+			SortField sf = convert(browser,sort[0]);
+			collector = new OneSortCollector(getComparatorSource(browser,sf),sort,browser, offset, count, doScoring,fetchStoredFields);
 		}
 		else{
 			DocComparatorSource[] compSources = new DocComparatorSource[sort.length];
 			for (int i = 0; i<sort.length;++i){
-				compSources[i]=getComparatorSource(browser,sort[i]);
+				compSources[i]=getComparatorSource(browser,convert(browser,sort[i]));
 			}
-			collector = new MultiFieldSortCollector(compSources, offset, count, doScoring);
+			collector = new MultiFieldSortCollector(compSources,sort,browser, offset, count, doScoring,fetchStoredFields);
 		}
-		
-		collector._sortFields = sort;
 		return collector;
 	}
 	
@@ -147,28 +159,15 @@ public abstract class SortCollector extends Collector {
 		return _collector; 
 	}
 	
-	private static void fillInRuntimeFacetValues(BrowseHit[] hits,BoboIndexReader reader,Map<String,FacetHandler<?>> runtimeFacetHandlerMap){
-	    for (BrowseHit hit : hits)
-	    {
-	      for (FacetHandler<?> facetHandler : runtimeFacetHandlerMap.values())
-	      {
-	        String[] values = facetHandler.getFieldValues(reader,hit.getDocid());
-	        if (values != null && hit.getFieldValues() != null)
-	        {
-	          hit.getFieldValues().put(facetHandler.getName(), values);
-	        }
-	      }
-	    }
-	  }
-	
-	public BrowseHit[] buildHits(ScoreDoc[] scoreDocs,BoboIndexReader reader,Map<String,FacetHandler<?>> runtimeFacetHandlerMap,boolean fetchStoredFields) throws IOException{
+	protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields) throws IOException{
 		ArrayList<BrowseHit> hitList = new ArrayList<BrowseHit>(scoreDocs.length);
-
-	    Collection<FacetHandler<?>> facetHandlers= reader.getFacetHandlerMap().values();
-	    for (ScoreDoc fdoc : scoreDocs)
+		Collection<FacetHandler<?>> facetHandlers= facetHandlerMap.values();
+	    for (MyScoreDoc fdoc : scoreDocs)
 	    {
+	      BoboIndexReader reader = fdoc._srcReader;
 	      BrowseHit hit=new BrowseHit();
 	      if (fetchStoredFields){
+	    	 
 	         hit.setStoredFields(reader.document(fdoc.doc));
 	      }
 	      Map<String,String[]> map = new HashMap<String,String[]>();
@@ -179,23 +178,10 @@ public abstract class SortCollector extends Collector {
 	      hit.setFieldValues(map);
 	      hit.setDocid(fdoc.doc);
 	      hit.setScore(fdoc.score);
-	      for (SortField f : _sortFields)
-	      {
-	        if (f.getType() != SortField.SCORE && f.getType() != SortField.DOC)
-	        {
-	          String fieldName = f.getField();
-	          DocComparator comparator = _comparatorMap.get(fieldName);
-	          if (comparator!=null){
-	            hit.addComparable(fieldName, comparator.value(fdoc));
-	          }
-	        }
-	      }
+	      hit.setComparable(fdoc.getValue());
 	      hitList.add(hit);
 	    }
 	    BrowseHit[] hits = hitList.toArray(new BrowseHit[hitList.size()]);
-	    if (runtimeFacetHandlerMap!=null && runtimeFacetHandlerMap.size()>0){
-	      fillInRuntimeFacetValues(hits,reader,runtimeFacetHandlerMap);
-	    }
 	    return hits;
 	  }
 }

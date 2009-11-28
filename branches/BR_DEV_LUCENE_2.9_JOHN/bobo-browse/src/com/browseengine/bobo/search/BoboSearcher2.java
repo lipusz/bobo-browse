@@ -70,11 +70,13 @@ public class BoboSearcher2 extends IndexSearcher{
         throws IOException;
       
       public void setNextReader(BoboIndexReader reader,int docBase) throws IOException{
+    	  for (int i=0;i<_countCollectorSources.length;++i){
+    		  if (_countCollectorSources[i]!=null){
+    		    _countCollectors[i] = _countCollectorSources[i].getFacetCountCollector(reader,docBase);
+    		  }
+    	  }
     	  for (FacetHitCollector hitCollector : _collectors){
     		  hitCollector.setNextReader(reader, docBase);
-    	  }
-    	  for (int i=0;i<_countCollectorSources.length;++i){
-    		  _countCollectors[i] = _countCollectorSources[i].getFacetCountCollector(reader,docBase);
     	  }
       }
       
@@ -190,7 +192,9 @@ public class BoboSearcher2 extends IndexSearcher{
 		public final boolean validate(int docid) throws IOException {
 			for (FacetCountCollector collector : _countCollectors)
             {
-            	collector.collect(docid);
+				if (collector!=null){
+            	  collector.collect(docid);
+				}
             }
             return true;
 		}

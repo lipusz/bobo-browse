@@ -8,15 +8,12 @@ import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TopDocs;
 
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.MultiBoboBrowser;
-import com.browseengine.bobo.impl.SortedFieldBrowseHitComparator;
 import com.browseengine.bobo.util.ListMerger;
 
 public class MultiSortCollector extends SortCollector {
@@ -28,12 +25,11 @@ public class MultiSortCollector extends SortCollector {
     private final int[] _starts;
     private final int _offset;
     private final int _count;
-    private final SortField[] _sort;
     private Scorer _scorer;
     private int _docBase;
     
-	public MultiSortCollector(MultiBoboBrowser multiBrowser,SortField[] sort,int offset,int count,boolean doScoring){
-		_sort = sort;
+	public MultiSortCollector(MultiBoboBrowser multiBrowser,SortField[] sort,int offset,int count,boolean doScoring,boolean fetchStoredFields){
+		super(sort,fetchStoredFields);
 	    _offset=offset;
 	    _count=count;
 	    _multiBrowser = multiBrowser;
@@ -41,7 +37,7 @@ public class MultiSortCollector extends SortCollector {
 	    _subCollectors = new SortCollector[subBrowsers.length];
 	    for (int i=0;i<subBrowsers.length;++i)
 	    {
-	      _subCollectors[i] = subBrowsers[i].getSortCollector(sort, 0, _offset+_count,doScoring);
+	      _subCollectors[i] = subBrowsers[i].getSortCollector(sort, 0, _offset+_count,fetchStoredFields,doScoring);
 	    }
 	    _starts = _multiBrowser.getStarts();
 	    _totalCount = 0; 
@@ -54,7 +50,7 @@ public class MultiSortCollector extends SortCollector {
 	}
 
 	@Override
-	public TopDocs topDocs() {
+	public BrowseHit[] topDocs() throws IOException{
 		ArrayList<Iterator<BrowseHit>> iteratorList = new ArrayList<Iterator<BrowseHit>>(_subCollectors.length);
 	    
 	    for (int i=0;i<_subCollectors.length;++i)
@@ -62,12 +58,10 @@ public class MultiSortCollector extends SortCollector {
 	      int base = _starts[i];
 	      try
 	      {
-	    	TopDocs subHits = _subCollectors[i].topDocs();
-	    	
-	    	ScoreDoc[] scoreDocs = subHits.scoreDocs;
-	        for (ScoreDoc hit : scoreDocs)
+	    	BrowseHit[] subHits = _subCollectors[i].topDocs();
+	    	for (BrowseHit hit : subHits)
 	        {
-	          hit.doc += base;
+	          hit.setDocid(hit.getDocid() + base);
 	          hit.setStoredFields(hit.getStoredFields());
 	        }
 	        iteratorList.add(Arrays.asList(subHits).iterator());
@@ -78,12 +72,18 @@ public class MultiSortCollector extends SortCollector {
 	      }
 	    }
 	    
-	    SortField[] sf = _sort;
-	    if (sf==null || sf.length == 0)
-	    {
-	      sf=new SortField[]{SortField.FIELD_SCORE};
-	    }
-	    Comparator<BrowseHit> comparator = new SortedFieldBrowseHitComparator(sf);
+	    Comparator<BrowseHit> comparator = new Comparator<BrowseHit>(){
+
+			public int compare(BrowseHit o1, BrowseHit o2) {
+				Comparable c1=o1.getComparable();
+				Comparable c2=o2.getComparable();
+				if (c1==null || c2==null){
+					return o2.getDocid() - o1.getDocid();
+				}
+				return c1.compareTo(c2);
+			}
+	    	
+	    };
 	    
 	    ArrayList<BrowseHit> mergedList = ListMerger.mergeLists(_offset, _count, iteratorList.toArray(new Iterator[iteratorList.size()]), comparator);
 	    return mergedList.toArray(new BrowseHit[mergedList.size()]);
@@ -96,21 +96,36 @@ public class MultiSortCollector extends SortCollector {
 
 	@Override
 	public void collect(int doc) throws IOException {
-		int docid = doc+_docBase;
-	    int mapped = _multiBrowser.subDoc(docid);
-	    int index = _multiBrowser.subSearcher(docid);
-	    _subCollectors[index].setScorer(_scorer);
+		//int docid = doc+_docBase;
+	    int mapped = _multiBrowser.subDoc(doc);
+	    int index = _multiBrowser.subSearcher(doc);
 	    _subCollectors[index].collect(mapped);
 	    _totalCount++;
 	}
 
 	@Override
 	public void setNextReader(IndexReader reader, int docBase) throws IOException {
+		IndexReader[] subReaders = reader.getSequentialSubReaders();
+		if (subReaders == null){
+			for (SortCollector subCollector : _subCollectors){
+				subCollector.setNextReader(reader, docBase);
+			}
+		}
+		else{
+			for (IndexReader subReader : subReaders){
+				for (SortCollector subCollector : _subCollectors){
+					subCollector.setNextReader(subReader, docBase);
+				}
+			}
+		}
 		_docBase = docBase;
 	}
 
 	@Override
 	public void setScorer(Scorer scorer) throws IOException {
+		for (SortCollector subCollector : _subCollectors){
+			subCollector.setScorer(scorer);
+		}
 		_scorer = scorer;
 	}
 	

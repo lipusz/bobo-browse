@@ -86,6 +86,17 @@ public final class FacetRangeFilter extends RandomAccessFilter
 		}
 		
 	}
+	
+	public static class FacetRangeValueConverter implements FacetValueConverter{
+		public static FacetRangeValueConverter instance = new FacetRangeValueConverter();
+		private FacetRangeValueConverter(){
+			
+		}
+		public int[] convert(FacetDataCache dataCache, String[] vals) {
+			return convertIndexes(dataCache,vals);
+		}
+		
+	}
 
 	public static int[] convertIndexes(FacetDataCache dataCache,String[] vals)
 	  {

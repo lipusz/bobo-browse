@@ -6,12 +6,16 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.SortField;
 
+import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSubBrowser;
+import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.OneSortCollector.MyScoreDoc;
 import com.browseengine.bobo.util.ListMerger;
 
@@ -26,15 +30,19 @@ public class MultiFieldSortCollector extends SortCollector {
 	private DocComparator[] _currentComparators;
 	private DocComparatorSource[] _compSources;
 	private DocIDPriorityQueue _currentQueue;
-	private DocComparator _currentMultiComparator;
+	private MultiDocIdComparator _currentMultiComparator;
 	private final boolean _doScoring;
 	private float _maxScore;
 	private Scorer _scorer;
 	private final int _offset;
 	private final int _count;
+	private BoboIndexReader _currentReader=null;
+	private final Map<String,FacetHandler<?>> _facetHandlerMap;
 	  
-	public MultiFieldSortCollector(DocComparatorSource[] compSources,int offset,int count,boolean doScoring){
+	public MultiFieldSortCollector(DocComparatorSource[] compSources,SortField[] sort,BoboSubBrowser boboBrowser,int offset,int count,boolean doScoring,boolean fetchStoredFields){
+		super(sort,fetchStoredFields);
 		assert (offset>=0 && count>0);
+		_facetHandlerMap = boboBrowser.getFacetHandlerMap();
 		_offset = offset;
 		_count = count;
 		_numHits = _offset+_count;
@@ -72,7 +80,6 @@ public class MultiFieldSortCollector extends SortCollector {
 	    if (_queueFull){
 	      _tmpScoreDoc.doc=doc;
 	      _tmpScoreDoc.score=score;
-	      _tmpScoreDoc.queue=_currentQueue;
 	      
 	      if (_currentMultiComparator.compare(_bottom,_tmpScoreDoc)>=0){
 	        return;
@@ -82,7 +89,7 @@ public class MultiFieldSortCollector extends SortCollector {
 	      _tmpScoreDoc = tmp;
 	    }
 	    else{
-	      _bottom = (MyScoreDoc)_currentQueue.add(new MyScoreDoc(doc,score,_currentQueue));
+	      _bottom = (MyScoreDoc)_currentQueue.add(new MyScoreDoc(doc,score,_currentQueue,_currentReader));
 	      _queueFull = (_currentQueue.size() >= _numHits);
 	    }
 	    
@@ -91,10 +98,15 @@ public class MultiFieldSortCollector extends SortCollector {
 
 	@Override
 	public void setNextReader(IndexReader reader, int docBase) throws IOException {
-		for (int i=0;i<_currentComparators.length;++i){
+		assert reader instanceof BoboIndexReader;
+		_currentReader = (BoboIndexReader)reader;
+
+	    for (int i=0;i<_currentComparators.length;++i){
 			_currentComparators[i]=_compSources[i].getComparator(reader,docBase);
 		}
-		_currentQueue = new DocIDPriorityQueue(_currentMultiComparator,_numHits, docBase);
+		_currentQueue = new DocIDPriorityQueue((MultiDocIdComparator)(_currentMultiComparator.clone()),_numHits, docBase);
+		_tmpScoreDoc._srcReader = _currentReader;
+		_tmpScoreDoc.queue = _currentQueue;
 		_pqList.add(_currentQueue);
 	    _queueFull = false;
 	}
@@ -113,7 +125,7 @@ public class MultiFieldSortCollector extends SortCollector {
 	}
 
 	@Override
-	public TopDocs topDocs(){
+	public BrowseHit[] topDocs() throws IOException{
 	    ArrayList<Iterator<MyScoreDoc>> iterList = new ArrayList<Iterator<MyScoreDoc>>(_pqList.size());
 	    for (DocIDPriorityQueue pq : _pqList){
 	      int count = pq.size();
@@ -154,7 +166,7 @@ public class MultiFieldSortCollector extends SortCollector {
 	    for (MyScoreDoc doc : resList){
 	      doc.doc += doc.queue.base;
 	    }
-	    return new TopDocs(_totalHits, resList.toArray(new ScoreDoc[resList.size()]), _maxScore);
+	    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, _facetHandlerMap, _fetchStoredFields);
 	  }
 
 }

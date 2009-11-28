@@ -21,7 +21,6 @@ import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TopDocs;
 
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -40,7 +39,8 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
   private static Logger                   logger = Logger.getLogger(BoboSubBrowser.class);
   
   private final BoboIndexReader           _reader;
-  private final Map<String, FacetHandler<?>> _runtimeFacetHandlerMap;
+  private final HashMap<String, FacetHandler<?>> _runtimeFacetHandlerMap;
+  private HashMap<String, FacetHandler<?>> _allFacetHandlerMap;
 
   public BoboIndexReader getIndexReader()
   {
@@ -58,6 +58,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     super(reader);
     _reader = reader;
     _runtimeFacetHandlerMap = new HashMap<String, FacetHandler<?>>();
+    _allFacetHandlerMap = null;
   }
   
   private static boolean isNoQueryNoFilter(BrowseRequest req)
@@ -109,15 +110,15 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
    */
   public FacetHandler<?> getFacetHandler(String name)
   {
-    FacetHandler<?> handler = _runtimeFacetHandlerMap.get(name);
-    if (handler == null)
-    {
-      return _reader.getFacetHandler(name);
-    }
-    else
-    {
-      return handler;
-    }
+    return getFacetHandlerMap().get(name);
+  }
+  
+  public Map<String,FacetHandler<?>> getFacetHandlerMap(){
+	  if (_allFacetHandlerMap == null){
+		_allFacetHandlerMap = new HashMap<String,FacetHandler<?>>(_reader.getFacetHandlerMap());
+		_allFacetHandlerMap.putAll(_runtimeFacetHandlerMap);
+	  }
+	  return _allFacetHandlerMap;
   }
 
   /**
@@ -127,19 +128,8 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
    */
   public Set<String> getFacetNames()
   {
-    Set<String> runtimeFacetNames = _runtimeFacetHandlerMap.keySet();
-    Set<String> installedFacetNames = _reader.getFacetNames();
-    if (runtimeFacetNames.size() > 0)
-    {
-      Set<String> names = new HashSet<String>();
-      names.addAll(_reader.getFacetNames());
-      names.addAll(_runtimeFacetHandlerMap.keySet());
-      return names;
-    }
-    else
-    {
-      return installedFacetNames;
-    }
+	Map<String,FacetHandler<?>> map = getFacetHandlerMap();
+	return map.keySet();
   }
 
   /**
@@ -212,6 +202,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
           fspec.setExpandSelection(ospec.isExpandSelection());
 
           facetHitCollector = new FacetHitCollector();
+          facetHitCollector.facetHandler = handler;
           
           if (isDefaultSearch)
           {
@@ -219,8 +210,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
           }
           else
           {
-            facetHitCollector._facetCountCollectorSource = handler.getFacetCountCollectorSource(sel, fspec);
-            facetHitCollector.facetHandler = handler;
+            facetHitCollector._facetCountCollectorSource = handler.getFacetCountCollectorSource(sel, fspec);            
             if (ospec.isExpandSelection())
             {
               if (isNoQueryNoFilter && sel!=null && selCount == 1)
@@ -308,8 +298,8 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     }
   }
   
-  public SortCollector getSortCollector(SortField[] sort,int offset,int count,boolean forceScoring){
-	  return SortCollector.buildSortCollector(this,sort, offset, count, forceScoring);
+  public SortCollector getSortCollector(SortField[] sort,int offset,int count,boolean fetchStoredFields,boolean forceScoring){
+	  return SortCollector.buildSortCollector(this,sort, offset, count, forceScoring,fetchStoredFields);
   }
 
   /**
@@ -328,7 +318,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
 
     long start = System.currentTimeMillis();
 
-    SortCollector collector = getSortCollector(req.getSort(), req.getOffset(), req.getCount(), false);
+    SortCollector collector = getSortCollector(req.getSort(), req.getOffset(), req.getCount(), req.isFetchStoredFields(),false);
     
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors);
@@ -336,13 +326,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
 
     try
     {
-      TopDocs topDocs = collector.topDocs();
-      if (topDocs==null || topDocs.scoreDocs==null || topDocs.scoreDocs.length==0){
-    	hits = new BrowseHit[0];
-      }
-      else{
-        hits = collector.buildHits(topDocs.scoreDocs, _reader, getRuntimeFacetHandlerMap(), req.isFetchStoredFields());
-      }
+      hits = collector.topDocs();
     }
     catch (IOException e)
     {

@@ -85,7 +85,7 @@ public class FacetOrFilter extends RandomAccessFilter
 	    _bitset = new BitVector(_dataCache.valArray.size());
 	    for (int i : _index)
 	    {
-	      _bitset.get(i);
+	      _bitset.set(i);
 	    }
 	    if (takeCompliment)
 	    {

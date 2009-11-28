@@ -24,19 +24,22 @@ public final class FacetHitCollector{
 	public LinkedList<FacetCountCollector> _collectAllCollectorList = new LinkedList<FacetCountCollector>();
 	
 	public void setNextReader(BoboIndexReader reader,int docBase) throws IOException{
-		if (_filter!=null){
-			_currentPointers.docidSet = _filter.getRandomAccessDocIdSet(reader);
-			_currentPointers.postDocIDSetIterator = _currentPointers.docidSet.iterator();
-			_currentPointers.doc = _currentPointers.postDocIDSetIterator.nextDoc();
-		}
-		else if (_collectAllSource!=null){
+		if (_collectAllSource!=null){
 			FacetCountCollector collector = _collectAllSource.getFacetCountCollector(reader, docBase);
 			_collectAllCollectorList.add(collector);
 			collector.collectAll();
 		}
-		_currentPointers.facetCountCollector = _facetCountCollectorSource.getFacetCountCollector(reader, docBase);
-		_countCollectorList.add(_currentPointers.facetCountCollector);
-		
+		else{
+		  if (_filter!=null){
+			_currentPointers.docidSet = _filter.getRandomAccessDocIdSet(reader);
+			_currentPointers.postDocIDSetIterator = _currentPointers.docidSet.iterator();
+			_currentPointers.doc = _currentPointers.postDocIDSetIterator.nextDoc();
+		  }
+		  if (_facetCountCollectorSource!=null){
+		    _currentPointers.facetCountCollector = _facetCountCollectorSource.getFacetCountCollector(reader, docBase);
+		    _countCollectorList.add(_currentPointers.facetCountCollector);
+		  }
+		}
 	}
 	
 	public static class CurrentPointers{
