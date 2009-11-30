@@ -635,7 +635,7 @@ public class BoboTestCase extends TestCase {
       ospec.setExpandSelection(false);
       br.setFacetSpec("color", ospec);
      
-      br.addSortField(new SortField("date",true));
+      br.addSortField(new SortField("date",SortField.CUSTOM,true));
       
       HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
       answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("blue",2),new BrowseFacet("green",1),new BrowseFacet("red",1)}));

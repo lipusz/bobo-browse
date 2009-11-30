@@ -96,7 +96,7 @@ public class OneSortCollector extends SortCollector {
       _tmpDoc.doc = doc;
       _tmpDoc.score = score;
       int v = _currentComparator.compare(_bottom,_tmpDoc);
-      if (v==0 || ((v>0) && !_reverse)){
+      if (v==0 || ((v<0) && !_reverse)){
         return;
       }
       MyScoreDoc tmp = _bottom;
