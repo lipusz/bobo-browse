@@ -114,7 +114,7 @@ public abstract class DynamicRangeFacetHandler extends FacetHandler<FacetDataNon
   {
     DynamicRangeFacetCountCollector(String name,FacetDataCache dataCache,int docBase, FacetSpec fspec, List<String> predefinedList)
     {
-      super(name,dataCache,docBase,fspec,predefinedList,false);
+      super(name,dataCache,docBase,fspec,predefinedList);
     }
 
     @Override

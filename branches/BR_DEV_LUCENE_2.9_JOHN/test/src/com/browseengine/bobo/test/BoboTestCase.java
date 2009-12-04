@@ -204,8 +204,6 @@ public class BoboTestCase extends TestCase {
 		d1.add(buildMetaField("date","2000/01/01"));
 		d1.add(buildMetaField("name","ken"));
 		d1.add(buildMetaField("char","k"));
-		d1.add(buildMetaField("date_range_start","200001"));
-		d1.add(buildMetaField("date_range_end","200003"));
 		d1.add(buildMetaField("multinum","001"));
 		d1.add(buildMetaField("multinum","003"));
 		d1.add(buildMetaField("compactnum","001"));
@@ -226,8 +224,6 @@ public class BoboTestCase extends TestCase {
 		d2.add(buildMetaField("date","2003/02/14"));
 		d2.add(buildMetaField("name","igor"));
 		d2.add(buildMetaField("char","i"));
-        d2.add(buildMetaField("date_range_start","200005"));
-		d2.add(buildMetaField("date_range_end","200102"));
 		d2.add(buildMetaField("multinum","002"));
 		d2.add(buildMetaField("multinum","004"));
 		d2.add(buildMetaField("compactnum","002"));
@@ -248,8 +244,6 @@ public class BoboTestCase extends TestCase {
 		d3.add(buildMetaField("date","2001/12/25"));
 		d3.add(buildMetaField("name","john"));
 		d3.add(buildMetaField("char","j"));
-		d3.add(buildMetaField("date_range_start","200101"));
-		d3.add(buildMetaField("date_range_end","200112"));
 		d3.add(buildMetaField("multinum","007"));
 		d3.add(buildMetaField("multinum","012"));
 		d3.add(buildMetaField("compactnum","007"));
@@ -270,10 +264,7 @@ public class BoboTestCase extends TestCase {
 		d4.add(buildMetaField("date","2004/11/24"));
 		d4.add(buildMetaField("name","cathy"));
 		d4.add(buildMetaField("char","c"));
-		d4.add(buildMetaField("date_range_start","200105"));
-		d4.add(buildMetaField("date_range_end","200205"));
 		d4.add(buildMetaField("multinum","007"));
-		d4.add(buildMetaField("date_range_end","200205"));
 		d4.add(buildMetaField("multinum","007"));
 		d4.add(buildMetaField("compactnum","007"));
 		d4.add(buildMetaField("numendorsers","000019"));
@@ -292,8 +283,6 @@ public class BoboTestCase extends TestCase {
 		d5.add(buildMetaField("date","2002/03/08"));
 		d5.add(buildMetaField("name","mike"));
 		d5.add(buildMetaField("char","m"));
-		d5.add(buildMetaField("date_range_start","200212"));
-		d5.add(buildMetaField("date_range_end","200312"));
 		d5.add(buildMetaField("multinum","001"));
 		d5.add(buildMetaField("multinum","001"));
 		d5.add(buildMetaField("compactnum","001"));
@@ -314,8 +303,6 @@ public class BoboTestCase extends TestCase {
 		d6.add(buildMetaField("date","2007/08/01"));
 		d6.add(buildMetaField("name","doug"));
 		d6.add(buildMetaField("char","d"));
-		d6.add(buildMetaField("date_range_start","200106"));
-		d6.add(buildMetaField("date_range_end","200301"));
 		d6.add(buildMetaField("multinum","001"));
 		d6.add(buildMetaField("multinum","002"));
 		d6.add(buildMetaField("multinum","003"));
@@ -338,8 +325,6 @@ public class BoboTestCase extends TestCase {
 		d7.add(buildMetaField("date","2006/06/01"));
 		d7.add(buildMetaField("name","abe"));
 		d7.add(buildMetaField("char","a"));
-		d7.add(buildMetaField("date_range_start","200011"));
-		d7.add(buildMetaField("date_range_end","200212"));
 		d7.add(buildMetaField("multinum","008"));
 		d7.add(buildMetaField("multinum","003"));
 		d7.add(buildMetaField("compactnum","008"));
@@ -398,8 +383,6 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(new SimpleFacetHandler("number", numTermFactory));
 		facetHandlers.add(new RangeFacetHandler("date", new PredefinedTermListFactory(Date.class, "yyyy/MM/dd"), Arrays.asList(new String[]{"[2000/01/01 TO 2003/05/05]", "[2003/05/06 TO 2005/04/04]"})));
 		facetHandlers.add(new SimpleFacetHandler("char", (TermListFactory)null));
-		facetHandlers.add(new RangeFacetHandler("date_range_start", new PredefinedTermListFactory(Date.class, "yyyyMM"), true));
-		facetHandlers.add(new RangeFacetHandler("date_range_end", new PredefinedTermListFactory(Date.class, "yyyyMM"), true));
 		facetHandlers.add(new MultiValueFacetHandler("tag", (String)null, (TermListFactory)null, tagSizePayloadTerm));
 		facetHandlers.add(new MultiValueFacetHandler("multinum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new CompactMultiValueFacetHandler("compactnum", new PredefinedTermListFactory(Integer.class, "000")));

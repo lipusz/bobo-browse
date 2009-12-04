@@ -57,7 +57,7 @@ public class FilteredRangeFacetHandler extends FacetHandler<FacetDataNone> imple
 			public FacetCountCollector getFacetCountCollector(BoboIndexReader reader,
 					int docBase) {
 				FacetDataCache dataCache = _innerHandler.getFacetData(reader);
-				return new RangeFacetCountCollector(_name, dataCache,docBase, fspec, _predefinedRanges, false);
+				return new RangeFacetCountCollector(_name, dataCache,docBase, fspec, _predefinedRanges);
 			}
 		};
 		

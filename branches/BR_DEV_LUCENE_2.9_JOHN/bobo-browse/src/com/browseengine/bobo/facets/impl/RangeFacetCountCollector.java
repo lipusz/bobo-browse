@@ -6,11 +6,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
-import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
-import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.util.BigIntArray;
@@ -22,12 +20,11 @@ public class RangeFacetCountCollector implements FacetCountCollector
   private BigIntArray _array;
   private FacetDataCache _dataCache;
   private final String _name;
-  private final boolean _autoRange;
   private final List<String> _predefinedRanges;
   private int[][] _predefinedRangeIndexes;
   private int _docBase;
   
-  protected RangeFacetCountCollector(String name,FacetDataCache dataCache,int docBase,FacetSpec ospec,List<String> predefinedRanges,boolean autoRange)
+  protected RangeFacetCountCollector(String name,FacetDataCache dataCache,int docBase,FacetSpec ospec,List<String> predefinedRanges)
   {
       _name = name;
       _dataCache = dataCache;
@@ -36,7 +33,6 @@ public class RangeFacetCountCollector implements FacetCountCollector
       _docBase = docBase;
       _ospec=ospec;
       _predefinedRanges = predefinedRanges;
-      _autoRange = autoRange;
       
       if (_predefinedRanges!=null)
       {
@@ -158,7 +154,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
       result=(RangeFacet[])list.toArray(result);
       return foldChoices(result,max);
   }
-  
+  /*
   private List<BrowseFacet> buildDynamicRanges()
   {
       final TreeSet<BrowseFacet> facetSet=new TreeSet<BrowseFacet>(new Comparator<BrowseFacet>(){
@@ -192,14 +188,10 @@ public class RangeFacetCountCollector implements FacetCountCollector
       }
       
       return Arrays.asList(facets);
-  }
+  }*/
 
   public List<BrowseFacet> getFacets() {
       if (_ospec!=null){
-          if (_autoRange){
-              return buildDynamicRanges();
-          }
-          else{
               if (_predefinedRangeIndexes!=null)
                   {
                   int minCount=_ospec.getMinHitCount();
@@ -232,7 +224,6 @@ public class RangeFacetCountCollector implements FacetCountCollector
               {
                   return FacetCountCollector.EMPTY_FACET_LIST;
               }
-          }
       }
       else
       {

@@ -31,7 +31,6 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
 	private final String _indexFieldName;
 	private final TermListFactory _termListFactory;
 	private final List<String> _predefinedRanges;
-	private final boolean _autoRange;
 	
 	public RangeFacetHandler(String name,String indexFieldName,TermListFactory termListFactory,List<String> predefinedRanges)
 	{
@@ -39,7 +38,6 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
 		_indexFieldName = indexFieldName;
 		_termListFactory = termListFactory;
 		_predefinedRanges = predefinedRanges;
-		_autoRange = false;
 	}
 	
 	public RangeFacetHandler(String name,TermListFactory termListFactory,List<String> predefinedRanges)
@@ -57,46 +55,11 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
         this(name,indexFieldName,null,predefinedRanges);
     }
 	
-	public RangeFacetHandler(String name,String indexFieldName,TermListFactory termListFactory,boolean autoRange)
-	{
-		super(name);
-		_indexFieldName = indexFieldName;
-		_termListFactory = termListFactory;
-		_predefinedRanges = null;
-		_autoRange = autoRange;
-	}
-	
-	public RangeFacetHandler(String name,TermListFactory termListFactory,boolean autoRange)
-    {
-        this(name,name,termListFactory,autoRange);
-    }
-	
-	public RangeFacetHandler(String name,String indexFieldName,boolean autoRange)
-    {
-        this(name,indexFieldName,null,autoRange);
-    }
-	
-	public RangeFacetHandler(String name,boolean autoRange)
-	{
-		this(name,name,null,autoRange);
-	}
 	
 	public RangeFacetHandler newInstance()
     {
-	  if (_predefinedRanges == null)
-	  {
-        return new RangeFacetHandler(getName(),_indexFieldName,_termListFactory,_autoRange);
-	  }
-	  else
-	  {
-        return new RangeFacetHandler(getName(),_indexFieldName,_termListFactory,_predefinedRanges);
-	  }
+	  return new RangeFacetHandler(getName(),_indexFieldName,_termListFactory,_predefinedRanges);
     }
-	
-	public boolean isAutoRange()
-	{
-		return _autoRange;
-	}
 
 	@Override
 	public DocComparatorSource getDocComparatorSource() {
@@ -180,7 +143,7 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
 		public FacetCountCollector getFacetCountCollector(BoboIndexReader reader,
 				int docBase) {
 			FacetDataCache dataCache = getFacetData(reader);
-			return new RangeFacetCountCollector(_name,dataCache,docBase,ospec,_predefinedRanges,_autoRange);
+			return new RangeFacetCountCollector(_name,dataCache,docBase,ospec,_predefinedRanges);
 		}
 	};
     
@@ -191,14 +154,5 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
 	    FacetDataCache dataCache = new FacetDataCache();
 		dataCache.load(_indexFieldName, reader, _termListFactory);
 		return dataCache;
-	}
-	
-	@Override
-	public FacetAccessible merge(FacetSpec fspec,
-			List<FacetAccessible> facetList) {
-		if (_autoRange) throw new IllegalStateException("Cannot support merging for autoRange");
-		return super.merge(fspec, facetList);
-	}
-
-	
+	}	
 }
