@@ -391,7 +391,7 @@ public class BoboIndexReader extends FilterIndexReader
   }
   /**
    * @deprecated use {@link org.apache.lucene.search.MatchAllDocsQuery} instead.
-   * @return
+   * @return query that matches all docs in the index
    */
   public Query getFastMatchAllDocsQuery()
   {

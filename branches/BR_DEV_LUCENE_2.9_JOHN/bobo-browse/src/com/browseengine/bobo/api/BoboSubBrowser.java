@@ -137,7 +137,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
    * 
    * @param req
    *          browse request
-   * @param hitCollector
+   * @param collector
    *          collector for the hits
    * @param facetMap map to gather facet data
    */

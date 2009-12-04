@@ -238,16 +238,18 @@ public abstract class FacetHandler<D> implements Cloneable
 	/**
 	 * Gets the field value
 	 * @param id doc
+	 * @param reader index reader
 	 * @return array of field values
-	 * @see #getFieldValue(int)
+	 * @see #getFieldValue(BoboIndexReader,int)
 	 */
 	abstract public String[] getFieldValues(BoboIndexReader reader,int id);
 	
 	/**
 	 * Gets a single field value
 	 * @param id doc
+	 * @param reader index reader
 	 * @return first field value
-	 * @see #getFieldValues(int)
+	 * @see #getFieldValues(BoboIndexReader,int)
 	 */
 	public String getFieldValue(BoboIndexReader reader,int id)
 	{

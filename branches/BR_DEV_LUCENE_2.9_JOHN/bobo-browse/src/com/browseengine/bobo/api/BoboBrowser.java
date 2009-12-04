@@ -24,7 +24,7 @@ import com.browseengine.bobo.facets.FacetHandler;
 public class BoboBrowser extends MultiBoboBrowser
 {
   /**
-   * @param browsers
+   * @param reader BoboIndexReader
    * @throws IOException
    */
   public BoboBrowser(BoboIndexReader reader) throws IOException
