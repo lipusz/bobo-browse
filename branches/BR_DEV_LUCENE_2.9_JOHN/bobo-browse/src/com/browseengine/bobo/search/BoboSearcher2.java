@@ -70,13 +70,9 @@ public class BoboSearcher2 extends IndexSearcher{
         throws IOException;
       
       public void setNextReader(BoboIndexReader reader,int docBase) throws IOException{
-    	  for (int i=0;i<_countCollectorSources.length;++i){
-    		  if (_countCollectorSources[i]!=null){
-    		    _countCollectors[i] = _countCollectorSources[i].getFacetCountCollector(reader,docBase);
-    		  }
-    	  }
-    	  for (FacetHitCollector hitCollector : _collectors){
-    		  hitCollector.setNextReader(reader, docBase);
+    	  for (int i=0;i<_collectors.length;++i){
+    		  _collectors[i].setNextReader(reader, docBase);
+    		  _countCollectors[i]=_collectors[i]._currentPointers.facetCountCollector;
     	  }
       }
       

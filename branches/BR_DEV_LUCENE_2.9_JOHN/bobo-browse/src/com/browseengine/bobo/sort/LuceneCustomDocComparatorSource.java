@@ -19,7 +19,7 @@ public class LuceneCustomDocComparatorSource extends DocComparatorSource {
 	@Override
 	public DocComparator getComparator(IndexReader reader, int docbase)
 			throws IOException {
-		final FieldComparator compr = _luceneComparatorSource.newComparator(_fieldname, 10, 0, LuceneCustomDocComparatorSource.this.isReverse());
+		final FieldComparator compr = _luceneComparatorSource.newComparator(_fieldname, 10, 0, false);
 		compr.setNextReader(reader, docbase);
 		return new DocComparator() {
 			

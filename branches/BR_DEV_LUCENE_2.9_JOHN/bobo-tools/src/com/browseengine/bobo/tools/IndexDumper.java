@@ -91,7 +91,7 @@ public class IndexDumper {
 				for (String field : fields){
 					FacetHandler facetHandler = idxReader.getFacetHandler(field);
 					if (facetHandler!=null){
-						String[] f=facetHandler.getFieldValues(k);
+						String[] f=facetHandler.getFieldValues(idxReader,k);
 						StringBuilder buffer=new StringBuilder();
 						buffer.append(field).append(':');
 						for (int l=0;l<f.length;++l){

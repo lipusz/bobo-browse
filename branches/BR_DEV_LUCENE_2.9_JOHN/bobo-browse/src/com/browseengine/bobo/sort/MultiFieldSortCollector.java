@@ -25,7 +25,6 @@ public class MultiFieldSortCollector extends SortCollector {
 	private int _totalHits;
 	private MyScoreDoc _bottom;
 	private MyScoreDoc _tmpScoreDoc;
-	private final boolean[] _reverse;
 	private boolean _queueFull;
 	private DocComparator[] _currentComparators;
 	private DocComparatorSource[] _compSources;
@@ -46,10 +45,6 @@ public class MultiFieldSortCollector extends SortCollector {
 		_offset = offset;
 		_count = count;
 		_numHits = _offset+_count;
-		_reverse = new boolean[compSources.length];
-		for (int i=0;i<compSources.length;++i){
-			_reverse[i]=compSources[i].isReverse();
-		}
 		_compSources = compSources;
 	    _pqList = new LinkedList<DocIDPriorityQueue>();
 	    _totalHits = 0;
@@ -57,7 +52,7 @@ public class MultiFieldSortCollector extends SortCollector {
 	    _queueFull = false;
 	    _doScoring = doScoring;
 	    _currentComparators = new DocComparator[_compSources.length];
-	    _currentMultiComparator = new MultiDocIdComparator(_currentComparators,_reverse);
+	    _currentMultiComparator = new MultiDocIdComparator(_currentComparators);
 	    _tmpScoreDoc = new MyScoreDoc();
 	}
 	

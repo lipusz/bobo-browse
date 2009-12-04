@@ -614,7 +614,7 @@ public class BoboTestCase extends TestCase {
       
 
       br.setFacetSpec("char", charOutput);
-      br.addSortField(new SortField("date",true));
+      br.addSortField(new SortField("date",SortField.CUSTOM,true));
       
       HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
       answer.put("char", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a",1),new BrowseFacet("i",1),new BrowseFacet("k",1)}));
@@ -805,24 +805,24 @@ public class BoboTestCase extends TestCase {
       br.setCount(10);
       br.setOffset(0);
       
-      br.setSort(new SortField[]{new SortField("number",true)});
+      br.setSort(new SortField[]{new SortField("number",SortField.CUSTOM,true)});
       doTest(br,7,null,new String[]{"6","5","4","3","2","1","7"});
-      br.setSort(new SortField[]{new SortField("name",false)});
+      br.setSort(new SortField[]{new SortField("name",SortField.STRING,false)});
       doTest(br,7,null,new String[]{"7","4","6","2","3","1","5"});
       
       BrowseSelection sel=new BrowseSelection("color");
       sel.addValue("red");
       br.addSelection(sel);
-      br.setSort(new SortField[]{new SortField("number",true)});
+      br.setSort(new SortField[]{new SortField("number",SortField.CUSTOM,true)});
       doTest(br,3,null,new String[]{"2","1","7"});
-      br.setSort(new SortField[]{new SortField("name",false)});
+      br.setSort(new SortField[]{new SortField("name",SortField.STRING,false)});
       doTest(br,3,null,new String[]{"7","2","1"});
       
       sel.addValue("blue");
       br.setQuery(new TermQuery(new Term("shape","square")));
-      br.setSort(new SortField[]{new SortField("number",true)});
+      br.setSort(new SortField[]{new SortField("number",SortField.CUSTOM,true)});
       doTest(br,3,null,new String[]{"5","1","7"});
-      br.setSort(new SortField[]{new SortField("name",false)});
+      br.setSort(new SortField[]{new SortField("name",SortField.STRING,false)});
       doTest(br,3,null,new String[]{"7","1","5"});
 	}
 	

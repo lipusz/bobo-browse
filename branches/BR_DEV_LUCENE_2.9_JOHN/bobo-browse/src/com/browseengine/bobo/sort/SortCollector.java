@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -104,7 +103,7 @@ public abstract class SortCollector extends Collector {
 			BoboCustomSortField custField = (BoboCustomSortField)sf;
 			DocComparatorSource src = custField.getCustomComparatorSource();
 			assert src!=null;
-			return src;
+			compSource = src;
 		}
 		else{
 			Set<String> facetNames = browser.getFacetNames();
@@ -118,7 +117,11 @@ public abstract class SortCollector extends Collector {
 				return getNonFacetComparatorSource(sf);
 			}
 		}
-		compSource.setReverse(sf.getReverse());
+		boolean reverse = sf.getReverse();
+		if (reverse){
+			compSource = new ReverseDocComparatorSource(compSource);
+		}
+		compSource.setReverse(reverse);
 		return compSource;
 	}
 	
@@ -136,6 +139,10 @@ public abstract class SortCollector extends Collector {
 	}
 	public static SortCollector buildSortCollector(BoboSubBrowser browser,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields){
 		boolean doScoring=forceScoring;
+		if (sort == null || sort.length==0){
+			sort = new SortField[]{SortField.FIELD_SCORE};
+		}
+		
 		Set<String> facetNames = browser.getFacetNames();
 		for (SortField sf : sort){
 			if (sf.getType() == SortField.SCORE) {
@@ -184,7 +191,7 @@ public abstract class SortCollector extends Collector {
 	      Map<String,String[]> map = new HashMap<String,String[]>();
 	      for (FacetHandler<?> facetHandler : facetHandlers)
 	      {
-	          map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,fdoc.doc));
+	          map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,fdoc.doc-fdoc.queue.base));
 	      }
 	      hit.setFieldValues(map);
 	      hit.setDocid(fdoc.doc);

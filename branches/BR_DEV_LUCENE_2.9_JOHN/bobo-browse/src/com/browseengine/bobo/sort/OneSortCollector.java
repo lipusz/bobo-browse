@@ -24,7 +24,6 @@ public class OneSortCollector extends SortCollector {
   private final int _numHits;
   private int _totalHits;
   private MyScoreDoc _bottom;
-  private final boolean _reverse;
   private boolean _queueFull;
   private DocComparator _currentComparator;
   private DocComparatorSource _compSource;
@@ -69,7 +68,6 @@ public class OneSortCollector extends SortCollector {
     _count = count;
     _totalHits = 0;
     _queueFull = false;
-    _reverse = compSource.isReverse();
     _doScoring = doScoring;
     _tmpDoc = new MyScoreDoc();
     _maxScore = 0.0f;
@@ -96,7 +94,7 @@ public class OneSortCollector extends SortCollector {
       _tmpDoc.doc = doc;
       _tmpDoc.score = score;
       int v = _currentComparator.compare(_bottom,_tmpDoc);
-      if (v==0 || ((v<0) && !_reverse)){
+      if (v==0 || (v<0) ){
         return;
       }
       MyScoreDoc tmp = _bottom;
@@ -148,7 +146,6 @@ public class OneSortCollector extends SortCollector {
       iterList.add(Arrays.asList(resList).iterator());
     }
     
-    final int revMult = _reverse ? -1 : 1;
     ArrayList<MyScoreDoc> resList = ListMerger.mergeLists(_offset, _count, iterList, new Comparator<MyScoreDoc>() {
 
         public int compare(MyScoreDoc o1, MyScoreDoc o2) {
@@ -173,7 +170,7 @@ public class OneSortCollector extends SortCollector {
             }
           }
           
-          return revMult * r;
+          return r;
         }
       });
 		

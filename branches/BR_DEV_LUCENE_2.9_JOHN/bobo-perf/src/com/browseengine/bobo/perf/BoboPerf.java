@@ -9,7 +9,6 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.lucene.index.IndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
