@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="bobo-bench/src"/>
+	<classpathentry kind="src" path="bobo-perf/src"/>
 	<classpathentry kind="src" path="bobo-tools/src"/>
 	<classpathentry kind="src" path="bobo-solr/src"/>
 	<classpathentry kind="src" path="bobo-browse/src"/>
@@ -31,5 +32,7 @@
 	<classpathentry kind="lib" path="lib/master/lucene-core.jar"/>
 	<classpathentry kind="lib" path="lib/master/kamikaze-2.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/master/zoie-2.0.0-rc1.jar"/>
+	<classpathentry kind="lib" path="lib/master/commons-configuration.jar"/>
+	<classpathentry kind="lib" path="lib/master/commons-lang.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
