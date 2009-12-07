@@ -2,7 +2,6 @@ package com.browseengine.bobo.perf;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexReader;
@@ -16,6 +15,7 @@ import org.apache.lucene.util.Version;
 
 public class ExpandIndex {
   public static void main(String[] args) throws IOException {
+	System.out.println("Usage: <srcidx> <targetidx> <numReplications> <numSegments>");
 	File srcIdx = new File(args[0]);
 	File targetIndx = new File(args[1]);
 	
@@ -27,7 +27,9 @@ public class ExpandIndex {
 	Directory targetDir = FSDirectory.open(targetIndx);
 	int timesReplicatePerSeg = numReps/numsegs;
 	IndexWriter writer = new IndexWriter(targetDir,new StandardAnalyzer(Version.LUCENE_CURRENT),MaxFieldLength.UNLIMITED);
-	ArrayList<Directory> dirList = new ArrayList<Directory>(numsegs);
+	writer.setMaxMergeDocs(Integer.MAX_VALUE);
+	writer.setMergeFactor(Integer.MAX_VALUE);
+	
 	System.out.println("num segments: "+numsegs);
 	System.out.println("num reps per segment: "+timesReplicatePerSeg);
 	for (int i=0;i<numsegs;++i){
@@ -40,14 +42,11 @@ public class ExpandIndex {
 		subWriter.addIndexesNoOptimize(multiplier);
 		subWriter.optimize();
 		subWriter.close();
-		dirList.add(ramDir);
+	
+		writer.addIndexesNoOptimize(new Directory[]{ramDir});
 		System.out.println("segment: "+i+" created");
 	}
 	
-	writer.setMaxMergeDocs(Integer.MAX_VALUE);
-	writer.setMergeFactor(Integer.MAX_VALUE);
-	System.out.println("building result index");
-	writer.addIndexesNoOptimize(dirList.toArray(new Directory[dirList.size()]));
 	writer.close();
 	
 	File boboSpring = new File(srcIdx,"bobo.spring");
