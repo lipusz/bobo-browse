@@ -25,7 +25,7 @@ public class FacetTest {
 	public static void main(String[] args) throws Exception{
 		File idx = new File("/Users/jwang/dataset/people-search-index-norm/beef");
 		
-		Directory idxDir = FSDirectory.getDirectory(idx);
+		Directory idxDir = FSDirectory.open(idx);
 		IndexReader reader=IndexReader.open(idxDir,true);
 		
 		BoboIndexReader boboReader=BoboIndexReader.getInstance(reader);

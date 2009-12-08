@@ -11,6 +11,8 @@ import java.util.List;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.perf.BrowseThread.Stats;
@@ -28,7 +30,7 @@ public class BoboPerf implements StatsCollector{
   public static final String THROTTLE_WAIT = "throttle.wait";
   
   private File qlogFile;
-  private File idxDir;
+  private Directory idxDir;
   private int numReq;
   private int numThreads;
   private long throttleWait;
@@ -48,22 +50,23 @@ public class BoboPerf implements StatsCollector{
 	  }
 	 
 	  String idxDirName = _propConf.getString(INDEX_DIR);
-	  idxDir = new File(idxDirName);
-	  if (!idxDir.isAbsolute()){
-		  idxDir = new File(new File("conf"),idxDirName);
+	  File idxFile = new File(idxDirName);
+	  if (!idxFile.isAbsolute()){
+		  idxFile = new File(new File("conf"),idxDirName);
 	  }
 	  numReq = _propConf.getInt(NUM_REQ);
 	  numThreads = _propConf.getInt(NUM_THREADS,10);
 	  throttleWait = _propConf.getLong(THROTTLE_WAIT, 500L);
 	  
 	  System.out.println("query log file: "+qlogFile.getAbsolutePath());
-	  System.out.println("index dir: "+idxDir.getAbsolutePath());
+	  System.out.println("index dir: "+idxFile.getAbsolutePath());
 	  System.out.println("number of reqs: "+numReq);
 	  System.out.println("number of threads: "+numThreads);
 	  System.out.println("throttle wait: "+throttleWait);
 	  
 	  _reqFactory = RequestFactory.load(qlogFile, numReq);
 	  
+	  idxDir = FSDirectory.open(idxFile);
 	  
   }
   
@@ -86,7 +89,7 @@ public class BoboPerf implements StatsCollector{
 	    char c = (char) ch; 
 	  }
 	  
-	  IndexReader r = IndexReader.open(idxDir);
+	  IndexReader r = IndexReader.open(idxDir,true);
 	  try{
 		  boboReader = BoboIndexReader.getInstance(r);
 	  }

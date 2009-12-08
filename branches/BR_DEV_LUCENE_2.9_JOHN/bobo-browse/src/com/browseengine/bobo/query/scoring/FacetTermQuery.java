@@ -149,15 +149,6 @@ public class FacetTermQuery extends Query {
 		}
 
 		@Override
-		public Explanation explain(int docid) throws IOException {
-			Explanation expl = null;
-			if (_scorer!=null){
-				expl = _scorer.explain(docid);
-			}
-			return expl;
-		}
-
-		@Override
 		public float score() throws IOException {
 			return _scorer==null ? 1.0f : _scorer.score(_docSetIter.docID());
 		}
