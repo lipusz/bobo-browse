@@ -191,10 +191,10 @@ public abstract class SortCollector extends Collector {
 	      Map<String,String[]> map = new HashMap<String,String[]>();
 	      for (FacetHandler<?> facetHandler : facetHandlers)
 	      {
-	          map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,fdoc.doc-fdoc.queue.base));
+	          map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,fdoc.doc));//-fdoc.queue.base));
 	      }
 	      hit.setFieldValues(map);
-	      hit.setDocid(fdoc.doc);
+	      hit.setDocid(fdoc.doc+fdoc.queue.base);
 	      hit.setScore(fdoc.score);
 	      hit.setComparable(fdoc.getValue());
 	      hitList.add(hit);

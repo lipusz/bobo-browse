@@ -173,11 +173,6 @@ public class OneSortCollector extends SortCollector {
           return r;
         }
       });
-		
-    for (MyScoreDoc doc : resList){
-      doc.doc += doc.queue.base;
-    }
-    
     return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, _facetHandlerMap, _fetchStoredFields);
   }
 }

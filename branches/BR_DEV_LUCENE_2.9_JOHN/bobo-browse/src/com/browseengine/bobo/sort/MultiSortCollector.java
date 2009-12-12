@@ -28,6 +28,9 @@ public class MultiSortCollector extends SortCollector {
     private Scorer _scorer;
     private int _docBase;
     
+    private SortCollector _currentSortCollector;
+    private int _currentIndex;
+    
 	public MultiSortCollector(MultiBoboBrowser multiBrowser,SortField[] sort,int offset,int count,boolean doScoring,boolean fetchStoredFields){
 		super(sort,fetchStoredFields);
 	    _offset=offset;
@@ -42,6 +45,8 @@ public class MultiSortCollector extends SortCollector {
 	    _starts = _multiBrowser.getStarts();
 	    _totalCount = 0; 
 	    _docBase = 0;
+	    _currentIndex = 0;
+	    _currentSortCollector = null;
 	}
 
 	@Override
@@ -61,7 +66,7 @@ public class MultiSortCollector extends SortCollector {
 	    	BrowseHit[] subHits = _subCollectors[i].topDocs();
 	    	for (BrowseHit hit : subHits)
 	        {
-	          hit.setDocid(hit.getDocid() + base);
+	    	  hit.setDocid(hit.getDocid() + base);
 	          hit.setStoredFields(hit.getStoredFields());
 	        }
 	        iteratorList.add(Arrays.asList(subHits).iterator());
@@ -96,36 +101,20 @@ public class MultiSortCollector extends SortCollector {
 
 	@Override
 	public void collect(int doc) throws IOException {
-		//int docid = doc+_docBase;
-	    int mapped = _multiBrowser.subDoc(doc);
-	    int index = _multiBrowser.subSearcher(doc);
-	    _subCollectors[index].collect(mapped);
+	    _currentSortCollector.collect(doc);
 	    _totalCount++;
 	}
 
 	@Override
 	public void setNextReader(IndexReader reader, int docBase) throws IOException {
-		IndexReader[] subReaders = reader.getSequentialSubReaders();
-		if (subReaders == null){
-			for (SortCollector subCollector : _subCollectors){
-				subCollector.setNextReader(reader, docBase);
-			}
-		}
-		else{
-			for (IndexReader subReader : subReaders){
-				for (SortCollector subCollector : _subCollectors){
-					subCollector.setNextReader(subReader, docBase);
-				}
-			}
-		}
+		_currentSortCollector = _subCollectors[_currentIndex++];
+		_currentSortCollector.setNextReader(reader, docBase);
 		_docBase = docBase;
 	}
 
 	@Override
 	public void setScorer(Scorer scorer) throws IOException {
-		for (SortCollector subCollector : _subCollectors){
-			subCollector.setScorer(scorer);
-		}
+		_currentSortCollector.setScorer(scorer);
 		_scorer = scorer;
 	}
 	

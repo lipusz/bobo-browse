@@ -50,6 +50,13 @@ public class ReverseDocComparatorSource extends DocComparatorSource {
 					throw new IllegalStateException("expected instanace of "+ReverseComparable.class);
 				}
 			}
+			
+			@Override
+			public String toString(){
+				StringBuilder buf = new StringBuilder();
+				buf.append("!").append(_inner);
+				return buf.toString();
+			}
 		}
 		
 	}
