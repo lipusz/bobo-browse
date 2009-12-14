@@ -2,7 +2,7 @@
 
 = Introduction =
 
-We did some performance comparison with similar functionality in MySql.
+We did some performance comparison with similar functionality in !MySql.
 
 = Setup =
 
