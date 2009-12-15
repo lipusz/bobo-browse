@@ -14,7 +14,9 @@ We also created a MySql table:
 
 (using:
 {{{
-create table if not exists cars(id INT NOT NULL AUTO_INCREMENT,PRIMARY KEY(id),color VARCHAR(15),category VARCHAR(30),year INT,price FLOAT,mileage INT,tags VARCHAR(255),makemodel VARCHAR(255),city VARCHAR(255),body VARCHAR(255),fulltext(body));
+CREATE TABLE IF NOT EXISTS cars(id INT NOT NULL AUTO_INCREMENT,PRIMARY KEY(id),color VARCHAR(15),
+category VARCHAR(30),year INT,price FLOAT,mileage INT,tags VARCHAR(255),makemodel VARCHAR(255),
+city VARCHAR(255),body VARCHAR(255),fulltext(body));
 }}}
 )
 
