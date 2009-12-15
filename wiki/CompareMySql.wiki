@@ -10,7 +10,7 @@ Data source: car data, [http://bobo-browse.googlecode.com/svn/trunk/cardata/data
 
 We replicated car data 200 times to get to 3M docs, and create a Lucene index with 20 segments. This is a reasonable index structure during realtime scenarios, and would serve as a loose upper-bound for query latency.
 
-We also created a MySql table:
+We also created a !MySql table:
 
 (using:
 {{{
