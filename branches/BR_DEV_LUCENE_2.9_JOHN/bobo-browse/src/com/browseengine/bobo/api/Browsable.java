@@ -37,7 +37,7 @@ public interface Browsable extends Searchable
 	
 	int numDocs();
 	
-	SortCollector getSortCollector(SortField[] sort,int offset,int count,boolean fetchStoredFields,boolean forceScoring);
+	SortCollector getSortCollector(SortField[] sort,Query q,int offset,int count,boolean fetchStoredFields,boolean forceScoring);
 	
 	Explanation explain(Query q, int docid) throws IOException;
 }

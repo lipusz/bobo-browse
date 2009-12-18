@@ -10,6 +10,8 @@ import java.util.Set;
 
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.FieldComparatorSource;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortComparatorSource;
 import org.apache.lucene.search.SortField;
 
@@ -137,10 +139,16 @@ public abstract class SortCollector extends Collector {
 			return sort;
 		}
 	}
-	public static SortCollector buildSortCollector(BoboSubBrowser browser,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields){
+	public static SortCollector buildSortCollector(BoboSubBrowser browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields){
 		boolean doScoring=forceScoring;
-		if (sort == null || sort.length==0){
-			sort = new SortField[]{SortField.FIELD_SCORE};
+		if (sort == null || sort.length==0){	
+			if (q!=null && !(q instanceof MatchAllDocsQuery)){
+			  sort = new SortField[]{SortField.FIELD_SCORE};
+			}
+		}
+
+		if (sort==null || sort.length==0){
+			sort = new SortField[]{SortField.FIELD_DOC};
 		}
 		
 		Set<String> facetNames = browser.getFacetNames();
@@ -150,9 +158,6 @@ public abstract class SortCollector extends Collector {
 			}	
 		}
 
-		if (sort==null || sort.length==0){
-			sort = new SortField[]{SortField.FIELD_DOC};
-		}
 		
 		SortCollector collector = null;
 		if (sort.length==1){

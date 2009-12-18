@@ -180,17 +180,30 @@ public class BoboSearcher2 extends IndexSearcher{
     }
     
     private final static class NoNeedFacetValidator extends FacetValidator{
+    	private FacetCountCollector[] collList=null;
     	NoNeedFacetValidator(FacetHitCollector[] collectors,FacetCountCollectorSource[] countCollectors,int numPostFilters) throws IOException{
     		super(collectors,countCollectors,numPostFilters);
     	}
+    	
+		@Override
+		public void setNextReader(BoboIndexReader reader, int docBase)
+				throws IOException {
+			super.setNextReader(reader, docBase);
+			ArrayList<FacetCountCollector> filteredCollectorList = new ArrayList<FacetCountCollector>();
+			for (FacetCountCollector collector : _countCollectors){
+				if (collector!=null){
+					filteredCollectorList.add(collector);
+				}
+            }
+			collList = filteredCollectorList.toArray(new FacetCountCollector[filteredCollectorList.size()]);
+		}
+
+
 
 		@Override
 		public final boolean validate(int docid) throws IOException {
-			for (FacetCountCollector collector : _countCollectors)
-            {
-				if (collector!=null){
-            	  collector.collect(docid);
-				}
+			for (FacetCountCollector collector : collList){
+              collector.collect(docid);
             }
             return true;
 		}

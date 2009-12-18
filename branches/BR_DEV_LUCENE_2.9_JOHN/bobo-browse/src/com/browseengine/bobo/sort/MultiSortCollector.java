@@ -8,6 +8,7 @@ import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.SortField;
 
@@ -31,7 +32,7 @@ public class MultiSortCollector extends SortCollector {
     private SortCollector _currentSortCollector;
     private int _currentIndex;
     
-	public MultiSortCollector(MultiBoboBrowser multiBrowser,SortField[] sort,int offset,int count,boolean doScoring,boolean fetchStoredFields){
+	public MultiSortCollector(MultiBoboBrowser multiBrowser,Query q,SortField[] sort,int offset,int count,boolean doScoring,boolean fetchStoredFields){
 		super(sort,fetchStoredFields);
 	    _offset=offset;
 	    _count=count;
@@ -40,7 +41,7 @@ public class MultiSortCollector extends SortCollector {
 	    _subCollectors = new SortCollector[subBrowsers.length];
 	    for (int i=0;i<subBrowsers.length;++i)
 	    {
-	      _subCollectors[i] = subBrowsers[i].getSortCollector(sort, 0, _offset+_count,fetchStoredFields,doScoring);
+	      _subCollectors[i] = subBrowsers[i].getSortCollector(sort, q, 0, _offset+_count,fetchStoredFields,doScoring);
 	    }
 	    _starts = _multiBrowser.getStarts();
 	    _totalCount = 0; 

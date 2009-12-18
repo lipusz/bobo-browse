@@ -14,10 +14,10 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.MultiSearcher;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TopDocs;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.MultiSortCollector;
@@ -142,7 +142,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 
     long start = System.currentTimeMillis();
 
-    SortCollector collector = getSortCollector(req.getSort(), req.getOffset(), req.getCount(), req.isFetchStoredFields(),false);
+    SortCollector collector = getSortCollector(req.getSort(),req.getQuery(), req.getOffset(), req.getCount(), req.isFetchStoredFields(),false);
     
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors);
@@ -270,8 +270,11 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 	}
   }
 
-  public SortCollector getSortCollector(SortField[] sort, int offset, int count, boolean fetchStoredFields,
+  public SortCollector getSortCollector(SortField[] sort, Query q,int offset, int count, boolean fetchStoredFields,
 		boolean forceScoring) {
-	return new MultiSortCollector(this, sort, offset, count, forceScoring,fetchStoredFields);
+	if (_subBrowsers.length==1){
+		return _subBrowsers[0].getSortCollector(sort, q, offset, count, fetchStoredFields, forceScoring);
+	}
+	return new MultiSortCollector(this, q, sort, offset, count, forceScoring,fetchStoredFields);
   }
 }

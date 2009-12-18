@@ -298,8 +298,8 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     }
   }
   
-  public SortCollector getSortCollector(SortField[] sort,int offset,int count,boolean fetchStoredFields,boolean forceScoring){
-	  return SortCollector.buildSortCollector(this,sort, offset, count, forceScoring,fetchStoredFields);
+  public SortCollector getSortCollector(SortField[] sort,Query q,int offset,int count,boolean fetchStoredFields,boolean forceScoring){
+	  return SortCollector.buildSortCollector(this,q,sort, offset, count, forceScoring,fetchStoredFields);
   }
 
   /**
@@ -318,7 +318,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
 
     long start = System.currentTimeMillis();
 
-    SortCollector collector = getSortCollector(req.getSort(), req.getOffset(), req.getCount(), req.isFetchStoredFields(),false);
+    SortCollector collector = getSortCollector(req.getSort(),req.getQuery(),req.getOffset(), req.getCount(), req.isFetchStoredFields(),false);
     
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors);
