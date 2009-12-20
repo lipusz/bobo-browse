@@ -25,23 +25,14 @@
 
 package com.browseengine.bobo.impl;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDocComparator;
-import org.apache.lucene.search.SortComparatorSource;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.Version;
-
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.facets.FacetHandler;
 
 public class QueryProducer{
 	private static Logger logger=Logger.getLogger(QueryProducer.class);
@@ -54,7 +45,7 @@ public class QueryProducer{
 		else{
 			Analyzer analyzer=new StandardAnalyzer(Version.LUCENE_CURRENT);
 			if (defaultField==null) defaultField="contents";
-			return new QueryParser(defaultField, analyzer).parse(queryString);
+			return new QueryParser(Version.LUCENE_CURRENT,defaultField, analyzer).parse(queryString);
 		}
 	}
 

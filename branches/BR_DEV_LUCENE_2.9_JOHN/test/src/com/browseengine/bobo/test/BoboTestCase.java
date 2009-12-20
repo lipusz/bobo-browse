@@ -638,7 +638,7 @@ public class BoboTestCase extends TestCase {
       ospec.setExpandSelection(false);
       br.setFacetSpec("color", ospec);
      
-      br.addSortField(new SortField("date",true));
+      br.addSortField(new SortField("date",SortField.CUSTOM,true));
       
       HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
       answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("green",1),new BrowseFacet("red",1)}));
@@ -658,7 +658,7 @@ public class BoboTestCase extends TestCase {
       ospec.setExpandSelection(false);
       br.setFacetSpec("color", ospec);
      
-      br.addSortField(new SortField("date",true));
+      br.addSortField(new SortField("date",SortField.CUSTOM,true));
       
       HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
       answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("green",1),new BrowseFacet("red",1)}));
@@ -777,7 +777,7 @@ public class BoboTestCase extends TestCase {
       ospec.setExpandSelection(false);
       br.setFacetSpec("color", ospec);
      
-      br.addSortField(new SortField("date",false));
+      br.addSortField(new SortField("date",SortField.CUSTOM,false));
       
       doTest(br,7,null,new String[]{"1","3","5","2","4","7","6"});
     }
@@ -893,7 +893,7 @@ public class BoboTestCase extends TestCase {
   public void testBrowseWithQuery(){
 		try{
 		  BrowseRequest br=new BrowseRequest();
-		  QueryParser parser=new QueryParser("shape",new StandardAnalyzer());
+		  QueryParser parser=new QueryParser(Version.LUCENE_CURRENT,"shape",new StandardAnalyzer(Version.LUCENE_CURRENT));
 		  br.setQuery(parser.parse("square"));
 	      br.setCount(10);
 	      br.setOffset(0);
@@ -903,7 +903,7 @@ public class BoboTestCase extends TestCase {
 	      br.addSelection(sel);
 	      
 	      
-	      br.setSort(new SortField[]{new SortField("number",false)});
+	      br.setSort(new SortField[]{new SortField("number",SortField.CUSTOM,false)});
 	      doTest(br,2,null,new String[]{"7","1"});
 	      
 
@@ -938,7 +938,7 @@ public class BoboTestCase extends TestCase {
 	    FacetSpec ospec=new FacetSpec();
 	    br.setFacetSpec("compactnum", ospec);
 	    
-	    br.setSort(new SortField[]{new SortField("compactnum",true)});
+	    br.setSort(new SortField[]{new SortField("compactnum",SortField.CUSTOM,true)});
 	    
 	    HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
 	     
@@ -999,7 +999,7 @@ public class BoboTestCase extends TestCase {
 
 	    FacetSpec ospec=new FacetSpec();
 	    br.setFacetSpec("multinum", ospec);
-	    br.setSort(new SortField[]{new SortField("multinum",true)});
+	    br.setSort(new SortField[]{new SortField("multinum",SortField.CUSTOM,true)});
 	    HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
 
 		answer.put("multinum", Arrays.asList(new BrowseFacet[]{new BrowseFacet("001",3),new BrowseFacet("002",1),new BrowseFacet("003",3),new BrowseFacet("007",2),new BrowseFacet("008",1),new BrowseFacet("012",1)}));
@@ -1325,7 +1325,7 @@ public class BoboTestCase extends TestCase {
 	  BrowseRequest browseRequest = new BrowseRequest();
       browseRequest.setCount(10);
       browseRequest.setOffset(0);
-      browseRequest.addSortField(new SortField("date"));
+      browseRequest.addSortField(new SortField("date",SortField.CUSTOM));
       
       BrowseSelection colorSel = new BrowseSelection("color");
       colorSel.addValue("red");
@@ -1354,7 +1354,7 @@ public class BoboTestCase extends TestCase {
       
       BoboBrowser boboBrowser = newBrowser();
       
-      browseRequest.setSort(new SortField[]{new SortField("compactnum",true)});
+      browseRequest.setSort(new SortField[]{new SortField("compactnum",SortField.CUSTOM,true)});
       
       MultiBoboBrowser multiBoboBrowser = new MultiBoboBrowser(new Browsable[] {boboBrowser, boboBrowser});
       BrowseResult mergedResult = multiBoboBrowser.browse(browseRequest);
@@ -1367,7 +1367,7 @@ public class BoboTestCase extends TestCase {
       
       doTest(mergedResult, browseRequest, 4, answer, new String[]{"7","7","1","1"});
       
-      browseRequest.setSort(new SortField[]{new SortField("multinum",true)});
+      browseRequest.setSort(new SortField[]{new SortField("multinum",SortField.CUSTOM,true)});
       mergedResult = multiBoboBrowser.browse(browseRequest);
       doTest(mergedResult, browseRequest, 4, answer, new String[]{"7","7","1","1"});
 	}
