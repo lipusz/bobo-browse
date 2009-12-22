@@ -79,7 +79,7 @@ public class ListMerger
       for(Iterator<T> iterator : iterators)
       {
         IteratorNode ctx = new IteratorNode(iterator);
-        if(ctx.fetch()) _queue.insert(ctx);
+        if(ctx.fetch()) _queue.add(ctx);
       }
     }
     
@@ -89,7 +89,7 @@ public class ListMerger
       for(Iterator<T> iterator : iterators)
       {
         IteratorNode ctx = new IteratorNode(iterator);
-        if(ctx.fetch()) _queue.insert(ctx);
+        if(ctx.fetch()) _queue.add(ctx);
       }
     }
 
@@ -105,7 +105,7 @@ public class ListMerger
       T val = ctx._curVal;
       if (ctx.fetch())
       {
-        _queue.adjustTop();
+        _queue.updateTop();
       }
       else
       {

@@ -9,10 +9,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.lucene.search.Collector;
-import org.apache.lucene.search.FieldComparatorSource;
+import org.apache.lucene.search.FieldComparator;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.SortComparatorSource;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboCustomSortField;
@@ -68,20 +67,8 @@ public abstract class SortCollector extends Collector {
 	      return new DocComparatorSource.ShortDocComparatorSource(fieldname);
 	
 	    case SortField.CUSTOM:
-	      FieldComparatorSource compSource = sf.getComparatorSource();
-	      if (compSource!=null){
-	        return new LuceneCustomDocComparatorSource(fieldname, compSource);
-	      }
-	      else{
-	    	 SortComparatorSource oldCompSource = sf.getFactory();
-	    	 if (oldCompSource!=null){
-	    		 return new OldLuceneDocComparatorSource(fieldname, oldCompSource);
-	    	 }
-	    	 else{
-	    		 throw new IllegalArgumentException("custom sort with no comparator provided");
-	    	 }
-	      }
-	      
+		  throw new IllegalArgumentException("lucene custom sort no longer supported"); 
+	
 	    case SortField.STRING:
 	      return new DocComparatorSource.StringOrdComparatorSource(fieldname);
 	

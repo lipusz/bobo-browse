@@ -318,7 +318,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
 
     long start = System.currentTimeMillis();
 
-    SortCollector collector = getSortCollector(req.getSort(),req.getQuery(),req.getOffset(), req.getCount(), req.isFetchStoredFields(),false);
+    SortCollector collector = getSortCollector(req.getSort(),req.getQuery(), req.getOffset(), req.getCount(), req.isFetchStoredFields(),false);
     
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors);

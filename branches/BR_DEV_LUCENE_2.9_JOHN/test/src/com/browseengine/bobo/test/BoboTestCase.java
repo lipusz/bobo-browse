@@ -42,33 +42,27 @@ import java.util.Map.Entry;
 
 import junit.framework.TestCase;
 
-import org.apache.lucene.analysis.Token;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.PayloadAttribute;
+import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
-import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Payload;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Explanation;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.ScoreDocComparator;
-import org.apache.lucene.search.SortComparatorSource;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
 import com.browseengine.bobo.api.BoboBrowser;
+import com.browseengine.bobo.api.BoboCustomSortField;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseException;
@@ -97,6 +91,8 @@ import com.browseengine.bobo.facets.impl.SimpleGroupbyFacetHandler;
 import com.browseengine.bobo.index.BoboIndexer;
 import com.browseengine.bobo.index.digest.DataDigester;
 import com.browseengine.bobo.query.scoring.FacetTermQuery;
+import com.browseengine.bobo.sort.DocComparator;
+import com.browseengine.bobo.sort.DocComparatorSource;
 
 public class BoboTestCase extends TestCase {
 	private Directory _indexDir;
@@ -125,8 +121,13 @@ public class BoboTestCase extends TestCase {
 		_indexDir=createIndex();
 	}
 	
+
 	private BoboIndexReader newIndexReader() throws IOException{
-	  IndexReader srcReader=IndexReader.open(_indexDir);
+		return newIndexReader(true);
+	}
+	
+	private BoboIndexReader newIndexReader(boolean readonly) throws IOException{
+	  IndexReader srcReader=IndexReader.open(_indexDir,readonly);
       try{
         BoboIndexReader reader= BoboIndexReader.getInstance(srcReader,_fconf);
         return reader;
@@ -150,39 +151,38 @@ public class BoboTestCase extends TestCase {
 	  return f;
 	}
 	
-    public static Field buildMetaSizePayloadField(final Term term, final int size)
-    {
-      TokenStream ts = new TokenStream()
-      {
-        private boolean returnToken = true;
+	static class MetaTokenStream extends TokenStream {
+        private boolean returnToken = false;
 
-        private Payload getSizePayload()
-        {
+        private PayloadAttribute payloadAttr;
+        private TermAttribute termAttr;
+        MetaTokenStream(Term term,int size) {
           byte[] buffer = new byte[4];
           buffer[0] = (byte) (size);
           buffer[1] = (byte) (size >> 8);
           buffer[2] = (byte) (size >> 16);
           buffer[3] = (byte) (size >> 24);
-          return new Payload(buffer);
+          payloadAttr = (PayloadAttribute)addAttribute(PayloadAttribute.class);
+          payloadAttr.setPayload(new Payload(buffer));
+          termAttr = (TermAttribute)addAttribute(TermAttribute.class);
+          termAttr.setTermBuffer(term.text());
+          returnToken = true;
         }
 
-        public Token next(Token token) throws IOException
-        {
-          if(returnToken)
-          {
-            returnToken = false;
-            token.setTermText(term.text());
-            token.setStartOffset(0);
-            token.setEndOffset(0);
-            token.setPayload(getSizePayload());
-            return token;
-          }
-          else {
-            return null;
-          }
-        }
-      };
-      Field f = new Field(term.field(), ts);
+        @Override
+		public boolean incrementToken() throws IOException {
+        	if (returnToken) {
+                returnToken = false;
+                return true;
+              } else {
+                return false;
+              }
+		}  
+    }
+	
+    public static Field buildMetaSizePayloadField(final Term term, final int size)
+    {
+      Field f = new Field(term.field(), new MetaTokenStream(term,size));
       return f;
     }
 	
@@ -209,6 +209,7 @@ public class BoboTestCase extends TestCase {
 		d1.add(buildMetaField("compactnum","001"));
 		d1.add(buildMetaField("compactnum","003"));
 		d1.add(buildMetaField("numendorsers","000003"));
+		d1.add(buildMetaField("custom","000003"));
 		
 		Document d2=new Document();
 		d2.add(buildMetaField("id","2"));
@@ -229,6 +230,7 @@ public class BoboTestCase extends TestCase {
 		d2.add(buildMetaField("compactnum","002"));
 		d2.add(buildMetaField("compactnum","004"));
 		d2.add(buildMetaField("numendorsers","000010"));
+		d2.add(buildMetaField("custom","000010"));
 		
 		Document d3=new Document();
 		d3.add(buildMetaField("id","3"));
@@ -249,6 +251,7 @@ public class BoboTestCase extends TestCase {
 		d3.add(buildMetaField("compactnum","007"));
 		d3.add(buildMetaField("compactnum","012"));
 		d3.add(buildMetaField("numendorsers","000015"));
+		d3.add(buildMetaField("custom","000015"));
 		
 		Document d4=new Document();
 		d4.add(buildMetaField("id","4"));
@@ -268,6 +271,7 @@ public class BoboTestCase extends TestCase {
 		d4.add(buildMetaField("multinum","007"));
 		d4.add(buildMetaField("compactnum","007"));
 		d4.add(buildMetaField("numendorsers","000019"));
+		d4.add(buildMetaField("custom","000019"));
 		
 		Document d5=new Document();
 		d5.add(buildMetaField("id","5"));
@@ -288,6 +292,7 @@ public class BoboTestCase extends TestCase {
 		d5.add(buildMetaField("compactnum","001"));
 		d5.add(buildMetaField("compactnum","001"));
 		d5.add(buildMetaField("numendorsers","000002"));
+		d5.add(buildMetaField("custom","000002"));
 		
 		Document d6=new Document();
 		d6.add(buildMetaField("id","6"));
@@ -310,6 +315,7 @@ public class BoboTestCase extends TestCase {
 		d6.add(buildMetaField("compactnum","002"));
 		d6.add(buildMetaField("compactnum","003"));
 		d6.add(buildMetaField("numendorsers","000009"));
+		d6.add(buildMetaField("custom","000009"));
 		
 		Document d7=new Document();
 		d7.add(buildMetaField("id","7"));
@@ -330,6 +336,7 @@ public class BoboTestCase extends TestCase {
 		d7.add(buildMetaField("compactnum","008"));
 		d7.add(buildMetaField("compactnum","003"));
 		d7.add(buildMetaField("numendorsers","000013"));
+		d7.add(buildMetaField("custom","000013"));
 		
 		dataList.add(d1);
 		dataList.add(d2);
@@ -811,14 +818,14 @@ public class BoboTestCase extends TestCase {
 	
 	public void testCustomSort(){
 		
-		final class CustomSortComparatorSource implements SortComparatorSource{
-
-			public ScoreDocComparator newComparator(IndexReader reader,
-					String fld) throws IOException {
+		final class CustomSortComparatorSource extends DocComparatorSource{
+			@Override
+			public DocComparator getComparator(IndexReader reader, int docbase)
+					throws IOException {
 				return new CustomSortDocComparator();
 			}
-			
-			final class CustomSortDocComparator implements ScoreDocComparator{
+
+			final class CustomSortDocComparator extends DocComparator{
 
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
 					int id1 = Math.abs(doc1.doc - 4);
@@ -829,15 +836,11 @@ public class BoboTestCase extends TestCase {
 					}
 					return val;
 				}
-
-				public int sortType() {
-					return SortField.CUSTOM;
-				}
-
-				public Comparable sortValue(ScoreDoc doc) {
+				
+				public Comparable value(ScoreDoc doc) {
 					return new Integer(Math.abs(doc.doc-4));
 				}
-				
+
 			}
 			
 		}
@@ -846,12 +849,12 @@ public class BoboTestCase extends TestCase {
 	    br.setCount(10);
 	    br.setOffset(0);
 	      
-	    br.setSort(new SortField[]{new SortField("custom",new CustomSortComparatorSource())});
+	    br.setSort(new SortField[]{new BoboCustomSortField("custom",false,new CustomSortComparatorSource())});
 	    doTest(br,7,null,new String[]{"5","4","6","3","7","2","1"});
 	    
 	    
 	}
-	
+
 	public void testDefaultBrowse(){
 	  BrowseRequest br=new BrowseRequest();
       br.setCount(3);
@@ -1063,7 +1066,7 @@ public class BoboTestCase extends TestCase {
 
     try
     {
-      reader = newIndexReader();
+      reader = newIndexReader(false);
       reader.deleteDocuments(new Term("id", "1"));
       reader.deleteDocuments(new Term("id", "2"));
       
@@ -1257,63 +1260,6 @@ public class BoboTestCase extends TestCase {
 		doTest(br,2,answer,null);
 		
 	}
-	
-	public void testFastMatchAllDocs() throws Exception{
-		  RAMDirectory idxDir = new RAMDirectory();
-		  Document doc;
-		  Field f;
-		  IndexWriter writer = new IndexWriter(idxDir,new StandardAnalyzer(Version.LUCENE_CURRENT),MaxFieldLength.UNLIMITED);
-		  doc = new Document();
-		  f = new Field("id","1",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
-		  doc.add(f);
-		  writer.addDocument(doc);
-		  doc = new Document();
-		  f = new Field("id","2",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
-	      doc.add(f);
-	      writer.addDocument(doc);
-	      doc = new Document();
-	      f = new Field("id","3",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
-	      doc.add(f);
-	      writer.addDocument(doc);
-	      writer.commit();
-	      
-	      writer.deleteDocuments(new Term("id","1"));
-	      writer.deleteDocuments(new Term("id","2"));
-	      writer.deleteDocuments(new Term("id","3"));
-	      writer.commit();
-	      
-	      BoboIndexReader reader = BoboIndexReader.getInstance(IndexReader.open(idxDir));
-	      IndexSearcher searcher = new IndexSearcher(reader);
-	      
-	      TopDocs topDocs = searcher.search(reader.getFastMatchAllDocsQuery(), 100);
-	      assertEquals(0, topDocs.totalHits);
-	      reader.close();
-	      
-	      doc = new Document();
-	      f = new Field("id","1",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
-	      doc.add(f);
-	      writer.addDocument(doc);
-	      doc = new Document();
-	      f = new Field("id","2",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
-	      doc.add(f);
-	      writer.addDocument(doc);
-	      doc = new Document();
-	      f = new Field("id","3",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
-	      doc.add(f);
-	      writer.addDocument(doc);
-	      writer.commit();
-	      
-	      reader = BoboIndexReader.getInstance(IndexReader.open(idxDir));
-	      searcher = new IndexSearcher(reader);
-	      
-	      //Query q = new MatchAllDocsQuery();
-
-	      Query q = reader.getFastMatchAllDocsQuery();
-	      
-	      topDocs = searcher.search(q, 100);
-	      assertEquals(3, topDocs.totalHits);
-	      reader.close();
-		}
 	
 	/**
 	 * Tests the MultiBoboBrowser functionality by creating a BoboBrowser and 
