@@ -15,100 +15,91 @@ import com.browseengine.bobo.perf.BrowseThread.StatsCollector;
 
 public class DocumentFetchPerf extends AbstractPerfTest {
 
-	public static final String NUM_DOCS_TO_FETCH="numdocs.to.fetch";
-	public static final String NUM_ITER="num.iter";
-	  
-	private int _numDocsToFetch = 0;
-	private int _numIter = 0;
+	public static final String NUM_DOCS_TO_FETCH = "numdocs.to.fetch";
+	public static final String NUM_ITER = "num.iter";
+
+	private int _numDocsToFetch;
+	private int _numIter;
 	private final Random _rand;
-	
+
 	public DocumentFetchPerf(PropertiesConfiguration propConf)
 			throws IOException {
 		super(propConf);
 		_rand = new Random();
-	}
-	
-	@Override
-	protected void init() throws IOException{ 
-		super.init();
-		try{
-		  _numDocsToFetch=Integer.parseInt(_propConf.getString(NUM_DOCS_TO_FETCH));
+		try {
+			_numDocsToFetch = Integer.parseInt(_propConf
+					.getString(NUM_DOCS_TO_FETCH));
+		} catch (Exception e) {
+			_numDocsToFetch = 50;
 		}
-		catch(Exception e){
-		  _numDocsToFetch = 50;
-		}
-		
-		try{
-		  _numIter=Integer.parseInt(_propConf.getString(NUM_ITER));
-		}
-		catch(Exception e){
-		  _numIter = 50;
+
+		try {
+			_numIter = Integer.parseInt(_propConf.getString(NUM_ITER));
+		} catch (Exception e) {
+			_numIter = 50;
 		}
 	}
-	
+
 	@Override
 	public Thread buildWorkThread() {
-		return new FetchDocThread(_rand, _numDocsToFetch, luceneReader,throttleWait,_numIter,this);
+		return new FetchDocThread(_rand, _numDocsToFetch, luceneReader,
+				throttleWait, _numIter, this);
 	}
 
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) throws Exception{
+	public static void main(String[] args) throws Exception {
 		File propFile = new File(args[0]);
-		DocumentFetchPerf perf = new DocumentFetchPerf(new PropertiesConfiguration(propFile));
+		DocumentFetchPerf perf = new DocumentFetchPerf(
+				new PropertiesConfiguration(propFile));
 		perf.start();
 	}
 
-	private static class FetchDocThread extends Thread{
+	private static class FetchDocThread extends Thread {
 		private final Random _rand;
 		private final int[] docsToFetch;
 		private final IndexReader _idxReader;
 		private final StatsCollector _collector;
 		private final long _throttleWait;
 		private final int _numIter;
-		
-		FetchDocThread(Random rand,int numToFetch,IndexReader reader,
-				long throttleWait,int numIter,StatsCollector statsCollector){
+
+		FetchDocThread(Random rand, int numToFetch, IndexReader reader,
+				long throttleWait, int numIter, StatsCollector statsCollector) {
 			_idxReader = reader;
 			_rand = rand;
 			_throttleWait = throttleWait;
 			_numIter = numIter;
 			_collector = statsCollector;
-			
+
 			int maxDoc = reader.maxDoc();
-			
+
 			IntSet idSet = new IntOpenHashSet();
-			while (idSet.size() < numToFetch){
-				int docid=_rand.nextInt(maxDoc);
-				if (!idSet.contains(docid) && !reader.isDeleted(docid)){
+			while (idSet.size() < numToFetch) {
+				int docid = _rand.nextInt(maxDoc);
+				if (!idSet.contains(docid) && !reader.isDeleted(docid)) {
 					idSet.add(docid);
 				}
 			}
-			
+
 			docsToFetch = idSet.toIntArray();
 		}
-		
+
 		@Override
-		public void run(){
-			for (int i=0;i<_numIter;++i){
-				long start = System.currentTimeMillis();
+		public void run() {
+			for (int i = 0; i < _numIter; ++i) {
+				try {
+					for (int docid : docsToFetch) {
 
-				Exception ex = null;
-				try{
-				  for (int docid : docsToFetch){
-					_idxReader.document(docid);
-				  }
-				}
-				catch(Exception e){
+						long start = System.nanoTime();
+						_idxReader.document(docid);
+						long end = System.nanoTime();
+						_collector.collect(new Stats((end - start), null));
+					}
+				} catch (Exception e) {
 					e.printStackTrace();
-					ex = e;
+					_collector.collect(new Stats(0L, e));
 				}
-				
-
-				long end = System.currentTimeMillis();
-				
-				_collector.collect(new Stats((end-start),ex));
 				try {
 					Thread.sleep(_throttleWait);
 				} catch (InterruptedException e) {

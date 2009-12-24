@@ -145,10 +145,15 @@ public abstract class AbstractPerfTest implements StatsCollector {
 			}
 		});
 
-		System.out.println("median time: "
+		if (statsArray.length>0){
+		  System.out.println("median time: "
 				+ statsArray[statsArray.length / 2].getTime());
-		System.out.println("average time: " + (sum / statsArray.length));
-		System.out.println("error count: " + errCount);
+		  System.out.println("average time: " + (sum / statsArray.length));
+		  System.out.println("error count: " + errCount);
+		}
+		else{
+		  System.out.println("No stats available.");
+		}
 	}
 	
 	public void shutdown(){
