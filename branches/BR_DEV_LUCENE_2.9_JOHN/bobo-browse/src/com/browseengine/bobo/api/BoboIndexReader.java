@@ -75,6 +75,10 @@ public class BoboIndexReader extends FilterIndexReader
   protected int[] _starts = null;
   
   private final Map<String,Object> _facetDataMap = new HashMap<String,Object>();
+  private final ThreadLocal<Map<String,Object>> _runtimeFacetDataMap = new ThreadLocal<Map<String,Object>>()
+  {
+    protected Map<String,Object> initialValue() { return new HashMap<String,Object>(); }
+  };
   
   /**
    * Constructor
@@ -151,6 +155,30 @@ public class BoboIndexReader extends FilterIndexReader
   public Object putFacetData(String name,Object data){
 	  return _facetDataMap.put(name, data);
   }
+  
+  public Object getRuntimeFacetData(String name)
+  {
+    Map<String,Object> map = _runtimeFacetDataMap.get();
+    if(map == null) return null;
+
+    return map.get(name);
+  }
+
+  public Object putRuntimeFacetData(String name,Object data)
+  {
+    Map<String,Object> map = _runtimeFacetDataMap.get();
+    if(map == null)
+    {
+      map = new HashMap<String,Object>();
+      _runtimeFacetDataMap.set(map);
+    }
+    return map.put(name, data);
+  }
+
+  public void clearRuntimeFacetData()
+  {
+    _runtimeFacetDataMap.set(null);
+  }
 
   @Override
   protected void doClose() throws IOException
@@ -208,8 +236,7 @@ public class BoboIndexReader extends FilterIndexReader
       }
 
       long start = System.currentTimeMillis();
-      Object facetdata = facetHandler.load(this, workArea);
-      _facetDataMap.put(name, facetdata);
+      facetHandler.loadFacetData(this, workArea);
       long end = System.currentTimeMillis();
       if (logger.isDebugEnabled()){
     	StringBuffer buf = new StringBuffer();

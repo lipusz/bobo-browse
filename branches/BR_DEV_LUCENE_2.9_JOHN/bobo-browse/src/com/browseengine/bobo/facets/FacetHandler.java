@@ -123,6 +123,16 @@ public abstract class FacetHandler<D> implements Cloneable
 	  return load(reader);
 	}
 	
+	public void loadFacetData(BoboIndexReader reader, BoboIndexReader.WorkArea workArea) throws IOException
+	{
+	  reader.putFacetData(_name, load(reader, workArea));
+	}
+	
+	public void loadFacetData(BoboIndexReader reader) throws IOException
+	{
+	  reader.putFacetData(_name, load(reader));
+	}
+
 	/**
 	 * Gets a filter from a given selection
 	 * @param sel selection

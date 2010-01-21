@@ -97,7 +97,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
 			facetHandler.putDependedFacetHandler(f);
 		}
 	}
-    facetHandler.load(reader);
+    facetHandler.loadFacetData(reader);
     _runtimeFacetHandlerMap.put(facetHandler.getName(), facetHandler);
   }
 
