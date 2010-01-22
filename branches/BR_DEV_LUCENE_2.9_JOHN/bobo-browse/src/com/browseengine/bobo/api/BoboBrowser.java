@@ -5,11 +5,8 @@ package com.browseengine.bobo.api;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.lucene.index.IndexReader;
@@ -29,10 +26,10 @@ public class BoboBrowser extends MultiBoboBrowser
    */
   public BoboBrowser(BoboIndexReader reader) throws IOException
   {
-    super(createSubBrowsers(reader));
+    super(createBrowsables(reader));
   }
 
-  private static Browsable[] createSubBrowsers(BoboIndexReader reader)
+  public static Browsable[] createBrowsables(BoboIndexReader reader)
   {
     List<IndexReader> readerList = new ArrayList<IndexReader>();
     ReaderUtil.gatherSubReaders(readerList, reader);
@@ -52,6 +49,15 @@ public class BoboBrowser extends MultiBoboBrowser
     }
   }
   
+  public static Browsable[] createBrowsables(List<BoboIndexReader> readerList){
+	  List<Browsable> browsableList = new ArrayList<Browsable>();
+	  for (BoboIndexReader boboReader : readerList){
+		  Browsable[] sub = createBrowsables(boboReader);
+		  browsableList.addAll(Arrays.asList(sub));
+	  }
+	  return browsableList.toArray(new Browsable[browsableList.size()]);
+  }
+  
   /**
    * Gets a set of facet names
    * 
@@ -62,9 +68,8 @@ public class BoboBrowser extends MultiBoboBrowser
     return _subBrowsers[0].getFacetNames();
   }
   
-  public FacetHandler getFacetHandler(String name)
+  public FacetHandler<?> getFacetHandler(String name)
   {
     return _subBrowsers[0].getFacetHandler(name);
   }
-
 }
