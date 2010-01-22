@@ -358,7 +358,7 @@ public class BoboIndexReader extends FilterIndexReader
         _starts = new int[_subReaders.length + 1];
         for (int i = 0; i < _subReaders.length; i++)
         {
-          if(facetHandlers != null) _subReaders[i].setFacetHandlers(cloneFacetHandlers(facetHandlers));
+          if(facetHandlers != null) _subReaders[i].setFacetHandlers(facetHandlers);
           _starts[i] = maxDoc;
           maxDoc += _subReaders[i].maxDoc();
         }
@@ -369,23 +369,6 @@ public class BoboIndexReader extends FilterIndexReader
     _workArea = workArea;
   }
   
-  private static Collection<FacetHandler<?>> cloneFacetHandlers(Collection<FacetHandler<?>> facetHandlers)
-  {
-    ArrayList<FacetHandler<?>> clonedFacetHandlers = new ArrayList<FacetHandler<?>>(facetHandlers.size());
-    for(FacetHandler<?> f : facetHandlers)
-    {
-      try
-      {
-        clonedFacetHandlers.add((FacetHandler<?>)f.clone());
-      }
-      catch (CloneNotSupportedException e)
-      {
-        throw new RuntimeException(e.getMessage(),e);
-      }
-    }
-    return clonedFacetHandlers;
-  }
-
   protected void facetInit() throws IOException
   {
     facetInit(new HashSet<String>());

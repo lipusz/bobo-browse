@@ -262,11 +262,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 	Browsable[] subBrowsers = getSubBrowsers();
 	for (Browsable subBrowser : subBrowsers)
 	{
-		try {
-			subBrowser.setFacetHandler((FacetHandler<?>)facetHandler.clone());
-		} catch (CloneNotSupportedException e) {
-			throw new RuntimeException(e.getMessage(),e);
-		}
+	  subBrowser.setFacetHandler(facetHandler);
 	}
   }
 
