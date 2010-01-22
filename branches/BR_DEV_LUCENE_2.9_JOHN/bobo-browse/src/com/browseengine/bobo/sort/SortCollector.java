@@ -142,6 +142,7 @@ public abstract class SortCollector extends Collector {
 		for (SortField sf : sort){
 			if (sf.getType() == SortField.SCORE) {
 				doScoring= true;
+				break;
 			}	
 		}
 
