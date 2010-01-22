@@ -27,7 +27,7 @@ import com.browseengine.bobo.sort.DocComparatorSource;
  * FacetHandler definition
  *
  */
-public abstract class FacetHandler<D> implements Cloneable 
+public abstract class FacetHandler<D>
 {
 	public static class FacetDataNone implements Serializable{
 		private static final long serialVersionUID = 1L;
