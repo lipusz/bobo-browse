@@ -80,8 +80,6 @@ public class BoboIndexReader extends FilterIndexReader
   {
     protected Map<String,Object> initialValue() { return new HashMap<String,Object>(); }
   };
-  private final Map<String,Object> _metaDataMap = new HashMap<String,Object>();
-
   
   /**
    * Constructor
@@ -151,6 +149,11 @@ public class BoboIndexReader extends FilterIndexReader
     return (Collection<FacetHandler<?>>) appCtx.getBean("handlers");
   }
   
+  public IndexReader getInnerReader()
+  {
+    return in;
+  }
+  
   public Object getFacetData(String name){
 	  return _facetDataMap.get(name);
   }
@@ -159,14 +162,6 @@ public class BoboIndexReader extends FilterIndexReader
 	  return _facetDataMap.put(name, data);
   }
   
-  public Object getMetaData(String name){
-    return _metaDataMap.get(name);
-  }
-
-  public Object putMetaData(String name,Object data){
-    return _metaDataMap.put(name, data);
-  }
-
   public Object getRuntimeFacetData(String name)
   {
     Map<String,Object> map = _runtimeFacetDataMap.get();
