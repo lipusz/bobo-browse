@@ -68,6 +68,7 @@ public class BoboIndexReader extends FilterIndexReader
   protected Map<String, FacetHandler<?>>               _facetHandlerMap;
 
   protected Collection<FacetHandler<?>>                _facetHandlers;
+
   protected WorkArea                                _workArea;
 
   protected IndexReader _srcReader;
@@ -79,6 +80,8 @@ public class BoboIndexReader extends FilterIndexReader
   {
     protected Map<String,Object> initialValue() { return new HashMap<String,Object>(); }
   };
+  private final Map<String,Object> _metaDataMap = new HashMap<String,Object>();
+
   
   /**
    * Constructor
@@ -156,6 +159,14 @@ public class BoboIndexReader extends FilterIndexReader
 	  return _facetDataMap.put(name, data);
   }
   
+  public Object getMetaData(String name){
+    return _metaDataMap.get(name);
+  }
+
+  public Object putMetaData(String name,Object data){
+    return _metaDataMap.put(name, data);
+  }
+
   public Object getRuntimeFacetData(String name)
   {
     Map<String,Object> map = _runtimeFacetDataMap.get();
