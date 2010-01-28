@@ -36,24 +36,35 @@ public class MultiDocIdComparator extends DocComparator implements Cloneable{
 	}
 
 	@Override
-	public Comparable value(final ScoreDoc doc) {
-		return new Comparable(){
+	public Comparable value(ScoreDoc doc) {
+		return new MultiDocIdComparable(doc, _comparators);
+	}
+	
+	public static class MultiDocIdComparable implements Comparable
+	{
+	  private ScoreDoc _doc;
+	  private DocComparator[] _comparators;
 
-			public int compareTo(Object o) {
-				ScoreDoc otherDoc = (ScoreDoc)o;
-				int v=0;
-				Comparable c1,c2;
-				for (int i=0;i<_comparators.length;++i){
-					c1 = _comparators[i].value(doc);
-					c2 = _comparators[i].value(otherDoc);
-					v = c1.compareTo(c2);
-					if (v!=0) {
-						break;
-					}
-				}
-				return v;
-			}
-			
-		};
+	  public MultiDocIdComparable(ScoreDoc doc, DocComparator[] comparators)
+	  {
+	    _doc = doc;
+	    _comparators = comparators;
+	  }
+	  
+	  public int compareTo(Object o)
+      {
+	    MultiDocIdComparable other = (MultiDocIdComparable)o;
+        int v=0;
+        Comparable c1,c2;
+        for (int i=0;i<_comparators.length;++i){
+            c1 = _comparators[i].value(_doc);
+            c2 = _comparators[i].value(other._doc);
+            v = c1.compareTo(c2);
+            if (v!=0) {
+                break;
+            }
+        }
+        return v;
+      }
 	}
 }
