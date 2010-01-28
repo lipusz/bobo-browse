@@ -411,4 +411,10 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
       return doc.getValues(fieldname);
     }
   }
+  
+  public void close() throws IOException
+  {
+    if(_reader != null) _reader.clearRuntimeFacetData();
+    super.close();
+  }
 }

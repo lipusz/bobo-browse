@@ -273,4 +273,13 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 	}
 	return new MultiSortCollector(this, q, sort, offset, count, forceScoring,fetchStoredFields);
   }
+  
+  public void close() throws IOException
+  {
+    Browsable[] subBrowsers = getSubBrowsers();
+    for (Browsable subBrowser : subBrowsers)
+    {
+      subBrowser.close();
+    }
+  }
 }
