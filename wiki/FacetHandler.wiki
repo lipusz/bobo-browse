@@ -128,7 +128,7 @@ Used to filter documents based on distance metric – latitude and longitude.  T
 
 Given a term of the format "<latitude, longitude, radius>", we convert it to two ranges ‘[latitude – radius, latitude + radius]’ and ‘[longitude – radius, longitude + radius]’ and pass these two ranges to the two underlying range facet handlers.
 
-===FacetCountCollector:===
+===!FacetCountCollector:===
 
 A count array, int[] of size t, is created to store the hit count for each term, given a match docid, count[order[docid]] is incremented. Facets are created by grouping all elements in the term array with count >= minHitCount specified by the FacetSpec, into desired range facets of the format <latitude, longitude, radius>. 
 
@@ -148,6 +148,6 @@ Used to filter documents based on distance metric – latitude and longitude.  T
 
 Given a term of the format "<latitude, longitude, radius>", we convert it to x-y-z coordinates and cosine radius and calculate the distance metric as the dot product of the user-specified x-y-z coordinates and the x-y-z coordinates of the document.
 
-===FacetCountCollector:===
+===!FacetCountCollector:===
 
 A count array, int[] of size n, is created to store the hit count for each term, given a match docid, count[order[docid]] is incremented. Facets are created by grouping all elements in the term array with count >= minHitCount specified by the FacetSpec, into desired range facets of the format <latitude, longitude, radius>.
